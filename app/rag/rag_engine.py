@@ -79,6 +79,9 @@ class RAGEngine:
                         # some context from the conversation to improve relevance
                         search_query = f"{query} {conversation_context[-200:]}"
                     
+                    # Log the search query
+                    logger.info(f"Searching with query: {search_query[:100]}...")
+                    
                     search_results = await self.vector_store.search(
                         query=search_query,
                         top_k=top_k,
@@ -86,25 +89,47 @@ class RAGEngine:
                     )
                     
                     if search_results:
+                        # Log the number of results
+                        logger.info(f"Retrieved {len(search_results)} chunks from vector store")
+                        
                         # Format context with source information
                         context_pieces = []
                         for i, result in enumerate(search_results):
-                            context_piece = f"[{i+1}] {result['content']}"
+                            # Extract metadata for better context
+                            metadata = result["metadata"]
+                            filename = metadata.get("filename", "Unknown")
+                            tags = metadata.get("tags", [])
+                            folder = metadata.get("folder", "/")
+                            
+                            # Format the context piece with metadata
+                            context_piece = f"[{i+1}] Source: {filename}, Tags: {tags}, Folder: {folder}\n\n{result['content']}"
                             context_pieces.append(context_piece)
                             
                             # Track the source for citation
-                            doc_id = result["metadata"]["document_id"]
+                            doc_id = metadata["document_id"]
                             document_ids.append(doc_id)
+                            
+                            # Calculate relevance score (lower distance = higher relevance)
+                            relevance_score = 1.0 - (result["distance"] if result["distance"] is not None else 0)
+                            
+                            # Log the relevance score for debugging
+                            logger.debug(f"Chunk {i+1} relevance score: {relevance_score:.4f}")
                             
                             sources.append({
                                 "document_id": doc_id,
                                 "chunk_id": result["chunk_id"],
-                                "relevance_score": 1.0 - (result["distance"] if result["distance"] is not None else 0),
-                                "excerpt": result["content"][:200] + "..." if len(result["content"]) > 200 else result["content"]
+                                "relevance_score": relevance_score,
+                                "excerpt": result["content"][:200] + "..." if len(result["content"]) > 200 else result["content"],
+                                "filename": filename,
+                                "tags": tags,
+                                "folder": folder
                             })
                         
                         # Join all context pieces
                         context = "\n\n".join(context_pieces)
+                        
+                        # Log the total context length
+                        logger.info(f"Total context length: {len(context)} characters")
                     else:
                         logger.warning("No relevant documents found for the query")
                         context = "Note: No relevant documents found for your query. The response will be based on the model's general knowledge."
@@ -131,25 +156,54 @@ Context:
 
 {"User's new question" if conversation_context else "User Question"}: {query}
 
-Use the provided context to answer the question. If the context doesn't contain enough information, say so, but try to provide a helpful response based on what you know. When using information from the context, reference your sources with the number in square brackets, like [1] or [2].
+IMPORTANT INSTRUCTIONS:
+1. Base your answer primarily on the information in the provided context.
+2. When using information from the context, ALWAYS reference your sources with the number in square brackets, like [1] or [2].
+3. If the context contains the answer, provide it clearly and concisely.
+4. If the context doesn't contain enough information, explicitly state what's missing and then try to provide a helpful response based on what you know.
+5. Do not make up information that isn't in the context or your general knowledge.
+6. If you're unsure about something, be honest about your uncertainty.
+7. Organize your answer in a clear, structured way.
 """
             
             # Create system prompt if not provided
             if not system_prompt:
-                system_prompt = """You are a helpful assistant that provides accurate, factual responses.
+                system_prompt = """You are a helpful assistant that provides accurate, factual responses based on the Metis RAG system.
 
-When provided with context from documents, use it to give specific, well-informed answers. Only cite sources using the numbers in square brackets like [1] or [2] if they were provided in the context.
+ROLE AND CAPABILITIES:
+- You have access to a Retrieval-Augmented Generation (RAG) system that can retrieve relevant documents to answer questions.
+- Your primary function is to use the retrieved context to provide accurate, well-informed answers.
+- You can cite sources using the numbers in square brackets like [1] or [2] when they are provided in the context.
 
-When provided with conversation history, maintain continuity with previous exchanges and refer back to earlier parts of the conversation when relevant.
+GUIDELINES FOR USING CONTEXT:
+- Always prioritize information from the retrieved context over your general knowledge.
+- Analyze the context carefully to find the most relevant information for the user's question.
+- If multiple sources provide different information, synthesize them and explain any discrepancies.
+- If the context includes metadata like filenames, tags, or folders, use this to understand the source and relevance of the information.
 
-If you don't have enough information from the context or conversation history, acknowledge that and provide more general guidance based on what you know.
+WHEN CONTEXT IS INSUFFICIENT:
+- Clearly state when the retrieved context doesn't contain enough information to fully answer the question.
+- Be specific about what information is missing.
+- Then provide a more general response based on your knowledge, but clearly distinguish this from information in the context.
 
-Your responses should be clear, direct, and helpful. Maintain a consistent tone throughout the conversation.
+CONVERSATION HANDLING:
+- Maintain continuity with previous exchanges when conversation history is provided.
+- Refer back to earlier parts of the conversation when relevant.
+
+RESPONSE STYLE:
+- Be clear, direct, and helpful.
+- Structure your responses logically.
+- Use appropriate formatting to enhance readability.
+- Maintain a consistent, professional tone throughout the conversation.
 """
+            # Log the prompt and system prompt for debugging
+            logger.debug(f"System prompt: {system_prompt[:200]}...")
+            logger.debug(f"Full prompt: {full_prompt[:200]}...")
             
             # Generate response
             if stream:
                 # For streaming, just return the stream response
+                logger.info(f"Generating streaming response with model: {model}")
                 stream_response = await self.ollama_client.generate(
                     prompt=full_prompt,
                     model=model,
@@ -160,6 +214,8 @@ Your responses should be clear, direct, and helpful. Maintain a consistent tone 
                 
                 # Record analytics asynchronously
                 response_time_ms = (time.time() - start_time) * 1000
+                logger.info(f"Response time: {response_time_ms:.2f}ms")
+                
                 # Use await instead of async for with the coroutine
                 await self._record_analytics(
                     query=query,
@@ -177,6 +233,7 @@ Your responses should be clear, direct, and helpful. Maintain a consistent tone 
                 }
             else:
                 # For non-streaming, get the complete response
+                logger.info(f"Generating non-streaming response with model: {model}")
                 response = await self.ollama_client.generate(
                     prompt=full_prompt,
                     model=model,
@@ -187,9 +244,15 @@ Your responses should be clear, direct, and helpful. Maintain a consistent tone 
                 
                 # Calculate response time
                 response_time_ms = (time.time() - start_time) * 1000
+                logger.info(f"Response time: {response_time_ms:.2f}ms")
                 
                 # Get response text
                 response_text = response.get("response", "")
+                logger.info(f"Response length: {len(response_text)} characters")
+                
+                # Log a preview of the response
+                if response_text:
+                    logger.debug(f"Response preview: {response_text[:100]}...")
                 
                 # Record analytics asynchronously
                 await self._record_analytics(
