@@ -246,8 +246,15 @@ RESPONSE STYLE:
                 response_time_ms = (time.time() - start_time) * 1000
                 logger.info(f"Response time: {response_time_ms:.2f}ms")
                 
-                # Get response text
-                response_text = response.get("response", "")
+                # Check if there was an error in the response
+                if "error" in response:
+                    error_message = response.get("error", "Unknown error")
+                    logger.warning(f"Model returned an error: {error_message}")
+                    response_text = response.get("response", f"Error: {error_message}")
+                else:
+                    # Get response text
+                    response_text = response.get("response", "")
+                
                 logger.info(f"Response length: {len(response_text)} characters")
                 
                 # Log a preview of the response
