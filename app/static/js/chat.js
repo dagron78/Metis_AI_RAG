@@ -205,8 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error:', error);
             
-            // Add error message
-            contentDiv.textContent = 'Sorry, there was an error processing your request.';
+            // Add error message with more details
+            contentDiv.textContent = 'Sorry, there was an error processing your request. ';
+            
+            // Add suggestion based on RAG status
+            if (ragToggle.checked) {
+                contentDiv.textContent += 'This might be because there are no documents available for RAG. ' +
+                    'Try uploading some documents or disabling the RAG feature.';
+            } else {
+                contentDiv.textContent += 'Please try again later or with different parameters.';
+            }
             
             // Hide loading indicator
             loadingIndicator.style.display = 'none';

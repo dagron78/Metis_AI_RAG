@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Metis RAG{% endblock %}
+
+{% block head %}
+<!-- Document manager styles -->
+<link rel="stylesheet" href="{{ url_for('static', path='css/document-manager.css') }}">
+{% endblock %}
+
+{% block sidebar %}
+<form id="chat-form">
+    <!-- Model Selection -->
+    <div class="form-group">
+        <label for="model">
+            Select Model:
+            <span class="tooltip">
+                <i class="fas fa-info-circle"></i>
+                <span class="tooltip-text">Choose which AI model to use. Different models have different capabilities and performance characteristics.</span>
+            </span>
+        </label>
+        <div class="param-description">Choose the AI model to use for generating responses.</div>
+        <select id="model" name="model">
+            <option value="llama3" selected>Llama 3</option>
+            <!-- Other models will be loaded dynamically -->
+        </select>
+    </div>
+    
+    <!-- RAG Toggle -->
+    <div class="form-group checkbox-container">
+        <input type="checkbox" id="rag-toggle" name="use_rag" value="true">
+        <label for="rag-toggle">
+            Use RAG
+            <span class="tooltip">
+                <i class="fas fa-info-circle"></i>
+                <span class="tooltip-text">When enabled, the model will use your documents to provide more informed responses.</span>
+            </span>
+            <div class="param-description">Enable Retrieval Augmented Generation with your documents</div>
+        </label>
+    </div>
+    
+    <!-- Advanced Parameters -->
+    <div class="advanced-options">
+        <button type="button" id="advanced-toggle" class="advanced-toggle">
+            <i class="fas fa-cog"></i> Advanced Parameters
+            <i id="advanced-icon" class="fas fa-chevron-down"></i>
+        </button>
+        
+        <div id="advanced-content" class="advanced-content">
+            <div class="parameter-grid">
+                <div class="form-group">
+                    <label for="temperature">
+                        Temperature:
+                        <span class="tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Controls randomness. Lower values make responses more focused and deterministic. Higher values make output more random and creative.</span>
+                        </span>
+                    </label>
+                    <div class="param-description">Controls randomness: lower = more focused, higher = more creative (0-1)</div>
+                    <input type="number" id="temperature" name="temperature" step="0.1" min="0.0" max="1.0" value="0.7">
+                </div>
+                
+                <!-- RAG-specific parameters -->
+                <div class="form-group rag-param">
+                    <label for="max-results">
+                        Max Results:
+                        <span class="tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">The maximum number of document chunks to retrieve for context.</span>
+                        </span>
+                    </label>
+                    <div class="param-description">Number of document chunks to retrieve (1-10)</div>
+                    <input type="number" id="max-results" name="max_results" min="1" max="10" value="4">
+                </div>
+                
+                <!-- Metadata Filtering -->
+                <div class="form-group rag-param">
+                    <label for="metadata-filters">
+                        Metadata Filters:
+                        <span class="tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Filter documents by metadata (e.g., {"filename": "report.pdf"}).</span>
+                        </span>
+                    </label>
+                    <div class="param-description">JSON object for filtering documents by metadata</div>
+                    <textarea id="metadata-filters" name="metadata_filters" rows="2" placeholder='{"filename": "example.pdf"}'></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons for Sidebar -->
+    <div class="action-buttons" style="margin-top: 20px;">
+        <button type="button" id="clear-chat" class="secondary">
+            <i class="fas fa-trash"></i> Clear Chat
+        </button>
+        <button type="button" id="save-chat" class="secondary">
+            <i class="fas fa-save"></i> Save
+        </button>
+    </div>
+</form>
+
+<!-- Document Management Section -->
+<div id="document-section" class="document-section">
+    <div id="toggle-documents" class="document-section-header">
+        <div class="document-section-title">
+            <i class="fas fa-file-alt"></i> Documents
+            <span id="document-count" class="document-count">0</span>
+        </div>
+        <i class="fas fa-chevron-down"></i>
+    </div>
+    
+    <!-- Filter Panel -->
+    <div id="filter-panel" class="filter-panel">
+        <div class="filter-title">
+            <span><i class="fas fa-filter"></i> Filter Documents</span>
+            <button id="filter-toggle" class="filter-toggle">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        
+        <div id="filter-content" class="filter-content">
+            <div class="filter-section">
+                <div class="filter-section-title">Tags</div>
+                <div id="filter-tags" class="filter-tags">
+                    <!-- Tags will be loaded dynamically -->
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-section-title">Folders</div>
+                <div id="filter-folders" class="filter-folders">
+                    <!-- Folders will be loaded dynamically -->
+                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button id="apply-filters">Apply</button>
+                <button id="clear-filters">Clear</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="document-upload">
+        <form id="doc-upload-form" class="upload-form">
+            <div class="upload-input">
+                <input type="file" id="document-file" accept=".pdf,.txt,.csv,.md" required>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="doc-tags" placeholder="Tags (comma separated)">
+            </div>
+            
+            <div class="form-group">
+                <select id="doc-folder">
+                    <option value="/">Root</option>
+                    <!-- Folders will be loaded dynamically -->
+                </select>
+            </div>
+            
+            <button type="submit" class="upload-button">
+                <i class="fas fa-upload"></i> Upload
+            </button>
+            <div id="upload-progress" class="progress-bar">
+                <div id="upload-progress-fill" class="progress-bar-fill"></div>
+            </div>
+        </form>
+    </div>
+    
+    <div id="document-list" class="document-list">
+        <!-- Documents will be loaded dynamically -->
+        <div class="document-loading">Loading documents...</div>
+    </div>
+    
+    <div class="batch-actions">
+        <button id="process-selected-btn" class="secondary" disabled>
+            <i class="fas fa-sync-alt"></i> Process
+        </button>
+        <button id="delete-selected-btn" class="danger" disabled>
+            <i class="fas fa-trash"></i> Delete
+        </button>
+    </div>
+</div>
+
+<!-- Document Edit Modal -->
+<div id="document-edit-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Edit Document</div>
+            <button class="modal-close">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="edit-tag-input">Tags</label>
+                <div class="tag-input-container">
+                    <input type="text" id="edit-tag-input" class="tag-input" placeholder="Add a tag and press Enter">
+                    <div id="tag-suggestions" class="tag-suggestions"></div>
+                </div>
+                <div id="edit-tag-list" class="tag-list">
+                    <!-- Tags will be added here -->
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-folder">Folder</label>
+                <select id="edit-folder" class="folder-select">
+                    <option value="/">Root</option>
+                    <!-- Folders will be loaded dynamically -->
+                </select>
+                <div class="folder-path">Current path: <span id="current-folder-path">/</span></div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button id="save-changes">Save Changes</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="chat-area">
+    <!-- Chat Container -->
+    <div class="chat-container" id="chat-container">
+        <div class="message bot-message">
+            <div class="message-header">Metis:</div>
+            Hello! I'm your Metis RAG assistant. Ask me anything about your uploaded documents or chat with me directly.
+        </div>
+    </div>
+    
+    <!-- Input Area -->
+    <div class="input-area">
+        <div class="form-group">
+            <label for="user-input">
+                Your Message:
+                <span class="tooltip">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="tooltip-text">Enter your question or instruction for the AI model. Be specific for better results.</span>
+                </span>
+            </label>
+            <div class="param-description">Type your message or question for the AI to respond to.</div>
+            <textarea id="user-input" rows="4" placeholder="Type your message here..." required></textarea>
+            <div class="keyboard-shortcuts">
+                Press <strong>Enter</strong> to send, <strong>Shift+Enter</strong> for new line
+            </div>
+        </div>
+        
+        <div class="submit-container">
+            <button type="button" id="send-button">
+                <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="loading" class="loading">
+    <span class="spinner"></span> Generating response...
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/document-manager.js') }}"></script>
+<script src="{{ url_for('static', path='js/chat.js') }}"></script>
+{% endblock %}
