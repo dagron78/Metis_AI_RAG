@@ -7,10 +7,38 @@ Metis RAG is an application that combines conversational AI with Retrieval Augme
 - Chat with large language models through Ollama
 - Upload and process documents (PDF, TXT, CSV, MD)
 - Retrieval Augmented Generation for contextual responses
+- LLM-enhanced document processing with intelligent chunking strategies
+- Advanced query refinement and retrieval enhancement
 - Document management with tagging and organization
 - System monitoring and analytics
 - Responsive UI with light/dark mode
 - Enhanced logging and debugging capabilities
+
+## LLM-Enhanced RAG System
+
+Metis RAG includes an advanced LLM-enhanced system that improves two critical aspects of the RAG pipeline:
+
+### Dynamic Chunking Strategy Selection
+
+The system uses a "Chunking Judge" (an LLM agent) to analyze documents and select the most appropriate chunking strategy and parameters:
+
+- Analyzes document structure, content type, and formatting
+- Dynamically selects between recursive, token-based, or markdown chunking strategies
+- Recommends optimal chunk size and overlap parameters
+- Preserves semantic meaning and document structure
+- Adapts to different document types without manual configuration
+
+### Query Refinement and Retrieval Enhancement
+
+The system uses a "Retrieval Judge" (an LLM agent) to improve retrieval quality:
+
+- Analyzes queries and retrieved chunks
+- Refines queries to improve retrieval precision
+- Evaluates relevance of retrieved chunks
+- Re-ranks chunks based on relevance to the query
+- Requests additional retrieval when necessary
+
+These enhancements make the RAG system more adaptable to different document types and query styles, improving the accuracy and relevance of responses.
 ## Architecture
 
 Metis RAG is built with the following technologies:
@@ -18,7 +46,7 @@ Metis RAG is built with the following technologies:
 - **Backend**: FastAPI, Python
 - **Vector Database**: ChromaDB with optimized caching
 - **LLM Integration**: Ollama API with enhanced prompt engineering
-- **Document Processing**: LangChain with multiple chunking strategies
+- **Document Processing**: LangChain with LLM-enhanced dynamic chunking strategies
 - **Deployment**: Docker
 - **Testing**: Comprehensive test suite for RAG functionality
 - **Deployment**: Docker
@@ -42,6 +70,12 @@ Metis RAG is built with the following technologies:
    ```bash
    cp .env.example .env
    ```
+
+   Key configuration options include:
+   - `DEFAULT_MODEL`: The LLM model to use for RAG responses (default: gemma3:12b)
+   - `CHUNKING_JUDGE_MODEL`: The model to use for document analysis (default: gemma3:12b)
+   - `USE_CHUNKING_JUDGE`: Enable/disable the Chunking Judge (default: True)
+   - `USE_RETRIEVAL_JUDGE`: Enable/disable the Retrieval Judge (default: True)
 
 3. Build and start the application with Docker Compose:
    ```bash
@@ -103,11 +137,14 @@ metis_rag/
 │   ├── api/         # API endpoints
 │   ├── core/        # Core configuration
 │   ├── rag/         # RAG engine
+│   │   └── agents/  # LLM-based agents for RAG enhancement
 │   ├── models/      # Data models
 │   ├── static/      # Static files
 │   ├── templates/   # HTML templates
 │   └── utils/       # Utility functions
 ├── tests/           # Tests
+│   ├── unit/        # Unit tests
+│   └── integration/ # Integration tests
 ├── uploads/         # Uploaded documents
 ├── chroma_db/       # ChromaDB data
 └── docker-compose.yml
