@@ -23,13 +23,13 @@ This document outlines a comprehensive plan for implementing an enhanced Retriev
 - [x] Updated documentation in README.md
 - [x] Conducted testing of Chunking Judge with real Ollama client
 - [x] Analyzed test results and verified Chunking Judge functionality
+- [x] Implemented the Retrieval Judge class
+- [x] Integrated Retrieval Judge with RAGEngine
+- [x] Added unit tests for the Retrieval Judge
+- [x] Added integration tests for the Retrieval Judge
 
 ### Pending:
 
-- [ ] Implement the Retrieval Judge class
-- [ ] Integrate Retrieval Judge with RAGEngine
-- [ ] Add unit tests for the Retrieval Judge
-- [ ] Add integration tests for the Retrieval Judge
 - [ ] Implement advanced semantic chunking
 - [ ] Integrate LangGraph for agentic RAG
 - [ ] Create benchmarking scripts
@@ -138,7 +138,7 @@ The test results demonstrate that the Chunking Judge effectively:
 
 The real Ollama LLM provides more nuanced and detailed recommendations than the mock client used in initial testing, demonstrating the value of using a sophisticated language model for this task.
 
-## Phase 2: Retrieval Judge Implementation (NEXT PHASE)
+## Phase 2: Retrieval Judge Implementation (COMPLETED)
 
 ### 2.1 Create Agent Architecture
 
@@ -157,19 +157,18 @@ flowchart TD
     I --> J[Generate Response]
 ```
 
-### 2.2 Create the Retrieval Judge Class
+### 2.2 Create the Retrieval Judge Class (COMPLETED)
 
-Based on the success of the Chunking Judge, the next step is to implement the Retrieval Judge class in `app/rag/agents/retrieval_judge.py`. This class will:
+The Retrieval Judge class has been implemented in `app/rag/agents/retrieval_judge.py`. The implementation includes:
 
-- Analyze queries to determine complexity, specificity, and intent
-- Analyze retrieved chunks for relevance to the query
-- Refine queries to improve retrieval precision
-- Evaluate relevance of retrieved chunks with detailed justifications
-- Re-rank chunks based on relevance to the query
-- Request additional retrieval when necessary
-- Optimize context assembly for the LLM
+- Query analysis to determine complexity, specificity, and intent
+- Dynamic recommendation of retrieval parameters (k, threshold, reranking)
+- Evaluation of retrieved chunks for relevance to the query
+- Query refinement to improve retrieval precision
+- Context optimization for better response generation
+- Robust error handling and fallback mechanisms
 
-The implementation should include:
+The class provides the following key methods:
 
 ```python
 class RetrievalJudge:
@@ -183,78 +182,122 @@ class RetrievalJudge:
     async def analyze_query(self, query: str) -> Dict[str, Any]:
         """
         Analyze a query and recommend retrieval parameters
+        
+        Returns:
+            Dict with keys:
+            - complexity: The assessed complexity of the query (simple, moderate, complex)
+            - parameters: Dict of recommended retrieval parameters (k, threshold, etc.)
+            - justification: Explanation of the recommendation
         """
-        # Implementation details...
     
-    async def evaluate_chunks(self, query: str, chunks: List[Chunk]) -> Dict[str, Any]:
+    async def evaluate_chunks(self, query: str, chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Evaluate retrieved chunks for relevance to the query
+        
+        Returns:
+            Dict with keys:
+            - relevance_scores: Dict mapping chunk IDs to relevance scores (0-1)
+            - needs_refinement: Boolean indicating if query refinement is needed
+            - justification: Explanation of the evaluation
         """
-        # Implementation details...
     
-    async def refine_query(self, query: str, chunks: List[Chunk]) -> str:
+    async def refine_query(self, query: str, chunks: List[Dict[str, Any]]) -> str:
         """
-        Refine a query based on retrieved chunks
+        Refine a query based on retrieved chunks to improve retrieval precision
+        
+        Returns:
+            Refined query string
         """
-        # Implementation details...
     
-    async def optimize_context(self, query: str, chunks: List[Chunk]) -> List[Chunk]:
+    async def optimize_context(self, query: str, chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Optimize the assembly of chunks into a context for the LLM
+        
+        Returns:
+            Reordered and filtered list of chunks optimized for context assembly
         """
-        # Implementation details...
 ```
 
-### 2.3 Integrate with RAGEngine
+Each method uses carefully crafted prompts to guide the LLM in performing its specific task, with robust parsing of the LLM responses and fallback mechanisms for error handling.
 
-After implementing the Retrieval Judge, it will be integrated with the RAGEngine to:
+### 2.3 Integrate with RAGEngine (COMPLETED)
 
-- Use the Retrieval Judge if enabled via configuration
-- Implement query analysis before initial retrieval
-- Implement iterative retrieval with query refinement
-- Filter and re-rank chunks based on the judge's evaluation
-- Format context with the most relevant chunks
-- Dynamically adjust retrieval parameters based on query characteristics
-- Implement a feedback loop to improve retrieval over time
+The Retrieval Judge has been integrated with the RAGEngine to enhance the retrieval process. The integration includes:
 
-The integration should include:
+- Initialization of the RetrievalJudge in the RAGEngine constructor if enabled via configuration
+- A new `_enhanced_retrieval` method that implements the enhanced retrieval process
+- Updates to the main `query` method to use enhanced retrieval when the judge is enabled
+
+The enhanced retrieval process includes:
+
+1. Query analysis to determine complexity and optimal retrieval parameters
+2. Initial retrieval with recommended parameters
+3. Evaluation of retrieved chunks for relevance
+4. Query refinement when initial results are insufficient
+5. Additional retrieval with refined query when needed
+6. Re-ranking and filtering of chunks based on relevance scores
+7. Context optimization for better response generation
+
+The implementation in `rag_engine.py` includes:
 
 ```python
 # In rag_engine.py
 
-async def retrieve(self, query: str, k: int = 5, filter_criteria: Dict[str, Any] = None) -> List[Chunk]:
+async def _enhanced_retrieval(
+    self,
+    query: str,
+    conversation_context: str = "",
+    top_k: int = 10,
+    metadata_filters: Optional[Dict[str, Any]] = None
+) -> Tuple[str, List[Dict[str, Any]], List[str]]:
     """
-    Retrieve chunks from the vector store with Retrieval Judge enhancement
+    Enhanced retrieval using the Retrieval Judge
     """
-    # Use Retrieval Judge if enabled
-    if USE_RETRIEVAL_JUDGE:
-        # Analyze query
-        analysis_result = await self.retrieval_judge.analyze_query(query)
-        
-        # Adjust retrieval parameters based on analysis
-        k = analysis_result.get("k", k)
-        threshold = analysis_result.get("threshold", self.similarity_threshold)
-        
-        # Perform initial retrieval
-        chunks = await self._retrieve(query, k, filter_criteria)
-        
-        # Evaluate chunks
-        evaluation_result = await self.retrieval_judge.evaluate_chunks(query, chunks)
-        
-        # Refine query if needed
-        if evaluation_result.get("needs_refinement", False):
-            refined_query = await self.retrieval_judge.refine_query(query, chunks)
-            additional_chunks = await self._retrieve(refined_query, k, filter_criteria)
-            chunks.extend(additional_chunks)
-        
-        # Re-rank chunks
-        chunks = await self.retrieval_judge.optimize_context(query, chunks)
-        
-        return chunks
-    else:
-        # Use standard retrieval
-        return await self._retrieve(query, k, filter_criteria)
+    # Step 1: Analyze the query using the Retrieval Judge
+    query_analysis = await self.retrieval_judge.analyze_query(query)
+    
+    # Extract recommended parameters
+    recommended_k = query_analysis.get("parameters", {}).get("k", top_k)
+    relevance_threshold = query_analysis.get("parameters", {}).get("threshold", 0.4)
+    apply_reranking = query_analysis.get("parameters", {}).get("reranking", True)
+    
+    # Step 2: Initial retrieval with recommended parameters
+    search_results = await self.vector_store.search(
+        query=search_query,
+        top_k=max(15, recommended_k + 5),  # Get a few extra for filtering
+        filter_criteria=metadata_filters
+    )
+    
+    # Step 3: Evaluate chunks with the Retrieval Judge
+    evaluation = await self.retrieval_judge.evaluate_chunks(query, search_results)
+    
+    # Step 4: Refine query if needed and perform additional retrieval
+    if evaluation.get("needs_refinement", False):
+        refined_query = await self.retrieval_judge.refine_query(query, search_results)
+        additional_results = await self.vector_store.search(
+            query=refined_query,
+            top_k=recommended_k,
+            filter_criteria=metadata_filters
+        )
+        # Combine results, avoiding duplicates
+        # ...
+    
+    # Step 5: Filter and re-rank chunks based on relevance scores
+    # ...
+    
+    # Step 6: Optimize context assembly
+    if len(relevant_results) > 3 and apply_reranking:
+        optimized_results = await self.retrieval_judge.optimize_context(query, relevant_results)
+        if optimized_results:
+            relevant_results = optimized_results
+    
+    # Step 7: Format context with source information
+    # ...
+    
+    return context, sources, document_ids
 ```
+
+The integration is designed to be seamless, with the Retrieval Judge being enabled or disabled via configuration. This allows for flexibility in deployment, where the enhanced retrieval can be used for complex queries while falling back to standard retrieval for simpler queries or when performance is a concern.
 
 ## Phase 3: Advanced Semantic Chunking (FUTURE PHASE)
 
@@ -290,9 +333,10 @@ Add a new endpoint to the API for the LangGraph RAG agent.
 - Implement Chunking Judge class and integration with DocumentProcessor
 - Testing and refinement of Chunking Judge
 
-### Phase 2: Retrieval Judge (Weeks 3-4)
-- Week 3: Implement Retrieval Judge class and integration with RAGEngine
-- Week 4: Testing and refinement of Retrieval Judge
+### Phase 2: Retrieval Judge (COMPLETED)
+- Implemented Retrieval Judge class and integration with RAGEngine
+- Added unit and integration tests for the Retrieval Judge
+- Verified functionality with comprehensive test coverage
 
 ### Phase 3: Advanced Semantic Chunking (Weeks 5-6)
 - Week 5: Implement SemanticChunker class
@@ -332,21 +376,38 @@ Add a new endpoint to the API for the LangGraph RAG agent.
 
 The LLM-enhanced RAG system with "judges" for chunking and retrieval has significant potential to improve the adaptability and accuracy of the RAG pipeline. By dynamically selecting chunking strategies and refining queries, the system can better handle diverse document types and complex queries.
 
-Phase 1 (Chunking Judge) has been successfully implemented and tested with real Ollama, providing a solid foundation for the remaining phases. The test results demonstrate that the Chunking Judge effectively:
+Both Phase 1 (Chunking Judge) and Phase 2 (Retrieval Judge) have been successfully implemented and tested, providing a solid foundation for the remaining phases.
+
+### Phase 1 Results (Chunking Judge)
+
+The Chunking Judge effectively:
 
 1. Recognizes document structure and formatting, even identifying markdown-like elements in plain text files
 2. Selects appropriate chunking strategies based on document characteristics
 3. Recommends optimized parameters (chunk size and overlap) tailored to each document type
 4. Provides detailed, insightful justifications for its recommendations
 
-The real Ollama LLM (gemma3:12b) provided more nuanced and detailed recommendations than our initial mock implementation, demonstrating the value of using a sophisticated language model for this task. The Chunking Judge makes the system more adaptable to different document types without manual configuration, which will improve retrieval quality and user experience.
+The real Ollama LLM (gemma3:12b) provided more nuanced and detailed recommendations than our initial mock implementation, demonstrating the value of using a sophisticated language model for this task. The Chunking Judge makes the system more adaptable to different document types without manual configuration, which improves retrieval quality and user experience.
 
-The next phase will focus on implementing the Retrieval Judge to enhance query refinement and retrieval quality. Based on the success of the Chunking Judge, we've enhanced our plans for the Retrieval Judge to include:
+### Phase 2 Results (Retrieval Judge)
 
-1. Query analysis to determine complexity, specificity, and intent
-2. Dynamic adjustment of retrieval parameters based on query characteristics
-3. Relevance evaluation with detailed justifications
-4. Context optimization for improved response generation
-5. A feedback loop to continuously improve retrieval performance
+The Retrieval Judge implementation enhances the RAG pipeline by:
+
+1. Analyzing queries to determine complexity, specificity, and intent
+2. Dynamically adjusting retrieval parameters based on query characteristics
+3. Evaluating retrieved chunks for relevance with detailed scoring
+4. Refining queries when initial results are insufficient
+5. Optimizing the order and selection of chunks for context assembly
+
+The integration with the RAGEngine provides a seamless experience, with the Retrieval Judge being enabled or disabled via configuration. This allows for flexibility in deployment, where the enhanced retrieval can be used for complex queries while falling back to standard retrieval for simpler queries or when performance is a concern.
+
+### Next Steps
+
+With both judges implemented, the next phases will focus on:
+
+1. Advanced semantic chunking to further improve document processing
+2. LangGraph integration for a more sophisticated agentic RAG system
+3. Comprehensive benchmarking and performance evaluation
+4. Implementing a feedback loop to continuously improve both judges over time
 
 These enhancements will further improve the accuracy and relevance of responses, making the RAG system more effective for a wider range of use cases.

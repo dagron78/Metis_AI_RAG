@@ -5,10 +5,11 @@ import httpx
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 
-from app.core.config import DEFAULT_MODEL
+from app.core.config import DEFAULT_MODEL, USE_RETRIEVAL_JUDGE
 from app.models.chat import Citation, Message
 from app.rag.vector_store import VectorStore
 from app.rag.ollama_client import OllamaClient
+from app.rag.agents.retrieval_judge import RetrievalJudge
 
 logger = logging.getLogger("app.rag.rag_engine")
 
@@ -19,17 +20,26 @@ class RAGEngine:
     def __init__(
         self,
         vector_store: Optional[VectorStore] = None,
-        ollama_client: Optional[OllamaClient] = None
+        ollama_client: Optional[OllamaClient] = None,
+        retrieval_judge: Optional[RetrievalJudge] = None
     ):
         self.vector_store = vector_store or VectorStore()
         self.ollama_client = ollama_client or OllamaClient()
+        self.retrieval_judge = retrieval_judge if retrieval_judge is not None else (
+            RetrievalJudge(ollama_client=self.ollama_client) if USE_RETRIEVAL_JUDGE else None
+        )
+        
+        if self.retrieval_judge:
+            logger.info("Retrieval Judge is enabled")
+        else:
+            logger.info("Retrieval Judge is disabled")
     
     async def query(
         self,
         query: str,
         model: str = DEFAULT_MODEL,
         use_rag: bool = True,
-        top_k: int = 5,
+        top_k: int = 10,
         system_prompt: Optional[str] = None,
         stream: bool = False,
         model_parameters: Dict[str, Any] = None,
@@ -51,9 +61,12 @@ class RAGEngine:
             
             # Format conversation history if provided
             conversation_context = ""
-            if conversation_history and len(conversation_history) > 0:
-                # Get the last few messages (up to 5) to keep context manageable
-                recent_history = conversation_history[-5:] if len(conversation_history) > 5 else conversation_history
+            if conversation_history and len(conversation_history) > 1:  # Only include history if there's more than just the current message
+                # Get the last few messages (up to 5) to keep context manageable, but exclude the most recent user message
+                # which is the current query and shouldn't be treated as history
+                recent_history = conversation_history[:-1]
+                if len(recent_history) > 5:
+                    recent_history = recent_history[-5:]
                 
                 # Format the conversation history
                 history_pieces = []
@@ -63,76 +76,118 @@ class RAGEngine:
                 
                 conversation_context = "\n".join(history_pieces)
                 logger.info(f"Including conversation history with {len(recent_history)} messages")
+            else:
+                logger.info("No previous conversation history to include")
             
             if use_rag:
-                # Check if there are any documents in the vector store
-                stats = self.vector_store.get_stats()
-                if stats["count"] == 0:
-                    logger.warning("RAG is enabled but no documents are available in the vector store")
-                    # Add a note to the context that no documents are available
-                    context = "Note: No documents are available for retrieval. Please upload documents to use RAG effectively."
-                else:
-                    # Combine the current query with conversation context for better retrieval
-                    search_query = query
-                    if conversation_context:
-                        # For retrieval, we focus more on the current query but include
-                        # some context from the conversation to improve relevance
-                        search_query = f"{query} {conversation_context[-200:]}"
-                    
-                    # Log the search query
-                    logger.info(f"Searching with query: {search_query[:100]}...")
-                    
-                    search_results = await self.vector_store.search(
-                        query=search_query,
+                # Use enhanced retrieval if Retrieval Judge is enabled
+                if self.retrieval_judge:
+                    logger.info("Using enhanced retrieval with Retrieval Judge")
+                    context, sources, document_ids = await self._enhanced_retrieval(
+                        query=query,
+                        conversation_context=conversation_context,
                         top_k=top_k,
-                        filter_criteria=metadata_filters
+                        metadata_filters=metadata_filters
                     )
-                    
-                    if search_results:
-                        # Log the number of results
-                        logger.info(f"Retrieved {len(search_results)} chunks from vector store")
-                        
-                        # Format context with source information
-                        context_pieces = []
-                        for i, result in enumerate(search_results):
-                            # Extract metadata for better context
-                            metadata = result["metadata"]
-                            filename = metadata.get("filename", "Unknown")
-                            tags = metadata.get("tags", [])
-                            folder = metadata.get("folder", "/")
-                            
-                            # Format the context piece with metadata
-                            context_piece = f"[{i+1}] Source: {filename}, Tags: {tags}, Folder: {folder}\n\n{result['content']}"
-                            context_pieces.append(context_piece)
-                            
-                            # Track the source for citation
-                            doc_id = metadata["document_id"]
-                            document_ids.append(doc_id)
-                            
-                            # Calculate relevance score (lower distance = higher relevance)
-                            relevance_score = 1.0 - (result["distance"] if result["distance"] is not None else 0)
-                            
-                            # Log the relevance score for debugging
-                            logger.debug(f"Chunk {i+1} relevance score: {relevance_score:.4f}")
-                            
-                            sources.append({
-                                "document_id": doc_id,
-                                "chunk_id": result["chunk_id"],
-                                "relevance_score": relevance_score,
-                                "excerpt": result["content"][:200] + "..." if len(result["content"]) > 200 else result["content"],
-                                "filename": filename,
-                                "tags": tags,
-                                "folder": folder
-                            })
-                        
-                        # Join all context pieces
-                        context = "\n\n".join(context_pieces)
-                        
-                        # Log the total context length
-                        logger.info(f"Total context length: {len(context)} characters")
+                else:
+                    # Use standard retrieval
+                    logger.info("Using standard retrieval (Retrieval Judge disabled)")
+                    # Check if there are any documents in the vector store
+                    stats = self.vector_store.get_stats()
+                    if stats["count"] == 0:
+                        logger.warning("RAG is enabled but no documents are available in the vector store")
+                        # Add a note to the context that no documents are available
+                        context = "Note: No documents are available for retrieval. Please upload documents to use RAG effectively."
                     else:
-                        logger.warning("No relevant documents found for the query")
-                        context = "Note: No relevant documents found for your query. The response will be based on the model's general knowledge."
+                        # Combine the current query with conversation context for better retrieval
+                        search_query = query
+                        if conversation_context:
+                            # For retrieval, we focus more on the current query but include
+                            # some context from the conversation to improve relevance
+                            search_query = f"{query} {conversation_context[-200:]}"
+                        
+                        # Log the search query
+                        logger.info(f"Searching with query: {search_query[:100]}...")
+                        
+                        # Use a higher fixed value for top_k to get more potential matches, then filter by relevance
+                        search_results = await self.vector_store.search(
+                            query=search_query,
+                            top_k=15,  # Fixed value to retrieve more chunks (document has 24 chunks total)
+                            filter_criteria=metadata_filters
+                        )
+                        
+                        if search_results:
+                            # Log the number of results
+                            logger.info(f"Retrieved {len(search_results)} chunks from vector store")
+                            
+                            # Format context with source information
+                            context_pieces = []
+                            relevant_results = []
+                            
+                            # Set a relevance threshold - only include chunks with relevance score above this
+                            relevance_threshold = 0.4  # Lower threshold to ensure we include more relevant chunks
+                            
+                            for i, result in enumerate(search_results):
+                                # Skip results with None content
+                                if "content" not in result or result["content"] is None:
+                                    logger.warning(f"Skipping result {i+1} due to missing or None content")
+                                    continue
+                                    
+                                # Extract metadata for better context
+                                metadata = result["metadata"]
+                                filename = metadata.get("filename", "Unknown")
+                                tags = metadata.get("tags", [])
+                                folder = metadata.get("folder", "/")
+                                
+                                # Calculate relevance score (lower distance = higher relevance)
+                                relevance_score = 1.0 - (result["distance"] if result["distance"] is not None else 0)
+                                
+                                # Log the relevance score for debugging
+                                logger.debug(f"Chunk {i+1} relevance score: {relevance_score:.4f}")
+                                
+                                # Only include chunks that are sufficiently relevant
+                                if relevance_score >= relevance_threshold:
+                                    # Format the context piece with metadata
+                                    context_piece = f"[{len(relevant_results)+1}] Source: {filename}, Tags: {tags}, Folder: {folder}\n\n{result['content']}"
+                                    context_pieces.append(context_piece)
+                                    
+                                    # Track the source for citation
+                                    doc_id = metadata["document_id"]
+                                    document_ids.append(doc_id)
+                                    
+                                    sources.append({
+                                        "document_id": doc_id,
+                                        "chunk_id": result["chunk_id"],
+                                        "relevance_score": relevance_score,
+                                        "excerpt": result["content"][:200] + "..." if len(result["content"]) > 200 else result["content"],
+                                        "filename": filename,
+                                        "tags": tags,
+                                        "folder": folder
+                                    })
+                                    
+                                    relevant_results.append(result)
+                                else:
+                                    logger.info(f"Skipping chunk {i+1} with low relevance score: {relevance_score:.4f}")
+                            
+                            # Join all context pieces
+                            context = "\n\n".join(context_pieces)
+                            
+                            # Log how many chunks were filtered out due to low relevance
+                            logger.info(f"Using {len(relevant_results)} of {len(search_results)} chunks after relevance filtering")
+                            
+                            # Log the total context length
+                            logger.info(f"Total context length: {len(context)} characters")
+                            
+                            # Check if we have enough relevant context
+                            if len(relevant_results) == 0:
+                                logger.warning("No sufficiently relevant documents found for the query")
+                                context = "Note: No sufficiently relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents."
+                            elif len(context.strip()) < 50:  # Very short context might not be useful
+                                logger.warning("Context is too short to be useful")
+                                context = "Note: The retrieved context is too limited to provide a comprehensive answer to your query. The system cannot provide a specific answer based on the available documents."
+                        else:
+                            logger.warning("No relevant documents found for the query")
+                            context = "Note: No relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents."
             
             # Create full prompt with context and conversation history
             full_prompt = query
@@ -143,27 +198,48 @@ class RAGEngine:
 {conversation_context}
 
 User's new question: {query}"""
+            else:
+                # No conversation history, just use the query directly
+                full_prompt = f"""User Question: {query}"""
             
             # If we have context from RAG, include it
             if context:
-                full_prompt = f"""I'll provide you with some relevant context to help answer the user's question.
-
-Context:
+                # Construct the prompt differently based on whether we have conversation history
+                if conversation_context:
+                    full_prompt = f"""Context:
 {context}
 
-{"Previous conversation:" if conversation_context else ""}
-{conversation_context if conversation_context else ""}
+Previous conversation:
+{conversation_context}
 
-{"User's new question" if conversation_context else "User Question"}: {query}
+User's new question: {query}
 
 IMPORTANT INSTRUCTIONS:
-1. Base your answer primarily on the information in the provided context.
+1. ONLY use information that is explicitly stated in the provided context above.
 2. When using information from the context, ALWAYS reference your sources with the number in square brackets, like [1] or [2].
 3. If the context contains the answer, provide it clearly and concisely.
-4. If the context doesn't contain enough information, explicitly state what's missing and then try to provide a helpful response based on what you know.
-5. Do not make up information that isn't in the context or your general knowledge.
+4. If the context doesn't contain the answer, explicitly state: "Based on the provided documents, I don't have information about [topic]."
+5. NEVER make up or hallucinate information that is not in the context.
 6. If you're unsure about something, be honest about your uncertainty.
 7. Organize your answer in a clear, structured way.
+8. If you need to use your general knowledge because the context is insufficient, clearly indicate this by stating: "However, generally speaking..."
+"""
+                else:
+                    full_prompt = f"""Context:
+{context}
+
+User Question: {query}
+
+IMPORTANT INSTRUCTIONS:
+1. ONLY use information that is explicitly stated in the provided context above.
+2. When using information from the context, ALWAYS reference your sources with the number in square brackets, like [1] or [2].
+3. If the context contains the answer, provide it clearly and concisely.
+4. If the context doesn't contain the answer, explicitly state: "Based on the provided documents, I don't have information about [topic]."
+5. NEVER make up or hallucinate information that is not in the context.
+6. If you're unsure about something, be honest about your uncertainty.
+7. Organize your answer in a clear, structured way.
+8. This is a new conversation with no previous history - treat it as such.
+9. If you need to use your general knowledge because the context is insufficient, clearly indicate this by stating: "However, generally speaking..."
 """
             
             # Create system prompt if not provided
@@ -175,26 +251,36 @@ ROLE AND CAPABILITIES:
 - Your primary function is to use the retrieved context to provide accurate, well-informed answers.
 - You can cite sources using the numbers in square brackets like [1] or [2] when they are provided in the context.
 
-GUIDELINES FOR USING CONTEXT:
-- Always prioritize information from the retrieved context over your general knowledge.
+STRICT GUIDELINES FOR USING CONTEXT:
+- ONLY use information that is explicitly stated in the provided context.
+- NEVER make up or hallucinate information that is not in the context.
+- If the context doesn't contain the answer, explicitly state that the information is not available in the provided documents.
+- Do not use your general knowledge unless the context is insufficient, and clearly indicate when you're doing so.
 - Analyze the context carefully to find the most relevant information for the user's question.
 - If multiple sources provide different information, synthesize them and explain any discrepancies.
 - If the context includes metadata like filenames, tags, or folders, use this to understand the source and relevance of the information.
 
 WHEN CONTEXT IS INSUFFICIENT:
-- Clearly state when the retrieved context doesn't contain enough information to fully answer the question.
+- Clearly state: "Based on the provided documents, I don't have information about [topic]."
 - Be specific about what information is missing.
-- Then provide a more general response based on your knowledge, but clearly distinguish this from information in the context.
+- Only then provide a general response based on your knowledge, and clearly state: "However, generally speaking..." to distinguish this from information in the context.
+- Never pretend to have information that isn't in the context.
 
 CONVERSATION HANDLING:
-- Maintain continuity with previous exchanges when conversation history is provided.
-- Refer back to earlier parts of the conversation when relevant.
+- IMPORTANT: Only refer to previous conversations if they are explicitly provided in the conversation history.
+- NEVER fabricate or hallucinate previous exchanges that weren't actually provided.
+- If no conversation history is provided, treat the query as a new, standalone question.
+- Only maintain continuity with previous exchanges when conversation history is explicitly provided.
 
 RESPONSE STYLE:
 - Be clear, direct, and helpful.
 - Structure your responses logically.
 - Use appropriate formatting to enhance readability.
 - Maintain a consistent, professional tone throughout the conversation.
+- For new conversations with no history, start fresh without referring to non-existent previous exchanges.
+- DO NOT start your responses with phrases like "I've retrieved relevant context" or similar preambles.
+- Answer questions directly without mentioning the retrieval process.
+- Always cite your sources with numbers in square brackets [1] when using information from the context.
 """
             # Log the prompt and system prompt for debugging
             logger.debug(f"System prompt: {system_prompt[:200]}...")
@@ -229,7 +315,7 @@ RESPONSE STYLE:
                 return {
                     "query": query,
                     "stream": stream_response,
-                    "sources": [Citation(**source) for source in sources] if sources else None
+                    "sources": [Citation(**source) for source in sources] if sources else []
                 }
             else:
                 # For non-streaming, get the complete response
@@ -274,11 +360,204 @@ RESPONSE STYLE:
                 return {
                     "query": query,
                     "answer": response_text,
-                    "sources": [Citation(**source) for source in sources] if sources else None
+                    "sources": [Citation(**source) for source in sources] if sources else []
                 }
         except Exception as e:
             logger.error(f"Error querying RAG engine: {str(e)}")
             raise
+    
+    async def _enhanced_retrieval(
+        self,
+        query: str,
+        conversation_context: str = "",
+        top_k: int = 10,
+        metadata_filters: Optional[Dict[str, Any]] = None
+    ) -> Tuple[str, List[Dict[str, Any]], List[str]]:
+        """
+        Enhanced retrieval using the Retrieval Judge
+        
+        Args:
+            query: The user query
+            conversation_context: Optional conversation history context
+            top_k: Number of chunks to retrieve
+            metadata_filters: Optional filters for retrieval
+            
+        Returns:
+            Tuple of (context, sources, document_ids)
+        """
+        document_ids = []
+        sources = []
+        context = ""
+        
+        try:
+            # Check if there are any documents in the vector store
+            stats = self.vector_store.get_stats()
+            if stats["count"] == 0:
+                logger.warning("RAG is enabled but no documents are available in the vector store")
+                return "Note: No documents are available for retrieval. Please upload documents to use RAG effectively.", [], []
+            
+            # Step 1: Analyze the query using the Retrieval Judge
+            logger.info("Analyzing query with Retrieval Judge")
+            query_analysis = await self.retrieval_judge.analyze_query(query)
+            
+            # Extract recommended parameters
+            recommended_k = query_analysis.get("parameters", {}).get("k", top_k)
+            relevance_threshold = query_analysis.get("parameters", {}).get("threshold", 0.4)
+            apply_reranking = query_analysis.get("parameters", {}).get("reranking", True)
+            
+            logger.info(f"Query complexity: {query_analysis.get('complexity', 'unknown')}")
+            logger.info(f"Recommended parameters: k={recommended_k}, threshold={relevance_threshold}, reranking={apply_reranking}")
+            
+            # Combine the current query with conversation context for better retrieval
+            search_query = query
+            if conversation_context:
+                # For retrieval, we focus more on the current query but include
+                # some context from the conversation to improve relevance
+                search_query = f"{query} {conversation_context[-200:]}"
+            
+            # Log the search query
+            logger.info(f"Searching with query: {search_query[:100]}...")
+            
+            # Step 2: Initial retrieval with recommended parameters
+            search_results = await self.vector_store.search(
+                query=search_query,
+                top_k=max(15, recommended_k + 5),  # Get a few extra for filtering
+                filter_criteria=metadata_filters
+            )
+            
+            if not search_results:
+                logger.warning("No relevant documents found for the query")
+                return "Note: No relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents.", [], []
+            
+            # Log the number of results
+            logger.info(f"Retrieved {len(search_results)} chunks from vector store")
+            
+            # Step 3: Evaluate chunks with the Retrieval Judge
+            logger.info("Evaluating chunks with Retrieval Judge")
+            evaluation = await self.retrieval_judge.evaluate_chunks(query, search_results)
+            
+            # Extract relevance scores and refinement decision
+            relevance_scores = evaluation.get("relevance_scores", {})
+            needs_refinement = evaluation.get("needs_refinement", False)
+            
+            logger.info(f"Chunk evaluation complete, needs_refinement={needs_refinement}")
+            
+            # Step 4: Refine query if needed and perform additional retrieval
+            if needs_refinement:
+                logger.info("Refining query based on initial retrieval")
+                refined_query = await self.retrieval_judge.refine_query(query, search_results)
+                
+                logger.info(f"Refined query: {refined_query}")
+                
+                # Perform additional retrieval with refined query
+                additional_results = await self.vector_store.search(
+                    query=refined_query,
+                    top_k=recommended_k,
+                    filter_criteria=metadata_filters
+                )
+                
+                if additional_results:
+                    logger.info(f"Retrieved {len(additional_results)} additional chunks with refined query")
+                    
+                    # Combine results, avoiding duplicates
+                    existing_chunk_ids = {result["chunk_id"] for result in search_results}
+                    for result in additional_results:
+                        if result["chunk_id"] not in existing_chunk_ids:
+                            search_results.append(result)
+                    
+                    # Re-evaluate all chunks
+                    logger.info("Re-evaluating all chunks after query refinement")
+                    evaluation = await self.retrieval_judge.evaluate_chunks(refined_query, search_results)
+                    relevance_scores = evaluation.get("relevance_scores", {})
+            
+            # Step 5: Filter and re-rank chunks based on relevance scores
+            relevant_results = []
+            
+            for result in search_results:
+                # Skip results with None content
+                if "content" not in result or result["content"] is None:
+                    continue
+                
+                chunk_id = result["chunk_id"]
+                
+                # Get relevance score from evaluation or calculate from distance
+                if chunk_id in relevance_scores:
+                    relevance_score = relevance_scores[chunk_id]
+                else:
+                    # Calculate relevance score (lower distance = higher relevance)
+                    relevance_score = 1.0 - (result["distance"] if result["distance"] is not None else 0)
+                
+                # Only include chunks that are sufficiently relevant
+                if relevance_score >= relevance_threshold:
+                    # Add relevance score to result for sorting
+                    result["relevance_score"] = relevance_score
+                    relevant_results.append(result)
+            
+            # Sort by relevance score if reranking is enabled
+            if apply_reranking:
+                relevant_results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
+            
+            # Step 6: Optimize context assembly if we have enough chunks
+            if len(relevant_results) > 3 and apply_reranking:
+                logger.info("Optimizing context assembly with Retrieval Judge")
+                optimized_results = await self.retrieval_judge.optimize_context(query, relevant_results)
+                if optimized_results:
+                    relevant_results = optimized_results
+            
+            # Step 7: Format context with source information
+            context_pieces = []
+            
+            for i, result in enumerate(relevant_results):
+                # Extract metadata for better context
+                metadata = result["metadata"]
+                filename = metadata.get("filename", "Unknown")
+                tags = metadata.get("tags", [])
+                folder = metadata.get("folder", "/")
+                
+                # Format the context piece with metadata
+                context_piece = f"[{i+1}] Source: {filename}, Tags: {tags}, Folder: {folder}\n\n{result['content']}"
+                context_pieces.append(context_piece)
+                
+                # Track the source for citation
+                doc_id = metadata["document_id"]
+                document_ids.append(doc_id)
+                
+                # Get relevance score (either from judge or distance)
+                relevance_score = result.get("relevance_score", 1.0 - (result["distance"] if result["distance"] is not None else 0))
+                
+                sources.append({
+                    "document_id": doc_id,
+                    "chunk_id": result["chunk_id"],
+                    "relevance_score": relevance_score,
+                    "excerpt": result["content"][:200] + "..." if len(result["content"]) > 200 else result["content"],
+                    "filename": filename,
+                    "tags": tags,
+                    "folder": folder
+                })
+            
+            # Join all context pieces
+            context = "\n\n".join(context_pieces)
+            
+            # Log how many chunks were used
+            logger.info(f"Using {len(relevant_results)} chunks after Retrieval Judge optimization")
+            
+            # Log the total context length
+            logger.info(f"Total context length: {len(context)} characters")
+            
+            # Check if we have enough relevant context
+            if len(relevant_results) == 0:
+                logger.warning("No sufficiently relevant documents found for the query")
+                context = "Note: No sufficiently relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents."
+            elif len(context.strip()) < 50:  # Very short context might not be useful
+                logger.warning("Context is too short to be useful")
+                context = "Note: The retrieved context is too limited to provide a comprehensive answer to your query. The system cannot provide a specific answer based on the available documents."
+            
+            return context, sources, document_ids
+            
+        except Exception as e:
+            logger.error(f"Error in enhanced retrieval: {str(e)}")
+            # Return empty context in case of error
+            return "Note: An error occurred during retrieval. The system cannot provide a specific answer based on the available documents.", [], []
     
     async def _record_analytics(
         self,
