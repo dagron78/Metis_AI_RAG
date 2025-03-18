@@ -13,6 +13,7 @@ from app.core.config import UPLOAD_DIR, CHUNK_SIZE, CHUNK_OVERLAP, USE_CHUNKING_
 from app.models.document import Document, Chunk
 from app.rag.agents.chunking_judge import ChunkingJudge
 from app.rag.chunkers.semantic_chunker import SemanticChunker
+from app.rag.document_analysis_service import DocumentAnalysisService
 
 logger = logging.getLogger("app.rag.document_processor")
 
@@ -24,7 +25,8 @@ class DocumentProcessor:
         self,
         chunk_size: int = CHUNK_SIZE,
         chunk_overlap: int = CHUNK_OVERLAP,
-        chunking_strategy: str = "recursive"
+        chunking_strategy: str = "recursive",
+        llm_provider = None
     ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
@@ -35,6 +37,8 @@ class DocumentProcessor:
             '.csv': CSVLoader,
             '.md': UnstructuredMarkdownLoader,
         }
+        self.llm_provider = llm_provider
+        self.document_analysis_service = DocumentAnalysisService(llm_provider=self.llm_provider)
         self.text_splitter = self._get_text_splitter()
     
     def _get_text_splitter(self, file_ext=None):
@@ -158,7 +162,22 @@ class DocumentProcessor:
                 logger.info(f"Chunking Judge recommendation: strategy={self.chunking_strategy}, " +
                            f"chunk_size={self.chunk_size}, chunk_overlap={self.chunk_overlap}")
             else:
-                logger.info(f"Chunking Judge disabled, using default strategy: {self.chunking_strategy}")
+                # Use DocumentAnalysisService if Chunking Judge is disabled
+                logger.info(f"Chunking Judge disabled, using DocumentAnalysisService for document: {document.filename}")
+                analysis_result = await self.document_analysis_service.analyze_document(document)
+                
+                # Update chunking strategy and parameters
+                self.chunking_strategy = analysis_result["strategy"]
+                if "parameters" in analysis_result and "chunk_size" in analysis_result["parameters"]:
+                    self.chunk_size = analysis_result["parameters"]["chunk_size"]
+                if "parameters" in analysis_result and "chunk_overlap" in analysis_result["parameters"]:
+                    self.chunk_overlap = analysis_result["parameters"]["chunk_overlap"]
+                
+                # Store the document analysis in document metadata
+                document.metadata["document_analysis"] = analysis_result
+                
+                logger.info(f"Document analysis recommendation: strategy={self.chunking_strategy}, " +
+                           f"chunk_size={self.chunk_size}, chunk_overlap={self.chunk_overlap}")
             
             # Get appropriate text splitter for this file type
             self.text_splitter = self._get_text_splitter(ext)

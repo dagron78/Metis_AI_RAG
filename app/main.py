@@ -12,6 +12,7 @@ from app.api.chat import router as chat_router
 from app.api.documents import router as documents_router
 from app.api.system import router as system_router
 from app.api.analytics import router as analytics_router
+from app.api.processing import router as processing_router
 from app.db.session import init_db, db_session
 
 # Setup logging
@@ -35,6 +36,7 @@ app.include_router(chat_router, prefix=f"{API_V1_STR}/chat", tags=["chat"])
 app.include_router(documents_router, prefix=f"{API_V1_STR}/documents", tags=["documents"])
 app.include_router(system_router, prefix=f"{API_V1_STR}/system", tags=["system"])
 app.include_router(analytics_router, prefix=f"{API_V1_STR}/analytics", tags=["analytics"])
+app.include_router(processing_router, prefix=f"{API_V1_STR}/processing", tags=["processing"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
