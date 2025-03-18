@@ -9,6 +9,9 @@ Metis RAG is an application that combines conversational AI with Retrieval Augme
 - Retrieval Augmented Generation for contextual responses
 - LLM-enhanced document processing with intelligent chunking strategies
 - Advanced query refinement and retrieval enhancement
+- Response quality assurance with evaluation and refinement
+- Factual accuracy verification and hallucination detection
+- Comprehensive audit reports with source tracking
 - Document management with tagging and organization
 - System monitoring and analytics
 - Responsive UI with light/dark mode
@@ -16,7 +19,7 @@ Metis RAG is an application that combines conversational AI with Retrieval Augme
 
 ## LLM-Enhanced RAG System
 
-Metis RAG includes an advanced LLM-enhanced system that improves two critical aspects of the RAG pipeline:
+Metis RAG includes an advanced LLM-enhanced system that improves critical aspects of the RAG pipeline:
 
 ### Dynamic Chunking Strategy Selection
 
@@ -38,7 +41,25 @@ The system uses a "Retrieval Judge" (an LLM agent) to improve retrieval quality:
 - Re-ranks chunks based on relevance to the query
 - Requests additional retrieval when necessary
 
-These enhancements make the RAG system more adaptable to different document types and query styles, improving the accuracy and relevance of responses.
+### Response Quality Pipeline
+
+The system includes a comprehensive response quality pipeline to ensure high-quality responses:
+
+- **Response Synthesis**: Combines retrieval results and tool outputs into coherent responses with proper source attribution
+- **Response Evaluation**: Assesses factual accuracy, completeness, relevance, and checks for hallucinations
+- **Response Refinement**: Iteratively improves responses based on evaluation results
+- **Audit Reporting**: Generates comprehensive audit reports with information source tracking and verification status
+
+### Quality Assurance Features
+
+- Factual accuracy scoring and verification
+- Hallucination detection and removal
+- Source attribution and citation tracking
+- Iterative refinement until quality thresholds are met
+- Comprehensive audit trails for transparency and accountability
+- LLM-based process analysis for continuous improvement
+
+These enhancements make the RAG system more adaptable to different document types and query styles, while ensuring responses are accurate, complete, relevant, and free from hallucinations.
 ## Architecture
 
 Metis RAG is built with the following technologies:
@@ -47,8 +68,10 @@ Metis RAG is built with the following technologies:
 - **Vector Database**: ChromaDB with optimized caching
 - **LLM Integration**: Ollama API with enhanced prompt engineering
 - **Document Processing**: LangChain with LLM-enhanced dynamic chunking strategies
-- **Deployment**: Docker
-- **Testing**: Comprehensive test suite for RAG functionality
+- **Response Quality**: Comprehensive pipeline for synthesis, evaluation, refinement, and auditing
+- **Workflow Orchestration**: LangGraph for adaptive RAG workflows
+- **Process Logging**: Detailed logging and audit trail generation
+- **Testing**: Comprehensive test suite for RAG functionality and response quality
 - **Deployment**: Docker
 
 ## Getting Started
@@ -76,6 +99,10 @@ Metis RAG is built with the following technologies:
    - `CHUNKING_JUDGE_MODEL`: The model to use for document analysis (default: gemma3:12b)
    - `USE_CHUNKING_JUDGE`: Enable/disable the Chunking Judge (default: True)
    - `USE_RETRIEVAL_JUDGE`: Enable/disable the Retrieval Judge (default: True)
+   - `ENABLE_RESPONSE_QUALITY`: Enable/disable the Response Quality Pipeline (default: True)
+   - `QUALITY_THRESHOLD`: Minimum quality score for responses (default: 8.0)
+   - `MAX_REFINEMENT_ITERATIONS`: Maximum number of refinement iterations (default: 2)
+   - `ENABLE_AUDIT_REPORTS`: Enable/disable audit report generation (default: True)
 
 3. Build and start the application with Docker Compose:
    ```bash
@@ -111,6 +138,8 @@ The main chat interface allows you to:
 - Toggle RAG functionality
 - View citations from source documents
 - Control conversation history
+- See quality scores for responses
+- View source attributions and citations
 
 ### Document Management
 
@@ -127,6 +156,16 @@ The system page allows you to:
 - Manage models
 - Check system health
 
+### Audit Reports
+
+The audit reports page allows you to:
+- View comprehensive audit reports for queries
+- Examine information sources used in responses
+- Verify factual accuracy and completeness
+- Track reasoning traces and execution timelines
+- Identify potential hallucinations
+- Export audit reports for compliance and transparency
+
 ## Development
 
 ### Project Structure
@@ -137,14 +176,22 @@ metis_rag/
 │   ├── api/         # API endpoints
 │   ├── core/        # Core configuration
 │   ├── rag/         # RAG engine
-│   │   └── agents/  # LLM-based agents for RAG enhancement
+│   │   ├── agents/  # LLM-based agents for RAG enhancement
+│   │   ├── response_synthesizer.py  # Response synthesis
+│   │   ├── response_evaluator.py    # Response evaluation
+│   │   ├── response_refiner.py      # Response refinement
+│   │   ├── audit_report_generator.py # Audit reporting
+│   │   ├── response_quality_pipeline.py # Quality pipeline
+│   │   └── langgraph_states.py      # LangGraph state models
 │   ├── models/      # Data models
 │   ├── static/      # Static files
 │   ├── templates/   # HTML templates
 │   └── utils/       # Utility functions
 ├── tests/           # Tests
 │   ├── unit/        # Unit tests
+│   │   └── test_response_quality.py # Response quality tests
 │   └── integration/ # Integration tests
+│       └── test_response_quality_integration.py # Integration tests
 ├── uploads/         # Uploaded documents
 ├── chroma_db/       # ChromaDB data
 └── docker-compose.yml
@@ -158,13 +205,23 @@ Run tests with pytest:
 pytest
 ```
 
-For testing the RAG retrieval functionality specifically:
+For testing specific components:
 
 ```bash
+# Test RAG retrieval functionality
 python test_rag_retrieval.py
+
+# Test response quality components
+pytest tests/unit/test_response_quality.py
+
+# Test response quality integration
+pytest tests/integration/test_response_quality_integration.py
 ```
 
-This test script creates test documents, processes them, and tests the RAG retrieval with specific queries to verify that the system correctly retrieves and uses information from the documents.
+These test scripts create test documents, process them, and test various aspects of the system:
+- RAG retrieval tests verify that the system correctly retrieves and uses information from documents
+- Response quality tests verify that responses are accurate, complete, relevant, and free from hallucinations
+- Integration tests verify that all components work together correctly in end-to-end workflows
 
 ## License
 

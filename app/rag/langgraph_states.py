@@ -54,6 +54,47 @@ class GenerationState(TypedDict):
     answer: Optional[str]
     stream_response: Optional[Any]
 
+class ResponseEvaluationState(TypedDict):
+    """State for response evaluation"""
+    query: str
+    query_id: str
+    response: str
+    context: str
+    sources: List[Dict[str, Any]]
+    evaluation: Optional[Dict[str, Any]]
+    factual_accuracy: Optional[float]
+    completeness: Optional[float]
+    relevance: Optional[float]
+    hallucination_detected: Optional[bool]
+    overall_score: Optional[float]
+    needs_refinement: bool
+
+class ResponseRefinementState(TypedDict):
+    """State for response refinement"""
+    query: str
+    query_id: str
+    original_response: str
+    evaluation: Dict[str, Any]
+    context: str
+    sources: List[Dict[str, Any]]
+    refined_response: Optional[str]
+    improvement_summary: Optional[str]
+    iteration: int
+    max_iterations: int
+
+class AuditReportState(TypedDict):
+    """State for audit report generation"""
+    query_id: str
+    query: str
+    process_summary: Optional[Dict[str, Any]]
+    information_sources: Optional[List[Dict[str, Any]]]
+    reasoning_trace: Optional[List[Dict[str, Any]]]
+    verification_status: Optional[Dict[str, Any]]
+    execution_timeline: Optional[List[Dict[str, Any]]]
+    response_quality: Optional[Dict[str, Any]]
+    llm_analysis: Optional[Dict[str, Any]]
+    report_generated: bool
+
 class RAGState(TypedDict):
     """Combined state for the RAG process"""
     query: str
@@ -69,6 +110,9 @@ class RAGState(TypedDict):
     execution: Optional[ExecutionState]
     retrieval: Optional[RetrievalState]
     generation: Optional[GenerationState]
+    evaluation: Optional[ResponseEvaluationState]
+    refinement: Optional[ResponseRefinementState]
+    audit_report: Optional[AuditReportState]
     final_response: Optional[Dict[str, Any]]
 
 class RAGStage(str, Enum):
@@ -80,4 +124,7 @@ class RAGStage(str, Enum):
     QUERY_REFINEMENT = "refine_query_node"
     CONTEXT_OPTIMIZATION = "optimize_context_node"
     GENERATION = "generate_response_node"
+    RESPONSE_EVALUATION = "evaluate_response_node"
+    RESPONSE_REFINEMENT = "refine_response_node"
+    AUDIT_REPORT = "generate_audit_report_node"
     COMPLETE = "finalize_response_node"
