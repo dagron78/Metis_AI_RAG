@@ -14,6 +14,7 @@ from app.api.system import router as system_router
 from app.api.analytics import router as analytics_router
 from app.api.processing import router as processing_router
 from app.api.query_analysis import router as query_analysis_router
+from app.api.tasks import router as tasks_router
 from app.db.session import init_db, db_session
 
 # Setup logging
@@ -39,6 +40,7 @@ app.include_router(system_router, prefix=f"{API_V1_STR}/system", tags=["system"]
 app.include_router(analytics_router, prefix=f"{API_V1_STR}/analytics", tags=["analytics"])
 app.include_router(processing_router, prefix=f"{API_V1_STR}/processing", tags=["processing"])
 app.include_router(query_analysis_router, prefix=f"{API_V1_STR}/query", tags=["query"])
+app.include_router(tasks_router, prefix=f"{API_V1_STR}/tasks", tags=["tasks"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -67,6 +69,13 @@ async def analytics_page(request: Request):
     Analytics dashboard page
     """
     return templates.TemplateResponse("analytics.html", {"request": request})
+
+@app.get("/tasks", response_class=HTMLResponse)
+async def tasks_page(request: Request):
+    """
+    Background tasks management page
+    """
+    return templates.TemplateResponse("tasks.html", {"request": request})
 
 @app.get("/test-models", response_class=HTMLResponse)
 async def test_models_page(request: Request):

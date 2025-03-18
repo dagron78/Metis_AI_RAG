@@ -14,6 +14,7 @@ Metis RAG is an application that combines conversational AI with Retrieval Augme
 - Comprehensive audit reports with source tracking
 - Document management with tagging and organization
 - System monitoring and analytics
+- Background Task System for asynchronous processing
 - Responsive UI with light/dark mode
 - Enhanced logging and debugging capabilities
 
@@ -71,6 +72,7 @@ Metis RAG is built with the following technologies:
 - **Response Quality**: Comprehensive pipeline for synthesis, evaluation, refinement, and auditing
 - **Workflow Orchestration**: LangGraph for adaptive RAG workflows
 - **Process Logging**: Detailed logging and audit trail generation
+- **Background Task System**: Asynchronous processing with task prioritization and resource management
 - **Testing**: Comprehensive test suite for RAG functionality and response quality
 - **Deployment**: Docker
 
@@ -166,6 +168,17 @@ The audit reports page allows you to:
 - Identify potential hallucinations
 - Export audit reports for compliance and transparency
 
+### Background Task System
+
+The Background Task System allows you to:
+- Monitor and manage asynchronous tasks
+- View task status, progress, and results
+- Prioritize tasks based on importance
+- Schedule tasks for future execution
+- Define task dependencies for complex workflows
+- Monitor system resource usage
+- View resource alerts and system health
+
 ## Development
 
 ### Project Structure
@@ -183,6 +196,13 @@ metis_rag/
 │   │   ├── audit_report_generator.py # Audit reporting
 │   │   ├── response_quality_pipeline.py # Quality pipeline
 │   │   └── langgraph_states.py      # LangGraph state models
+│   ├── tasks/       # Background Task System
+│   │   ├── task_manager.py          # Task management
+│   │   ├── task_models.py           # Task data models
+│   │   ├── scheduler.py             # Task scheduling
+│   │   ├── resource_monitor.py      # Resource monitoring
+│   │   ├── task_repository.py       # Task database operations
+│   │   └── example_tasks.py         # Example task handlers
 │   ├── models/      # Data models
 │   ├── static/      # Static files
 │   ├── templates/   # HTML templates
@@ -216,12 +236,16 @@ pytest tests/unit/test_response_quality.py
 
 # Test response quality integration
 pytest tests/integration/test_response_quality_integration.py
+
+# Test background task system
+python scripts/test_background_tasks.py
 ```
 
 These test scripts create test documents, process them, and test various aspects of the system:
 - RAG retrieval tests verify that the system correctly retrieves and uses information from documents
 - Response quality tests verify that responses are accurate, complete, relevant, and free from hallucinations
 - Integration tests verify that all components work together correctly in end-to-end workflows
+- Background task tests verify that the task system correctly handles task submission, execution, prioritization, and resource management
 
 ## License
 
