@@ -12,6 +12,7 @@ from app.api.chat import router as chat_router
 from app.api.documents import router as documents_router
 from app.api.system import router as system_router
 from app.api.analytics import router as analytics_router
+from app.db.session import init_db, db_session
 
 # Setup logging
 setup_logging()
@@ -76,6 +77,15 @@ async def startup_event():
     Actions to run on application startup
     """
     logger.info("Starting up Metis RAG application")
+    
+    # Initialize database
+    try:
+        logger.info("Initializing database connection")
+        init_db()
+        logger.info("Database connection initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {str(e)}")
+        raise
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -83,3 +93,6 @@ async def shutdown_event():
     Actions to run on application shutdown
     """
     logger.info("Shutting down Metis RAG application")
+    
+    # Close database session
+    db_session.remove()

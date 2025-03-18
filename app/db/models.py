@@ -1,0 +1,251 @@
+import uuid
+from datetime import datetime
+from sqlalchemy import (
+    Column, Integer, String, Text, Float, Boolean, 
+    DateTime, ForeignKey, JSON, Table, Index, UniqueConstraint
+)
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import relationship
+
+from app.db.session import Base
+
+# Association table for document-tag many-to-many relationship
+document_tags = Table(
+    'document_tags',
+    Base.metadata,
+    Column('document_id', UUID(as_uuid=True), ForeignKey('documents.id'), primary_key=True),
+    Column('tag_id', Integer, ForeignKey('tags.id'), primary_key=True),
+    Column('added_at', DateTime, default=datetime.utcnow)
+)
+
+class Document(Base):
+    """Document model for database"""
+    __tablename__ = "documents"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    filename = Column(String, nullable=False)
+    content = Column(Text, nullable=True)  # Can be null if we only store metadata
+    metadata = Column(JSONB, default={})
+    folder = Column(String, ForeignKey('folders.path'), default="/")
+    uploaded = Column(DateTime, default=datetime.utcnow)
+    processing_status = Column(String, default="pending")  # pending, processing, completed, failed
+    processing_strategy = Column(String, nullable=True)
+    file_size = Column(Integer, nullable=True)
+    file_type = Column(String, nullable=True)
+    last_accessed = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    chunks = relationship("Chunk", back_populates="document", cascade="all, delete-orphan")
+    tags = relationship("Tag", secondary=document_tags, back_populates="documents")
+    folder_rel = relationship("Folder", back_populates="documents")
+    citations = relationship("Citation", back_populates="document")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_documents_filename', filename),
+        Index('ix_documents_folder', folder),
+        Index('ix_documents_processing_status', processing_status),
+    )
+
+    def __repr__(self):
+        return f"<Document(id={self.id}, filename='{self.filename}')>"
+
+
+class Chunk(Base):
+    """Chunk model for database"""
+    __tablename__ = "chunks"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey('documents.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    metadata = Column(JSONB, default={})
+    index = Column(Integer, nullable=False)  # Position in the document
+    embedding_quality = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    document = relationship("Document", back_populates="chunks")
+    citations = relationship("Citation", back_populates="chunk")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_chunks_document_id', document_id),
+        Index('ix_chunks_document_id_index', document_id, index),
+    )
+
+    def __repr__(self):
+        return f"<Chunk(id={self.id}, document_id={self.document_id}, index={self.index})>"
+
+
+class Tag(Base):
+    """Tag model for database"""
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    usage_count = Column(Integer, default=0)
+
+    # Relationships
+    documents = relationship("Document", secondary=document_tags, back_populates="tags")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_tags_name', name),
+    )
+
+    def __repr__(self):
+        return f"<Tag(id={self.id}, name='{self.name}')>"
+
+
+class Folder(Base):
+    """Folder model for database"""
+    __tablename__ = "folders"
+
+    path = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    parent_path = Column(String, ForeignKey('folders.path'), nullable=True)
+    document_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    documents = relationship("Document", back_populates="folder_rel")
+    subfolders = relationship("Folder", 
+                             backref=relationship.backref("parent", remote_side=[path]),
+                             cascade="all, delete-orphan")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_folders_parent_path', parent_path),
+    )
+
+    def __repr__(self):
+        return f"<Folder(path='{self.path}', name='{self.name}')>"
+
+
+class Conversation(Base):
+    """Conversation model for database"""
+    __tablename__ = "conversations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    metadata = Column(JSONB, default={})
+    message_count = Column(Integer, default=0)
+
+    # Relationships
+    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_conversations_created_at', created_at),
+        Index('ix_conversations_updated_at', updated_at),
+    )
+
+    def __repr__(self):
+        return f"<Conversation(id={self.id}, message_count={self.message_count})>"
+
+
+class Message(Base):
+    """Message model for database"""
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True)
+    conversation_id = Column(UUID(as_uuid=True), ForeignKey('conversations.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    role = Column(String, nullable=False)  # user, assistant, system
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    token_count = Column(Integer, nullable=True)
+
+    # Relationships
+    conversation = relationship("Conversation", back_populates="messages")
+    citations = relationship("Citation", back_populates="message", cascade="all, delete-orphan")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_messages_conversation_id', conversation_id),
+        Index('ix_messages_timestamp', timestamp),
+    )
+
+    def __repr__(self):
+        return f"<Message(id={self.id}, conversation_id={self.conversation_id}, role='{self.role}')>"
+
+
+class Citation(Base):
+    """Citation model for database"""
+    __tablename__ = "citations"
+
+    id = Column(Integer, primary_key=True)
+    message_id = Column(Integer, ForeignKey('messages.id'), nullable=False)
+    document_id = Column(UUID(as_uuid=True), ForeignKey('documents.id'), nullable=True)
+    chunk_id = Column(UUID(as_uuid=True), ForeignKey('chunks.id'), nullable=True)
+    relevance_score = Column(Float, nullable=True)
+    excerpt = Column(Text, nullable=True)
+    character_range_start = Column(Integer, nullable=True)
+    character_range_end = Column(Integer, nullable=True)
+
+    # Relationships
+    message = relationship("Message", back_populates="citations")
+    document = relationship("Document", back_populates="citations")
+    chunk = relationship("Chunk", back_populates="citations")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_citations_message_id', message_id),
+        Index('ix_citations_document_id', document_id),
+        Index('ix_citations_chunk_id', chunk_id),
+    )
+
+    def __repr__(self):
+        return f"<Citation(id={self.id}, message_id={self.message_id}, document_id={self.document_id})>"
+
+
+class ProcessingJob(Base):
+    """Processing job model for database"""
+    __tablename__ = "processing_jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    status = Column(String, nullable=False, default="pending")  # pending, processing, completed, failed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    document_count = Column(Integer, default=0)
+    processed_count = Column(Integer, default=0)
+    strategy = Column(String, nullable=True)
+    metadata = Column(JSONB, default={})
+    progress_percentage = Column(Float, default=0.0)
+    error_message = Column(Text, nullable=True)
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_processing_jobs_status', status),
+        Index('ix_processing_jobs_created_at', created_at),
+    )
+
+    def __repr__(self):
+        return f"<ProcessingJob(id={self.id}, status='{self.status}', progress={self.progress_percentage}%)>"
+
+
+class AnalyticsQuery(Base):
+    """Analytics query model for database"""
+    __tablename__ = "analytics_queries"
+
+    id = Column(Integer, primary_key=True)
+    query = Column(Text, nullable=False)
+    model = Column(String, nullable=True)
+    use_rag = Column(Boolean, default=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    response_time_ms = Column(Float, nullable=True)
+    token_count = Column(Integer, nullable=True)
+    document_ids = Column(JSONB, default=[])
+    query_type = Column(String, nullable=True)  # simple, complex, agentic
+    successful = Column(Boolean, default=True)
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_analytics_queries_timestamp', timestamp),
+        Index('ix_analytics_queries_model', model),
+        Index('ix_analytics_queries_query_type', query_type),
+    )
+
+    def __repr__(self):
+        return f"<AnalyticsQuery(id={self.id}, query_type='{self.query_type}', response_time={self.response_time_ms}ms)>"
