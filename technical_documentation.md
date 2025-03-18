@@ -33,7 +33,11 @@ The core RAG engine consists of:
 The document processing pipeline handles:
 - File validation and parsing
 - Text extraction
-- Chunking with configurable strategies
+- Chunking with configurable strategies:
+  - Recursive: Splits text recursively by characters, good for general text
+  - Token: Splits text by token count rather than character count, useful for LLMs with token limits
+  - Markdown: Splits markdown documents by headers, good for structured documents
+  - Semantic: Uses LLM to identify natural semantic boundaries, best for preserving meaning
 - Metadata extraction
 
 #### Vector Store
@@ -49,6 +53,34 @@ The LLM integration component:
 - Connects to Ollama for local LLM inference
 - Manages prompt templates
 - Handles context window optimization
+
+#### Chunking Judge
+
+The Chunking Judge is an LLM-based agent that enhances the document processing pipeline by:
+- Analyzing document structure, content type, and formatting
+- Selecting the most appropriate chunking strategy (recursive, markdown, or semantic)
+- Recommending optimal chunk size and overlap parameters
+- Providing detailed justification for its recommendations
+
+Our testing shows the Chunking Judge effectively:
+- Recognizes document structures, even identifying markdown-like elements in plain text
+- Selects appropriate strategies that align with document structure
+- Optimizes parameters based on document characteristics
+- Adapts to different document types without manual configuration
+
+#### Semantic Chunker
+
+The Semantic Chunker is an advanced chunking strategy that:
+- Uses LLM to identify natural semantic boundaries in text
+- Preserves semantic meaning and context in chunks
+- Creates more coherent, self-contained chunks than traditional methods
+- Respects the logical flow of information in documents
+
+Key features include:
+- Intelligent boundary detection based on topic transitions and subject matter shifts
+- Handling of long documents by processing in sections
+- Caching for performance optimization
+- Fallback mechanisms for error handling
 
 #### Retrieval Judge
 
@@ -114,13 +146,17 @@ Metis RAG is configured through environment variables:
 ## Performance Considerations
 
 For optimal performance:
-- Use appropriate chunking strategies for different document types
+- Use appropriate chunking strategies for different document types:
+  - Semantic chunking for complex documents where preserving meaning is critical
+  - Markdown chunking for structured documents with clear headers
+  - Recursive chunking for general text with natural separators
 - Configure chunk size based on your specific use case
 - Consider hardware requirements for embedding generation
 - Monitor vector store size and performance
+- Enable the Chunking Judge to automatically select optimal chunking strategies
 - Enable the Retrieval Judge for complex queries requiring precision
 - Leverage caching for improved performance (33.33% vector store cache hit rate)
-- Consider using a smaller model for the Retrieval Judge in latency-sensitive applications
+- Consider using a smaller model for the Judges in latency-sensitive applications
 
 ### Retrieval Judge Performance
 
@@ -130,3 +166,12 @@ Our testing shows that the Retrieval Judge significantly improves retrieval perf
 - Query analysis takes 9.03s on average
 - Query refinement is very fast (2.08s on average)
 - Context optimization reduces context size by 76.4% on average
+
+### Semantic Chunking Performance
+
+The Semantic Chunker provides several advantages over traditional chunking methods:
+- Creates more coherent, self-contained chunks that maintain semantic integrity
+- Reduces the need for large chunk overlaps since boundaries are semantically meaningful
+- Improves retrieval precision by ensuring chunks contain complete concepts
+- Works particularly well with complex, technical, or narrative content
+- Caching mechanism minimizes the performance impact of LLM-based chunking

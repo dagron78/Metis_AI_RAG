@@ -12,6 +12,7 @@ from langchain.schema import Document as LangchainDocument
 from app.core.config import UPLOAD_DIR, CHUNK_SIZE, CHUNK_OVERLAP, USE_CHUNKING_JUDGE
 from app.models.document import Document, Chunk
 from app.rag.agents.chunking_judge import ChunkingJudge
+from app.rag.chunkers.semantic_chunker import SemanticChunker
 
 logger = logging.getLogger("app.rag.document_processor")
 
@@ -110,6 +111,12 @@ class DocumentProcessor:
                     ("###", "header3"),
                     ("####", "header4"),
                 ]
+            )
+        elif self.chunking_strategy == "semantic":
+            logger.info(f"Using semantic chunking with chunk size {self.chunk_size}")
+            return SemanticChunker(
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap
             )
         else:
             logger.warning(f"Unknown chunking strategy: {self.chunking_strategy}, falling back to recursive")

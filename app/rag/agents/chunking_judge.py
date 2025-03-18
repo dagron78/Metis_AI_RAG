@@ -111,6 +111,7 @@ Available Strategies:
 - recursive: Splits text recursively by characters. Good for general text with natural separators.
 - token: Splits text by tokens. Good for preserving semantic units in technical content.
 - markdown: Splits markdown documents by headers. Good for structured documents with clear sections.
+- semantic: Uses LLM to identify natural semantic boundaries in text. Best for preserving meaning and context in complex documents.
 
 Document Filename: {filename}
 
@@ -162,6 +163,18 @@ Recommendation:
     "justification": "This document contains code snippets where preserving token-level semantics is important. Token-based chunking will ensure that code blocks remain coherent."
 }}
 
+Example 4:
+Document: research_paper.pdf
+Recommendation:
+{{
+    "strategy": "semantic",
+    "parameters": {{
+        "chunk_size": 1500,
+        "chunk_overlap": 200
+    }},
+    "justification": "This research paper contains complex concepts and arguments that span multiple paragraphs. Semantic chunking will identify natural boundaries in the text based on meaning rather than arbitrary character counts, preserving the logical flow and context of the arguments."
+}}
+
 Output your recommendation in JSON format:
 {{
     "strategy": "...",  // One of: recursive, token, markdown
@@ -187,7 +200,7 @@ Output your recommendation in JSON format:
                     raise ValueError("Missing 'strategy' in recommendation")
                 
                 # Validate strategy is one of the allowed values
-                allowed_strategies = ["recursive", "token", "markdown"]
+                allowed_strategies = ["recursive", "token", "markdown", "semantic"]
                 if recommendation["strategy"] not in allowed_strategies:
                     logger.warning(f"Invalid strategy '{recommendation['strategy']}', falling back to recursive")
                     recommendation["strategy"] = "recursive"
