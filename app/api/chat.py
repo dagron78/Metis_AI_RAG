@@ -12,8 +12,9 @@ from app.models.chat import (
 )
 from app.rag.rag_engine import RAGEngine
 from app.rag.agents.langgraph_rag_agent import LangGraphRAGAgent
+from app.rag.agents.enhanced_langgraph_rag_agent import EnhancedLangGraphRAGAgent
 from app.utils.text_utils import extract_citations
-from app.core.config import DEFAULT_MODEL, USE_LANGGRAPH_RAG
+from app.core.config import DEFAULT_MODEL, USE_LANGGRAPH_RAG, USE_ENHANCED_LANGGRAPH_RAG
 
 # Create router
 router = APIRouter()
@@ -27,12 +28,18 @@ logger = logging.getLogger("app.api.chat")
 # RAG engine instance
 rag_engine = RAGEngine()
 
-# LangGraph RAG Agent instance
+# LangGraph RAG Agent instances
 langgraph_rag_agent = LangGraphRAGAgent() if USE_LANGGRAPH_RAG else None
+enhanced_langgraph_rag_agent = EnhancedLangGraphRAGAgent() if USE_LANGGRAPH_RAG and USE_ENHANCED_LANGGRAPH_RAG else None
+
 if USE_LANGGRAPH_RAG:
     logger.info("LangGraph RAG Agent is enabled")
+    if USE_ENHANCED_LANGGRAPH_RAG:
+        logger.info("Enhanced LangGraph RAG Agent is enabled")
+    else:
+        logger.info("Enhanced LangGraph RAG Agent is disabled")
 else:
-    logger.info("LangGraph RAG Agent is disabled")
+    logger.info("LangGraph RAG Agents are disabled")
 
 # Maximum number of messages to include in conversation history
 MAX_HISTORY_MESSAGES = 25
@@ -342,6 +349,149 @@ async def langgraph_query_chat(query: ChatQuery):
         
         # Create a user-friendly error message
         error_message = "Sorry, there was an error processing your request with the LangGraph RAG Agent."
+        
+        # Return a 200 response with the error message instead of raising an exception
+        return ChatResponse(
+            message=error_message,
+            conversation_id=conversation_id if "conversation_id" in locals() else None,
+            citations=None
+        )
+
+@router.post("/enhanced_langgraph_query", response_model=ChatResponse)
+async def enhanced_langgraph_query_chat(query: ChatQuery):
+    """
+    Send a chat query to the Enhanced LangGraph RAG Agent and get a response
+    
+    This endpoint uses the enhanced LangGraph RAG agent that integrates:
+    - QueryPlanner for creating execution plans
+    - PlanExecutor for executing multi-step plans
+    - Retrieval Judge for query refinement and context optimization
+    """
+    if not USE_LANGGRAPH_RAG or not USE_ENHANCED_LANGGRAPH_RAG or not enhanced_langgraph_rag_agent:
+        raise HTTPException(status_code=400, detail="Enhanced LangGraph RAG Agent is not enabled")
+    
+    try:
+        # Get or create conversation
+        conversation_id = query.conversation_id
+        if conversation_id and conversation_id in conversations:
+            conversation = conversations[conversation_id]
+        else:
+            conversation = Conversation()
+            conversations[conversation.id] = conversation
+            conversation_id = conversation.id
+        
+        # Add user message to conversation
+        user_message = Message(content=query.message, role="user")
+        conversation.add_message(user_message)
+        
+        # Get model name
+        model = query.model or DEFAULT_MODEL
+        
+        # Format conversation history
+        conversation_context = None
+        if len(conversation.messages) > 1:  # Only include history if there's more than just the current message
+            # Get the last few messages (up to 5) to keep context manageable, but exclude the most recent user message
+            recent_history = conversation.messages[:-1]
+            if len(recent_history) > 5:
+                recent_history = recent_history[-5:]
+            
+            # Format the conversation history
+            history_pieces = []
+            for msg in recent_history:
+                role_prefix = "User" if msg.role == "user" else "Assistant"
+                history_pieces.append(f"{role_prefix}: {msg.content}")
+            
+            conversation_context = "\n".join(history_pieces)
+            logger.info(f"Including conversation history with {len(recent_history)} messages")
+        else:
+            logger.info("No previous conversation history to include")
+        
+        # Extract metadata filters if provided
+        metadata_filters = query.metadata_filters if hasattr(query, 'metadata_filters') else None
+        
+        # Query Enhanced LangGraph RAG Agent
+        if query.stream:
+            # For streaming, return an EventSourceResponse
+            logger.info(f"Streaming response for conversation {conversation_id} using Enhanced LangGraph RAG Agent")
+            
+            async def event_generator():
+                full_response = ""
+                
+                # Get Enhanced LangGraph RAG response
+                enhanced_response = await enhanced_langgraph_rag_agent.query(
+                    query=query.message,
+                    model=model,
+                    system_prompt=None,  # Use default system prompt
+                    stream=True,
+                    model_parameters=query.model_parameters,
+                    conversation_context=conversation_context,
+                    metadata_filters=metadata_filters
+                )
+                
+                # Get sources (with safety check)
+                sources = enhanced_response.get("sources")
+                if sources is None:
+                    logger.warning("No sources returned from Enhanced LangGraph RAG Agent")
+                    sources = []
+                
+                # Stream the response
+                async for token in enhanced_response["stream"]:
+                    full_response += token
+                    yield token
+                
+                # Add assistant message to conversation
+                assistant_message = Message(
+                    content=full_response,
+                    role="assistant",
+                    citations=sources
+                )
+                conversation.add_message(assistant_message)
+            
+            return EventSourceResponse(event_generator())
+        else:
+            # For non-streaming, return the complete response
+            logger.info(f"Generating response for conversation {conversation_id} using Enhanced LangGraph RAG Agent")
+            
+            # Get Enhanced LangGraph RAG response
+            enhanced_response = await enhanced_langgraph_rag_agent.query(
+                query=query.message,
+                model=model,
+                system_prompt=None,  # Use default system prompt
+                stream=False,
+                model_parameters=query.model_parameters,
+                conversation_context=conversation_context,
+                metadata_filters=metadata_filters
+            )
+            
+            # Get response and sources
+            response_text = enhanced_response.get("answer", "")
+            sources = enhanced_response.get("sources")
+            execution_trace = enhanced_response.get("execution_trace")
+            
+            if sources is None:
+                logger.warning("No sources returned from Enhanced LangGraph RAG Agent")
+                sources = []
+            
+            # Add assistant message to conversation
+            assistant_message = Message(
+                content=response_text,
+                role="assistant",
+                citations=sources
+            )
+            conversation.add_message(assistant_message)
+            
+            # Return response
+            return ChatResponse(
+                message=response_text,
+                conversation_id=conversation_id,
+                citations=sources,
+                execution_trace=execution_trace
+            )
+    except Exception as e:
+        logger.error(f"Error generating chat response with Enhanced LangGraph RAG Agent: {str(e)}")
+        
+        # Create a user-friendly error message
+        error_message = "Sorry, there was an error processing your request with the Enhanced LangGraph RAG Agent."
         
         # Return a 200 response with the error message instead of raising an exception
         return ChatResponse(

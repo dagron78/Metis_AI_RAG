@@ -8,6 +8,8 @@ pydantic>=1.10.8,<2.0.0
 # LangChain and LangGraph
 langchain>=0.0.235,<0.0.300
 langgraph>=0.0.20
+langchain-core>=0.1.0
+langchain-community>=0.0.10
 # ChromaDB and dependencies
 chromadb>=0.4.13,<0.4.15
 # Document processing dependencies

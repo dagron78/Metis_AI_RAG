@@ -26,6 +26,7 @@ USE_RETRIEVAL_JUDGE = os.getenv("USE_RETRIEVAL_JUDGE", "True").lower() == "true"
 # LangGraph RAG Agent settings
 LANGGRAPH_RAG_MODEL = os.getenv("LANGGRAPH_RAG_MODEL", "gemma3:12b")
 USE_LANGGRAPH_RAG = os.getenv("USE_LANGGRAPH_RAG", "True").lower() == "true"
+USE_ENHANCED_LANGGRAPH_RAG = os.getenv("USE_ENHANCED_LANGGRAPH_RAG", "True").lower() == "true"
 
 # Document settings
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", str(BASE_DIR / "uploads"))
