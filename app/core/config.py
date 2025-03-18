@@ -23,6 +23,10 @@ RETRIEVAL_JUDGE_MODEL = os.getenv("RETRIEVAL_JUDGE_MODEL", "gemma3:12b")
 USE_CHUNKING_JUDGE = os.getenv("USE_CHUNKING_JUDGE", "True").lower() == "true"
 USE_RETRIEVAL_JUDGE = os.getenv("USE_RETRIEVAL_JUDGE", "True").lower() == "true"
 
+# LangGraph RAG Agent settings
+LANGGRAPH_RAG_MODEL = os.getenv("LANGGRAPH_RAG_MODEL", "gemma3:12b")
+USE_LANGGRAPH_RAG = os.getenv("USE_LANGGRAPH_RAG", "True").lower() == "true"
+
 # Document settings
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", str(BASE_DIR / "uploads"))
 CHROMA_DB_DIR = os.getenv("CHROMA_DB_DIR", str(BASE_DIR / "chroma_db"))
