@@ -9,6 +9,7 @@ from chromadb.config import Settings
 from app.core.config import CHROMA_DB_DIR, DEFAULT_EMBEDDING_MODEL
 from app.models.document import Document, Chunk
 from app.rag.ollama_client import OllamaClient
+from app.cache.vector_search_cache import VectorSearchCache
 
 logger = logging.getLogger("app.rag.vector_store")
 
@@ -21,7 +22,10 @@ class VectorStore:
         persist_directory: str = CHROMA_DB_DIR,
         embedding_model: str = DEFAULT_EMBEDDING_MODEL,
         enable_cache: bool = True,
-        cache_ttl: int = 3600  # 1 hour in seconds
+        cache_ttl: int = 3600,  # 1 hour in seconds
+        cache_max_size: int = 1000,
+        cache_persist: bool = True,
+        cache_persist_dir: str = "data/cache"
     ):
         self.persist_directory = persist_directory
         self.embedding_model = embedding_model
@@ -30,10 +34,16 @@ class VectorStore:
         # Cache settings
         self.enable_cache = enable_cache
         self.cache_ttl = cache_ttl
-        self.cache = {}
-        self.cache_hits = 0
-        self.cache_misses = 0
-        self.max_cache_size = 1000
+        self.cache_max_size = cache_max_size
+        
+        # Initialize the vector search cache
+        if self.enable_cache:
+            self.vector_cache = VectorSearchCache(
+                ttl=cache_ttl,
+                max_size=cache_max_size,
+                persist=cache_persist,
+                persist_dir=cache_persist_dir
+            )
         
         # Initialize ChromaDB
         self.client = chromadb.PersistentClient(
@@ -90,19 +100,32 @@ class VectorStore:
                     logger.warning(f"Chunk {chunk.id} has no embedding, skipping")
                     continue
                     
+                # Prepare metadata - convert any lists to strings to satisfy ChromaDB requirements
+                metadata = {
+                    "document_id": document.id,
+                    "chunk_index": chunk.metadata.get("index", 0),
+                    "filename": document.filename,
+                    "tags": ",".join(document.tags) if document.tags else "",
+                    "folder": document.folder
+                }
+                
+                # Add any additional metadata from the chunk
+                for key, value in chunk.metadata.items():
+                    # Convert lists to strings if present
+                    if isinstance(value, list):
+                        metadata[key] = ",".join(str(item) for item in value)
+                    else:
+                        metadata[key] = value
+                
                 self.collection.add(
                     ids=[chunk.id],
                     embeddings=[chunk.embedding],
                     documents=[chunk.content],
-                    metadatas=[{
-                        "document_id": document.id,
-                        "chunk_index": chunk.metadata.get("index", 0),
-                        "filename": document.filename,
-                        "tags": document.tags,
-                        "folder": document.folder,
-                        **chunk.metadata
-                    }]
+                    metadatas=[metadata]
                 )
+            
+            # Clear the cache to ensure we're using the latest embeddings
+            self.clear_cache()
             
             logger.info(f"Added {len(document.chunks)} chunks to vector store for document {document.id}")
         except Exception as e:
@@ -172,16 +195,13 @@ class VectorStore:
         try:
             # Check cache if enabled
             if self.enable_cache:
-                cache_key = self._create_cache_key(query, top_k, filter_criteria)
-                cached_result = self._get_from_cache(cache_key)
+                cached_result = self.vector_cache.get_results(query, top_k, filter_criteria)
                 
                 if cached_result:
-                    self.cache_hits += 1
-                    logger.info(f"Cache hit for query: {query[:50]}... (hits: {self.cache_hits}, misses: {self.cache_misses})")
+                    logger.info(f"Cache hit for query: {query[:50]}...")
                     return cached_result
                 
-                self.cache_misses += 1
-                logger.info(f"Cache miss for query: {query[:50]}... (hits: {self.cache_hits}, misses: {self.cache_misses})")
+                logger.info(f"Cache miss for query: {query[:50]}...")
             
             logger.info(f"Searching for documents similar to query: {query[:50]}...")
             
@@ -225,14 +245,18 @@ class VectorStore:
                     logger.debug(f"  Chunk ID: {chunk_id}")
                     logger.debug(f"  Distance: {distance}")
                     logger.debug(f"  Metadata: {metadata}")
-                    logger.debug(f"  Content preview: {content[:100]}...")
+                    logger.debug(f"  Content preview: {content[:100] if content is not None else 'None'}...")
                     
-                    formatted_results.append({
-                        "chunk_id": chunk_id,
-                        "content": content,
-                        "metadata": metadata,
-                        "distance": distance
-                    })
+                    # Skip adding None content to results or provide a default value
+                    if content is not None:
+                        formatted_results.append({
+                            "chunk_id": chunk_id,
+                            "content": content,
+                            "metadata": metadata,
+                            "distance": distance
+                        })
+                    else:
+                        logger.warning(f"Skipping result with chunk_id {chunk_id} due to None content")
             else:
                 logger.warning(f"No results found for query: {query[:50]}...")
             
@@ -245,59 +269,14 @@ class VectorStore:
             
             # Cache results if enabled
             if self.enable_cache:
-                self._add_to_cache(cache_key, formatted_results)
+                self.vector_cache.set_results(query, top_k, formatted_results, filter_criteria)
             
             return formatted_results
         except Exception as e:
             logger.error(f"Error searching for documents: {str(e)}")
             raise
     
-    def _create_cache_key(self, query: str, top_k: int, filter_criteria: Optional[Dict[str, Any]]) -> str:
-        """Create a cache key from the search parameters"""
-        # Normalize the query by removing extra whitespace and lowercasing
-        normalized_query = " ".join(query.lower().split())
-        
-        # Convert filter criteria to a stable string representation
-        filter_str = json.dumps(filter_criteria or {}, sort_keys=True)
-        
-        # Combine parameters into a cache key
-        return f"{normalized_query}:{top_k}:{filter_str}"
-    
-    def _get_from_cache(self, key: str) -> Optional[List[Dict[str, Any]]]:
-        """Get results from cache if they exist and are not expired"""
-        if key in self.cache:
-            entry = self.cache[key]
-            if time.time() - entry["timestamp"] < self.cache_ttl:
-                return entry["results"]
-            else:
-                # Expired, remove from cache
-                del self.cache[key]
-        return None
-    
-    def _add_to_cache(self, key: str, results: List[Dict[str, Any]]) -> None:
-        """Add results to cache"""
-        self.cache[key] = {
-            "results": results,
-            "timestamp": time.time()
-        }
-        
-        # Prune cache if it gets too large
-        if len(self.cache) > self.max_cache_size:
-            self._prune_cache()
-    
-    def _prune_cache(self) -> None:
-        """Remove oldest entries from cache"""
-        # Sort by timestamp and keep the newest entries
-        sorted_cache = sorted(
-            self.cache.items(),
-            key=lambda x: x[1]["timestamp"],
-            reverse=True
-        )
-        
-        # Keep only half of the max cache size
-        keep_count = self.max_cache_size // 2
-        self.cache = dict(sorted_cache[:keep_count])
-        logger.info(f"Pruned cache to {keep_count} entries")
+    # Cache-related methods have been replaced by the VectorSearchCache class
     
     async def search_by_tags(
         self,
@@ -317,9 +296,21 @@ class VectorStore:
             
             # Add tag filter
             if tags:
-                # ChromaDB doesn't support direct array contains, so we use $in operator
-                # This will match if any of the document tags are in the provided tags list
-                filter_criteria["tags"] = {"$in": tags}
+                # Since tags are now stored as comma-separated strings, we need to use $contains
+                # to check if any of the requested tags are in the document's tags string
+                tag_conditions = []
+                for tag in tags:
+                    # For each tag, create a condition that checks if it's in the tags string
+                    # We add commas to ensure we match whole tags, not substrings
+                    tag_conditions.append({"$contains": tag})
+                
+                # Use $or to match any of the tag conditions
+                if "tags" not in filter_criteria:
+                    filter_criteria["tags"] = {"$or": tag_conditions}
+                else:
+                    # If there's already a tags filter, combine with it
+                    existing_filter = filter_criteria["tags"]
+                    filter_criteria["tags"] = {"$and": [existing_filter, {"$or": tag_conditions}]}
             
             # Perform search with filters
             return await self.search(query, top_k, filter_criteria)
@@ -365,6 +356,11 @@ class VectorStore:
                 where={"document_id": document_id}
             )
             
+            # Invalidate cache entries for this document
+            if self.enable_cache:
+                self.vector_cache.invalidate_by_document_id(document_id)
+                logger.info(f"Invalidated cache entries for document {document_id}")
+            
             logger.info(f"Deleted document {document_id} from vector store")
         except Exception as e:
             logger.error(f"Error deleting document {document_id} from vector store: {str(e)}")
@@ -391,6 +387,14 @@ class VectorStore:
             logger.error(f"Error getting vector store stats: {str(e)}")
             raise
     
+    def clear_cache(self) -> None:
+        """
+        Clear the cache to ensure fresh results
+        """
+        if self.enable_cache:
+            self.vector_cache.clear()
+            logger.info("Vector store cache cleared")
+    
     def get_cache_stats(self) -> Dict[str, Any]:
         """
         Get statistics about the cache
@@ -398,15 +402,16 @@ class VectorStore:
         if not self.enable_cache:
             return {"cache_enabled": False}
         
-        total_requests = self.cache_hits + self.cache_misses
-        hit_ratio = self.cache_hits / total_requests if total_requests > 0 else 0
+        # Get stats from the vector search cache
+        cache_stats = self.vector_cache.get_stats()
         
         return {
             "cache_enabled": True,
-            "cache_size": len(self.cache),
-            "cache_max_size": self.max_cache_size,
-            "cache_hits": self.cache_hits,
-            "cache_misses": self.cache_misses,
-            "cache_hit_ratio": hit_ratio,
-            "cache_ttl_seconds": self.cache_ttl
+            "cache_size": cache_stats["size"],
+            "cache_max_size": cache_stats["max_size"],
+            "cache_hits": cache_stats["hits"],
+            "cache_misses": cache_stats["misses"],
+            "cache_hit_ratio": cache_stats["hit_ratio"],
+            "cache_ttl_seconds": cache_stats["ttl_seconds"],
+            "cache_persist": cache_stats["persist"]
         }
