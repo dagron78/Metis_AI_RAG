@@ -13,7 +13,7 @@ Metis_RAG is a Retrieval Augmented Generation (RAG) system that enhances LLM res
 - **Web Interface**: Provides UI for document management and chat
 
 ### Current Limitations
-- In-memory storage for documents, analytics, and conversations
+- In-memory storage for documents, analytics, and conversations (database integration in progress)
 - Limited scalability for processing large numbers of documents
 - Basic analytics without persistence
 - No authentication or authorization
@@ -29,6 +29,8 @@ Metis_RAG is a Retrieval Augmented Generation (RAG) system that enhances LLM res
 ### Repository Structure
 - `/app/api/`: API endpoints
 - `/app/core/`: Core configuration and utilities
+- `/app/db/`: Database integration components
+- `/app/db/repositories/`: Repository classes for database operations
 - `/app/models/`: Data models
 - `/app/rag/`: RAG implementation
 - `/app/rag/agents/`: LLM-based agents
@@ -36,6 +38,7 @@ Metis_RAG is a Retrieval Augmented Generation (RAG) system that enhances LLM res
 - `/app/static/`: Frontend assets
 - `/app/templates/`: HTML templates
 - `/tests/`: Test suite
+- `/alembic/`: Database migration scripts
 
 ### Reference Documents
 - `Metis_RAG_Improvement_Plan.md`: Core infrastructure improvements
@@ -46,25 +49,25 @@ Metis_RAG is a Retrieval Augmented Generation (RAG) system that enhances LLM res
 ### Phase 1: Database Integration (Weeks 1-2)
 
 #### 1.1 Database Setup
-- [ ] Choose database backend (SQLite for development, PostgreSQL for production)
-- [ ] Create database schema
-- [ ] Implement database connection management
-- [ ] Add migration scripts
+- [x] Choose database backend (PostgreSQL for both development and production)
+- [x] Create database schema
+- [x] Implement database connection management
+- [x] Add migration scripts
 
 #### 1.2 Document Storage Migration
-- [ ] Create DocumentRepository class
+- [x] Create DocumentRepository class
 - [ ] Migrate in-memory document storage to database
 - [ ] Update document API endpoints to use repository
 - [ ] Add document versioning support
 
 #### 1.3 Analytics Storage Migration
-- [ ] Create AnalyticsRepository class
+- [x] Create AnalyticsRepository class
 - [ ] Migrate in-memory analytics storage to database
 - [ ] Update analytics API endpoints to use repository
 - [ ] Add analytics data retention policies
 
 #### 1.4 Conversation Storage Migration
-- [ ] Create ConversationRepository class
+- [x] Create ConversationRepository class
 - [ ] Migrate in-memory conversation storage to database
 - [ ] Update chat API endpoints to use repository
 - [ ] Add conversation history management
