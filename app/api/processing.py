@@ -21,6 +21,8 @@ logger = logging.getLogger("app.api.processing")
 document_processor = DocumentProcessor()
 processing_service = DocumentProcessingService(document_processor=document_processor)
 
+# Document repository will be set in the startup event
+
 # Pydantic models for request/response
 class ProcessingJobRequest(BaseModel):
     """Request model for creating a processing job"""
@@ -49,8 +51,27 @@ class ProcessingJobListResponse(BaseModel):
 @router.on_event("startup")
 async def startup_event():
     """Start the processing service on startup"""
-    await processing_service.start()
-    logger.info("Processing service started")
+    # Get document repository
+    from app.db.dependencies import get_document_repository
+    from app.db.session import SessionLocal
+    
+    # Create a session
+    db = SessionLocal()
+    try:
+        # Get document repository
+        document_repo = get_document_repository(db)
+        
+        # Set document repository for processing service
+        processing_service.set_document_repository(document_repo)
+        logger.info("Document repository set for processing service")
+        
+        # Start processing service
+        await processing_service.start()
+        logger.info("Processing service started")
+    except Exception as e:
+        logger.error(f"Error starting processing service: {str(e)}")
+    finally:
+        db.close()
 
 # Shutdown event
 @router.on_event("shutdown")
@@ -77,9 +98,12 @@ async def create_processing_job(
     try:
         # Validate document IDs
         for document_id in job_request.document_ids:
-            document = document_repo.get_by_id(document_id)
+            document = document_repo.get_document_with_chunks(document_id)
             if not document:
                 raise HTTPException(status_code=404, detail=f"Document {document_id} not found")
+            
+            # Update document status to pending processing
+            document_repo.update_processing_status(document_id, "pending", job_request.strategy)
         
         # Create job
         job = await processing_service.create_job(

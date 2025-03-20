@@ -166,11 +166,12 @@ class DocumentProcessingService:
     """
     Service for processing documents in batches
     """
-    def __init__(self, document_processor, max_workers: int = 4):
+    def __init__(self, document_processor, max_workers: int = 4, document_repository=None):
         self.document_processor = document_processor
         self.worker_pool = WorkerPool(max_workers=max_workers)
         self.jobs: Dict[str, ProcessingJob] = {}
         self.logger = logging.getLogger("app.rag.document_processing_service")
+        self.document_repository = document_repository
         
     async def start(self) -> None:
         """
@@ -185,6 +186,15 @@ class DocumentProcessingService:
         """
         await self.worker_pool.stop()
         self.logger.info("Document processing service stopped")
+        
+    def set_document_repository(self, document_repository) -> None:
+        """
+        Set the document repository
+        
+        Args:
+            document_repository: Document repository
+        """
+        self.document_repository = document_repository
         
     async def create_job(self, document_ids: List[str], strategy: Optional[str] = None) -> ProcessingJob:
         """
@@ -279,10 +289,10 @@ class DocumentProcessingService:
                             self.document_processor.chunking_strategy = job.strategy
                         
                         # Process document
-                        await self.document_processor.process_document(document)
+                        processed_document = await self.document_processor.process_document(document)
                         
                         # Save document
-                        await self._save_document(document)
+                        await self._save_document(processed_document)
                     
                     # Update progress
                     job.update_progress(i + 1)
@@ -312,8 +322,20 @@ class DocumentProcessingService:
         Returns:
             Document if found, None otherwise
         """
-        # This is a placeholder - in a real implementation, this would get the document from the database
-        # For now, we'll just return a dummy document
+        if self.document_repository:
+            try:
+                # Get document from repository
+                document = self.document_repository.get_document_with_chunks(document_id)
+                if document:
+                    self.logger.info(f"Retrieved document {document_id} from repository")
+                    return document
+                else:
+                    self.logger.warning(f"Document {document_id} not found in repository")
+            except Exception as e:
+                self.logger.error(f"Error retrieving document {document_id} from repository: {str(e)}")
+        
+        # Fallback to dummy document if repository not available or document not found
+        self.logger.warning(f"Using dummy document for {document_id} (repository not available or document not found)")
         return Document(
             id=document_id,
             filename=f"document_{document_id}.txt",
@@ -325,7 +347,14 @@ class DocumentProcessingService:
         Save a document
         
         Args:
-            document: Document to save
+            document: Document to save (Pydantic model)
         """
-        # This is a placeholder - in a real implementation, this would save the document to the database
-        pass
+        if self.document_repository:
+            try:
+                # Save document to repository
+                self.document_repository.save_document_with_chunks(document)
+                self.logger.info(f"Saved document {document.id} to repository")
+            except Exception as e:
+                self.logger.error(f"Error saving document {document.id} to repository: {str(e)}")
+        else:
+            self.logger.warning(f"Document repository not available, document {document.id} not saved")

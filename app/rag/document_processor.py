@@ -46,8 +46,8 @@ class DocumentProcessor:
         logger.info(f"Using chunking strategy: {self.chunking_strategy} for file type: {file_ext}")
         
         # If we have a chunking analysis in document metadata, log it
-        if hasattr(self, 'document') and self.document and 'chunking_analysis' in self.document.metadata:
-            logger.info(f"Chunking analysis: {self.document.metadata['chunking_analysis']['justification']}")
+        if hasattr(self, 'document') and self.document and hasattr(self.document, 'doc_metadata') and 'chunking_analysis' in self.document.doc_metadata:
+            logger.info(f"Chunking analysis: {self.document.doc_metadata['chunking_analysis']['justification']}")
         
         # Text file handling - use paragraph-based splitting for more natural chunks
         if file_ext == ".txt":
@@ -130,99 +130,122 @@ class DocumentProcessor:
                 separators=["\n\n", "\n", ".", " ", ""]
             )
     
-    async def process_document(self, document: Document) -> Document:
-        """
-        Process a document by splitting it into chunks
-        """
-        try:
-            logger.info(f"Processing document: {document.filename}")
+    async def process_document(self, document) -> Document:
+            """
+            Process a document by splitting it into chunks
             
-            # Get the document path
-            file_path = os.path.join(UPLOAD_DIR, document.id, document.filename)
+            Args:
+                document: Document to process (Pydantic or SQLAlchemy model)
+                
+            Returns:
+                Processed document (Pydantic model)
+            """
+            from app.db.adapters import (
+                is_sqlalchemy_model,
+                sqlalchemy_document_to_pydantic,
+                pydantic_document_to_sqlalchemy
+            )
             
-            # Get file extension for specialized handling
-            _, ext = os.path.splitext(file_path.lower())
-            
-            # Use Chunking Judge if enabled
-            if USE_CHUNKING_JUDGE:
-                logger.info(f"Using Chunking Judge to analyze document: {document.filename}")
-                chunking_judge = ChunkingJudge()
-                analysis_result = await chunking_judge.analyze_document(document)
-                
-                # Update chunking strategy and parameters
-                self.chunking_strategy = analysis_result["strategy"]
-                if "parameters" in analysis_result and "chunk_size" in analysis_result["parameters"]:
-                    self.chunk_size = analysis_result["parameters"]["chunk_size"]
-                if "parameters" in analysis_result and "chunk_overlap" in analysis_result["parameters"]:
-                    self.chunk_overlap = analysis_result["parameters"]["chunk_overlap"]
-                
-                # Store the chunking analysis in document metadata
-                document.metadata["chunking_analysis"] = analysis_result
-                
-                logger.info(f"Chunking Judge recommendation: strategy={self.chunking_strategy}, " +
-                           f"chunk_size={self.chunk_size}, chunk_overlap={self.chunk_overlap}")
-            else:
-                # Use DocumentAnalysisService if Chunking Judge is disabled
-                logger.info(f"Chunking Judge disabled, using DocumentAnalysisService for document: {document.filename}")
-                analysis_result = await self.document_analysis_service.analyze_document(document)
-                
-                # Update chunking strategy and parameters
-                self.chunking_strategy = analysis_result["strategy"]
-                if "parameters" in analysis_result and "chunk_size" in analysis_result["parameters"]:
-                    self.chunk_size = analysis_result["parameters"]["chunk_size"]
-                if "parameters" in analysis_result and "chunk_overlap" in analysis_result["parameters"]:
-                    self.chunk_overlap = analysis_result["parameters"]["chunk_overlap"]
-                
-                # Store the document analysis in document metadata
-                document.metadata["document_analysis"] = analysis_result
-                
-                logger.info(f"Document analysis recommendation: strategy={self.chunking_strategy}, " +
-                           f"chunk_size={self.chunk_size}, chunk_overlap={self.chunk_overlap}")
-            
-            # Get appropriate text splitter for this file type
-            self.text_splitter = self._get_text_splitter(ext)
-            
-            # Extract text from the document based on file type
-            docs = await self._load_document(file_path)
-            
-            # Split the document into chunks
-            chunks = self._split_document(docs)
-            
-            # Update the document with chunks
-            document.chunks = []
-            for i, chunk in enumerate(chunks):
-                # Start with the chunk's existing metadata
-                metadata = dict(chunk.metadata) if chunk.metadata else {}
-                
-                # Add document metadata
-                metadata.update({
-                    "document_id": document.id,
-                    "index": i,
-                    "folder": document.folder
-                })
-                
-                # Handle tags specially - store as string for ChromaDB compatibility
-                if document.tags:
-                    metadata["tags_list"] = document.tags  # Keep original list for internal use
-                    metadata["tags"] = ",".join(document.tags)  # String version for ChromaDB
+            try:
+                # Convert to Pydantic model if needed for processing
+                is_sqlalchemy = is_sqlalchemy_model(document)
+                if is_sqlalchemy:
+                    logger.info(f"Converting SQLAlchemy document to Pydantic for processing: {document.filename}")
+                    pydantic_document = sqlalchemy_document_to_pydantic(document)
                 else:
-                    metadata["tags"] = ""
-                    metadata["tags_list"] = []
+                    pydantic_document = document
+                    
+                logger.info(f"Processing document: {pydantic_document.filename}")
                 
-                # Create the chunk with processed metadata
-                document.chunks.append(
-                    Chunk(
-                        content=chunk.page_content,
-                        metadata=metadata
+                # Convert document ID to string if it's a UUID
+                document_id_str = str(pydantic_document.id)
+                
+                # Get the document path
+                file_path = os.path.join(UPLOAD_DIR, document_id_str, pydantic_document.filename)
+                
+                # Get file extension for specialized handling
+                _, ext = os.path.splitext(file_path.lower())
+                
+                # Use Chunking Judge if enabled
+                if USE_CHUNKING_JUDGE:
+                    logger.info(f"Using Chunking Judge to analyze document: {pydantic_document.filename}")
+                    chunking_judge = ChunkingJudge()
+                    analysis_result = await chunking_judge.analyze_document(pydantic_document)
+                    
+                    # Update chunking strategy and parameters
+                    self.chunking_strategy = analysis_result["strategy"]
+                    if "parameters" in analysis_result and "chunk_size" in analysis_result["parameters"]:
+                        self.chunk_size = analysis_result["parameters"]["chunk_size"]
+                    if "parameters" in analysis_result and "chunk_overlap" in analysis_result["parameters"]:
+                        self.chunk_overlap = analysis_result["parameters"]["chunk_overlap"]
+                    
+                    # Store the chunking analysis in document metadata
+                    pydantic_document.metadata["chunking_analysis"] = analysis_result
+                    
+                    logger.info(f"Chunking Judge recommendation: strategy={self.chunking_strategy}, " +
+                               f"chunk_size={self.chunk_size}, chunk_overlap={self.chunk_overlap}")
+                else:
+                    # Use DocumentAnalysisService if Chunking Judge is disabled
+                    logger.info(f"Chunking Judge disabled, using DocumentAnalysisService for document: {pydantic_document.filename}")
+                    analysis_result = await self.document_analysis_service.analyze_document(pydantic_document)
+                    
+                    # Update chunking strategy and parameters
+                    self.chunking_strategy = analysis_result["strategy"]
+                    if "parameters" in analysis_result and "chunk_size" in analysis_result["parameters"]:
+                        self.chunk_size = analysis_result["parameters"]["chunk_size"]
+                    if "parameters" in analysis_result and "chunk_overlap" in analysis_result["parameters"]:
+                        self.chunk_overlap = analysis_result["parameters"]["chunk_overlap"]
+                    
+                    # Store the document analysis in document metadata
+                    pydantic_document.metadata["document_analysis"] = analysis_result
+                    
+                    logger.info(f"Document analysis recommendation: strategy={self.chunking_strategy}, " +
+                               f"chunk_size={self.chunk_size}, chunk_overlap={self.chunk_overlap}")
+                
+                # Get appropriate text splitter for this file type
+                self.text_splitter = self._get_text_splitter(ext)
+                
+                # Extract text from the document based on file type
+                docs = await self._load_document(file_path)
+                
+                # Split the document into chunks
+                chunks = self._split_document(docs)
+                
+                # Update the document with chunks
+                pydantic_document.chunks = []
+                for i, chunk in enumerate(chunks):
+                    # Start with the chunk's existing metadata
+                    metadata = dict(chunk.metadata) if chunk.metadata else {}
+                    
+                    # Add document metadata
+                    metadata.update({
+                        "document_id": document_id_str,  # Use string ID
+                        "index": i,
+                        "folder": pydantic_document.folder
+                    })
+                    
+                    # Handle tags specially - store as string for ChromaDB compatibility
+                    if hasattr(pydantic_document, 'tags') and pydantic_document.tags:
+                        metadata["tags_list"] = pydantic_document.tags  # Keep original list for internal use
+                        metadata["tags"] = ",".join(pydantic_document.tags)  # String version for ChromaDB
+                    else:
+                        metadata["tags"] = ""
+                        metadata["tags_list"] = []
+                    
+                    # Create the chunk with processed metadata
+                    pydantic_document.chunks.append(
+                        Chunk(
+                            content=chunk.page_content,
+                            metadata=metadata
+                        )
                     )
-                )
-            
-            logger.info(f"Document processed into {len(document.chunks)} chunks")
-            
-            return document
-        except Exception as e:
-            logger.error(f"Error processing document {document.filename}: {str(e)}")
-            raise
+                
+                logger.info(f"Document processed into {len(pydantic_document.chunks)} chunks")
+                
+                return pydantic_document
+            except Exception as e:
+                logger.error(f"Error processing document {pydantic_document.filename}: {str(e)}")
+                raise
     
     async def _load_document(self, file_path: str) -> List[LangchainDocument]:
         """
