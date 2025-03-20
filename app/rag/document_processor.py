@@ -23,11 +23,13 @@ class DocumentProcessor:
     """
     def __init__(
         self,
+        upload_dir: str = UPLOAD_DIR,
         chunk_size: int = CHUNK_SIZE,
         chunk_overlap: int = CHUNK_OVERLAP,
         chunking_strategy: str = "recursive",
         llm_provider = None
     ):
+        self.upload_dir = upload_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.chunking_strategy = chunking_strategy
@@ -161,7 +163,7 @@ class DocumentProcessor:
                 document_id_str = str(pydantic_document.id)
                 
                 # Get the document path
-                file_path = os.path.join(UPLOAD_DIR, document_id_str, pydantic_document.filename)
+                file_path = os.path.join(self.upload_dir, document_id_str, pydantic_document.filename)
                 
                 # Get file extension for specialized handling
                 _, ext = os.path.splitext(file_path.lower())
@@ -259,11 +261,16 @@ class DocumentProcessor:
                     loader = PyPDFLoader(file_path)
                     return loader.load()
                 except Exception as pdf_error:
-                    logger.warning(f"Error using PyPDFLoader: {str(pdf_error)}. Falling back to manual loading.")
+                    logger.warning(f"Error using PyPDFLoader for {file_path}: {str(pdf_error)}. Falling back to manual loading.")
                     # Try loading as text, but ignore decoding errors
-                    with open(file_path, 'rb') as f:
-                        content = f.read().decode('utf-8', errors='ignore')
-                    return [LangchainDocument(page_content=content, metadata={"source": file_path})]
+                    try:
+                        with open(file_path, 'rb') as f:
+                            content = f.read().decode('utf-8', errors='ignore')
+                        logger.info(f"Successfully loaded {file_path} using text fallback.")
+                        return [LangchainDocument(page_content=content, metadata={"source": file_path})]
+                    except Exception as fallback_error:
+                        logger.error(f"Failed to load {file_path} even with fallback: {str(fallback_error)}")
+                        raise  # Re-raise after logging
             elif ext == ".csv":
                 loader = CSVLoader(file_path)
                 return loader.load()
@@ -272,25 +279,31 @@ class DocumentProcessor:
                     loader = UnstructuredMarkdownLoader(file_path)
                     return loader.load()
                 except Exception as md_error:
-                    logger.warning(f"Error using UnstructuredMarkdownLoader: {str(md_error)}. Falling back to manual loading.")
+                    logger.warning(f"Error using UnstructuredMarkdownLoader for {file_path}: {str(md_error)}. Falling back to manual loading.")
                     # Try loading as text, but ignore decoding errors
-                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        content = f.read()
-                    return [LangchainDocument(page_content=content, metadata={"source": file_path})]
+                    try:
+                        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read()
+                        logger.info(f"Successfully loaded {file_path} using text fallback.")
+                        return [LangchainDocument(page_content=content, metadata={"source": file_path})]
+                    except Exception as fallback_error:
+                        logger.error(f"Failed to load {file_path} even with fallback: {str(fallback_error)}")
+                        raise  # Re-raise after logging
             else:
                 # Default to text loader for txt and other files
                 loader = TextLoader(file_path)
                 return loader.load()
         except Exception as e:
-            logger.error(f"Error loading document {file_path}: {str(e)}")
+            logger.warning(f"Attempt to load {file_path} with appropriate loader failed: {str(e)}. Attempting fallback.")
             # Create a simple document with file content to avoid complete failure
             try:
                 with open(file_path, 'rb') as f:
                     content = f.read().decode('utf-8', errors='ignore')
+                logger.info(f"Successfully loaded {file_path} using text fallback.")
                 return [LangchainDocument(page_content=content, metadata={"source": file_path})]
             except Exception as fallback_error:
                 logger.error(f"Failed to load {file_path} even with fallback: {str(fallback_error)}")
-                raise
+                raise  # Re-raise after logging
     
     def _split_document(self, docs: List[LangchainDocument]) -> List[LangchainDocument]:
         """

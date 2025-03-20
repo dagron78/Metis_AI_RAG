@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
-from app.db.dependencies import get_db, get_document_repository
+from app.db.dependencies import get_db, get_document_repository, get_document_processor
 from app.db.repositories.document_repository import DocumentRepository
 from app.rag.document_processor import DocumentProcessor
 from app.rag.processing_job import DocumentProcessingService, ProcessingJob
@@ -18,7 +18,7 @@ router = APIRouter()
 logger = logging.getLogger("app.api.processing")
 
 # Initialize document processor and processing service
-document_processor = DocumentProcessor()
+document_processor = get_document_processor()
 processing_service = DocumentProcessingService(document_processor=document_processor)
 
 # Document repository will be set in the startup event
