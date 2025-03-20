@@ -1,57 +1,49 @@
-import os
+"""
+Database session management
+"""
 import logging
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, scoped_session
-from contextlib import contextmanager
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import declarative_base
 
-from app.core.config import DATABASE_URL, DATABASE_POOL_SIZE, DATABASE_MAX_OVERFLOW
+from app.core.config import SETTINGS
 
 logger = logging.getLogger("app.db.session")
 
-# Create SQLAlchemy engine with connection pooling
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=DATABASE_POOL_SIZE,
-    max_overflow=DATABASE_MAX_OVERFLOW,
-    pool_pre_ping=True,  # Verify connections before using them
-    pool_recycle=3600,   # Recycle connections after 1 hour
-)
-
-# Create session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create scoped session for thread safety
-db_session = scoped_session(SessionLocal)
-
-# Base class for SQLAlchemy models
+# Create SQLAlchemy base
 Base = declarative_base()
 
-@contextmanager
-def get_db_session():
-    """
-    Context manager for database sessions.
-    Ensures that sessions are properly closed and rolled back on exceptions.
-    
-    Usage:
-        with get_db_session() as session:
-            # Use session for database operations
-    """
-    session = SessionLocal()
-    try:
-        yield session
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Database session error: {str(e)}")
-        raise
-    finally:
-        session.close()
+# Create async engine with connection pooling
+print(f"DATABASE_URL in session.py: {SETTINGS.database_url}")  # Debug print
+if SETTINGS.database_type.startswith("sqlite"):
+    # SQLite doesn't support pool_size and max_overflow
+    engine = create_async_engine(
+        SETTINGS.database_url,
+        echo=False,  # Set to True for SQL query logging
+        pool_pre_ping=True,  # Verify connections before using them
+    )
+else:
+    engine = create_async_engine(
+        SETTINGS.database_url,
+        echo=False,  # Set to True for SQL query logging
+        pool_size=SETTINGS.database_pool_size,
+        max_overflow=SETTINGS.database_max_overflow,
+        pool_pre_ping=True,  # Verify connections before using them
+        pool_recycle=3600,   # Recycle connections after 1 hour
+    )
 
-def init_db():
+# Create async session factory
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    autoflush=False,
+    autocommit=False,
+)
+
+async def init_db():
     """
     Initialize the database by creating all tables.
     This should be called during application startup.
     """
     logger.info("Initializing database")
-    Base.metadata.create_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

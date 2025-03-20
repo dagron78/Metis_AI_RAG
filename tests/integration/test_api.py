@@ -21,8 +21,8 @@ def client():
     Create a TestClient instance for each test.
     This ensures that dependency overrides are correctly applied.
     """
-    with TestClient(app) as c:  # Use 'with' statement for proper cleanup
-        yield c
+    client = TestClient(app)
+    yield client
 
 
 # --- Helper function for dependency injection ---
@@ -103,7 +103,7 @@ async def test_langgraph_rag_chat_endpoint(client: TestClient): # Use the fixtur
 
     try:
         # Act: Send the request to the correct endpoint
-        response = client.post("/api/chat/langgraph_query", json=query.dict())  # Using the endpoint defined in app/api/chat.py
+        response = client.post("/api/chat/langgraph_rag", json=query.dict())  # Using the endpoint defined in app/api/chat.py
 
         # Assert: Check the response
         assert response.status_code == 200

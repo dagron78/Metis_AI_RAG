@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from types import SimpleNamespace
 
 # Load environment variables from .env file
 load_dotenv()
+
+print(f"DATABASE_URL from environment: {os.getenv('DATABASE_URL')}")  # Debug print
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -41,16 +44,96 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "postgres")
 DATABASE_HOST = os.getenv("DATABASE_HOST", "localhost")
 DATABASE_PORT = os.getenv("DATABASE_PORT", "5432")
 DATABASE_NAME = os.getenv("DATABASE_NAME", "metis_rag")
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    f"{DATABASE_TYPE}://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
-)
+
+# Handle SQLite URLs differently
+if DATABASE_TYPE.startswith("sqlite"):
+    DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite+aiosqlite:///./test.db")
+elif DATABASE_TYPE == "postgresql":
+    # Always use asyncpg for PostgreSQL
+    db_url = os.getenv("DATABASE_URL")
+    if db_url and "+asyncpg" not in db_url and db_url.startswith("postgresql"):
+        # Replace the URL with one that includes asyncpg and credentials
+        if "localhost" in db_url and "@" not in db_url:
+            # URL is missing credentials, add them
+            DATABASE_URL = f"postgresql+asyncpg://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
+            print(f"Modified DATABASE_URL to include asyncpg and credentials: {DATABASE_URL}")
+        else:
+            # Just add asyncpg
+            DATABASE_URL = db_url.replace("postgresql", "postgresql+asyncpg", 1)
+            print(f"Modified DATABASE_URL to include asyncpg: {DATABASE_URL}")
+    else:
+        DATABASE_URL = os.getenv(
+            "DATABASE_URL",
+            f"postgresql+asyncpg://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
+        )
+else:
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        f"{DATABASE_TYPE}://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
+    )
+
+print(f"DATABASE_URL after default construction: {DATABASE_URL}")  # Debug print
 DATABASE_POOL_SIZE = int(os.getenv("DATABASE_POOL_SIZE", "5"))
 DATABASE_MAX_OVERFLOW = int(os.getenv("DATABASE_MAX_OVERFLOW", "10"))
 
 # Security settings
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 
+# Mem0 settings
+MEM0_ENDPOINT = os.getenv("MEM0_ENDPOINT", "http://localhost:8050")
+MEM0_API_KEY = os.getenv("MEM0_API_KEY", None)
+USE_MEM0 = os.getenv("USE_MEM0", "True").lower() == "true"
+
 # Make sure upload directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(CHROMA_DB_DIR, exist_ok=True)
+
+# Create a settings object for easy access
+SETTINGS = SimpleNamespace(
+    version="0.1.0",
+    api_v1_str=API_V1_STR,
+    project_name=PROJECT_NAME,
+    
+    # Ollama settings
+    ollama_base_url=OLLAMA_BASE_URL,
+    default_model=DEFAULT_MODEL,
+    default_embedding_model=DEFAULT_EMBEDDING_MODEL,
+    
+    # LLM Judge settings
+    chunking_judge_model=CHUNKING_JUDGE_MODEL,
+    retrieval_judge_model=RETRIEVAL_JUDGE_MODEL,
+    use_chunking_judge=USE_CHUNKING_JUDGE,
+    use_retrieval_judge=USE_RETRIEVAL_JUDGE,
+    
+    # LangGraph RAG Agent settings
+    langgraph_rag_model=LANGGRAPH_RAG_MODEL,
+    use_langgraph_rag=USE_LANGGRAPH_RAG,
+    use_enhanced_langgraph_rag=USE_ENHANCED_LANGGRAPH_RAG,
+    
+    # Document settings
+    upload_dir=UPLOAD_DIR,
+    chroma_db_dir=CHROMA_DB_DIR,
+    chunk_size=CHUNK_SIZE,
+    chunk_overlap=CHUNK_OVERLAP,
+    
+    # Database settings
+    database_type=DATABASE_TYPE,
+    database_user=DATABASE_USER,
+    database_password=DATABASE_PASSWORD,
+    database_host=DATABASE_HOST,
+    database_port=DATABASE_PORT,
+    database_name=DATABASE_NAME,
+    database_url=DATABASE_URL,
+    database_pool_size=DATABASE_POOL_SIZE,
+    database_max_overflow=DATABASE_MAX_OVERFLOW,
+    
+    # Security settings
+    cors_origins=CORS_ORIGINS,
+    
+    # Mem0 settings
+    mem0_endpoint=MEM0_ENDPOINT,
+    mem0_api_key=MEM0_API_KEY,
+    use_mem0=USE_MEM0
+)
+
+print(f"Final DATABASE_URL in settings: {SETTINGS.database_url}")  # Debug print

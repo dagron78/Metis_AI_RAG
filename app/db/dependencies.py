@@ -1,7 +1,8 @@
-from typing import Generator
-from sqlalchemy.orm import Session
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
 
-from app.db.session import SessionLocal
+from app.db.session import AsyncSessionLocal
 from app.db.repositories.document_repository import DocumentRepository
 from app.db.repositories.conversation_repository import ConversationRepository
 from app.db.repositories.analytics_repository import AnalyticsRepository
@@ -9,21 +10,13 @@ from app.rag.document_processor import DocumentProcessor
 from app.core.config import UPLOAD_DIR, CHUNK_SIZE, CHUNK_OVERLAP
 
 
-def get_db() -> Generator[Session, None, None]:
-    """
-    Get a database session
-    
-    Yields:
-        Database session
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Async dependency for database session
+async def get_db() -> AsyncSession:
+    async with AsyncSessionLocal() as session:
+        yield session
 
 
-def get_document_repository(db: Session) -> DocumentRepository:
+def get_document_repository(db: AsyncSession = Depends(get_db)) -> DocumentRepository:
     """
     Get a document repository
     
@@ -36,7 +29,7 @@ def get_document_repository(db: Session) -> DocumentRepository:
     return DocumentRepository(db)
 
 
-def get_conversation_repository(db: Session) -> ConversationRepository:
+def get_conversation_repository(db: AsyncSession = Depends(get_db)) -> ConversationRepository:
     """
     Get a conversation repository
     
@@ -49,7 +42,7 @@ def get_conversation_repository(db: Session) -> ConversationRepository:
     return ConversationRepository(db)
 
 
-def get_analytics_repository(db: Session) -> AnalyticsRepository:
+def get_analytics_repository(db: AsyncSession = Depends(get_db)) -> AnalyticsRepository:
     """
     Get an analytics repository
     

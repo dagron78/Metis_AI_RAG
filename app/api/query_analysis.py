@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from app.rag.query_analyzer import QueryAnalyzer
 from app.rag.tools import ToolRegistry
 from app.rag.process_logger import ProcessLogger
-from app.db.dependencies import get_db_session
+from app.db.dependencies import get_db
 
 router = APIRouter(
     prefix="/api/query",
@@ -48,7 +48,7 @@ async def analyze_query(
     request: QueryAnalysisRequest,
     query_analyzer: QueryAnalyzer = Depends(),
     process_logger: ProcessLogger = Depends(),
-    db_session = Depends(get_db_session)
+    db_session = Depends(get_db)
 ):
     """
     Analyze a query to determine its complexity and requirements
@@ -90,7 +90,7 @@ async def execute_tool(
     request: ToolExecutionRequest,
     tool_registry: ToolRegistry = Depends(),
     process_logger: ProcessLogger = Depends(),
-    db_session = Depends(get_db_session)
+    db_session = Depends(get_db)
 ):
     """
     Execute a tool with the given input
