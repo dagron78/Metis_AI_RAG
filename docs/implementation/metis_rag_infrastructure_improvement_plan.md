@@ -876,10 +876,10 @@ class LLMSettings(BaseSettings):
     provider_config: Dict[str, Any] = Field(
         default_factory=lambda: {"base_url": "http://localhost:11434"}
     )
-    default_model: str = Field("gemma3:12b", env="DEFAULT_MODEL")
+    default_model: str = Field("gemma3:4b", env="DEFAULT_MODEL")
     default_embedding_model: str = Field("nomic-embed-text", env="DEFAULT_EMBEDDING_MODEL")
-    chunking_judge_model: str = Field("gemma3:12b", env="CHUNKING_JUDGE_MODEL")
-    retrieval_judge_model: str = Field("gemma3:12b", env="RETRIEVAL_JUDGE_MODEL")
+    chunking_judge_model: str = Field("gemma3:4b", env="CHUNKING_JUDGE_MODEL")
+    retrieval_judge_model: str = Field("gemma3:4b", env="RETRIEVAL_JUDGE_MODEL")
     
     class Config:
         env_prefix = "METIS_"
