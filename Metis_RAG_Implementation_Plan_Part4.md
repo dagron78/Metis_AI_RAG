@@ -1144,6 +1144,10 @@ class TestRAGPerformance(TestCase):
 
 8. **Memory Management**:
    - mem0 (memory layer for AI applications)
+     - Conversation history storage and retrieval
+     - User preferences management
+     - Document interaction tracking
+     - Enhanced context for RAG queries
 
 9. **Utilities**:
    - python-multipart (file uploads)

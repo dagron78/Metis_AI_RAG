@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  metis-rag:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./chroma_db:/app/chroma_db
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - MEM0_ENDPOINT=http://mem0:8050
+      - USE_MEM0=true
+    depends_on:
+      - ollama
+      - mem0
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+              
+  mem0:
+    image: mem0ai/mem0:latest
+    ports:
+      - "8050:8050"
+    depends_on:
+      - mem0-postgres
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@mem0-postgres:5432/mem0
+      
+  mem0-postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=mem0
+    volumes:
+      - mem0-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Use different port to avoid conflict
+
+volumes:
+  ollama_data:
+  mem0-postgres-data:

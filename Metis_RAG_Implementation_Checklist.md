@@ -19,10 +19,10 @@
 - [x] Add database initialization to application startup
 
 ### Week 2: Repository Implementation and API Updates
-- [ ] Implement DocumentRepository with CRUD operations
-- [ ] Implement ConversationRepository with message management
-- [ ] Implement AnalyticsRepository with query logging
-- [ ] Add mem0 integration to repositories
+- [x] Implement DocumentRepository with CRUD operations
+- [x] Implement ConversationRepository with message management
+- [x] Implement AnalyticsRepository with query logging
+- [x] Add mem0 integration to repositories
 - [ ] Update document API endpoints to use database
 - [ ] Update chat API endpoints to use database
 - [ ] Update analytics API endpoints to use database
@@ -195,6 +195,7 @@
 - [ ] Create docker-compose.yml for local deployment
 - [ ] Add PostgreSQL service configuration
 - [ ] Add Ollama service configuration
+- [x] Add Mem0 service configuration
 - [ ] Implement health checks
 - [ ] Create volume mounts for persistence
 - [ ] Add environment variable configuration
