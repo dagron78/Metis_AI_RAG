@@ -29,6 +29,10 @@ else:
         max_overflow=SETTINGS.database_max_overflow,
         pool_pre_ping=True,  # Verify connections before using them
         pool_recycle=3600,   # Recycle connections after 1 hour
+        # Use a specific execution option to handle async operations
+        execution_options={
+            "isolation_level": "READ COMMITTED"
+        }
     )
 
 # Create async session factory
@@ -37,7 +41,14 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False,
     autoflush=False,
     autocommit=False,
+    future=True,
+    class_=AsyncSession
 )
+
+# Create a function to get a session
+async def get_session():
+    async with AsyncSessionLocal() as session:
+        yield session
 
 async def init_db():
     """
