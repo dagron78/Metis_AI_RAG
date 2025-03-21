@@ -2,6 +2,10 @@ import logging
 import time
 import asyncio
 import httpx
+import uuid
+import gc
+import random
+import re
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 
@@ -10,6 +14,14 @@ from app.models.chat import Citation, Message
 from app.rag.vector_store import VectorStore
 from app.rag.ollama_client import OllamaClient
 from app.rag.agents.retrieval_judge import RetrievalJudge
+from app.rag.mem0_client import get_mem0_client, store_message, get_conversation_history, store_document_interaction, get_user_preferences
+from app.utils.text_processor import normalize_text, format_code_blocks
+from app.cache.cache_manager import CacheManager
+from app.rag.system_prompts import (
+    CODE_GENERATION_SYSTEM_PROMPT,
+    PYTHON_CODE_GENERATION_PROMPT,
+    JAVASCRIPT_CODE_GENERATION_PROMPT
+)
 
 logger = logging.getLogger("app.rag.rag_engine")
 
@@ -21,7 +33,8 @@ class RAGEngine:
         self,
         vector_store: Optional[VectorStore] = None,
         ollama_client: Optional[OllamaClient] = None,
-        retrieval_judge: Optional[RetrievalJudge] = None
+        retrieval_judge: Optional[RetrievalJudge] = None,
+        cache_manager: Optional[CacheManager] = None
     ):
         self.vector_store = vector_store or VectorStore()
         self.ollama_client = ollama_client or OllamaClient()
@@ -29,10 +42,28 @@ class RAGEngine:
             RetrievalJudge(ollama_client=self.ollama_client) if USE_RETRIEVAL_JUDGE else None
         )
         
+        # Initialize Mem0 client
+        self.mem0_client = get_mem0_client()
+        
+        # Initialize cache manager
+        self.cache_manager = cache_manager or CacheManager()
+        
         if self.retrieval_judge:
             logger.info("Retrieval Judge is enabled")
         else:
             logger.info("Retrieval Judge is disabled")
+            
+        if self.mem0_client:
+            logger.info("Mem0 integration is enabled")
+        else:
+            logger.info("Mem0 integration is disabled")
+            
+        # Log cache status
+        cache_stats = self.cache_manager.get_all_cache_stats()
+        if cache_stats.get("caching_enabled", False):
+            logger.info("Caching is enabled")
+        else:
+            logger.info("Caching is disabled")
     
     async def query(
         self,
@@ -44,7 +75,8 @@ class RAGEngine:
         stream: bool = False,
         model_parameters: Dict[str, Any] = None,
         conversation_history: Optional[List[Message]] = None,
-        metadata_filters: Optional[Dict[str, Any]] = None
+        metadata_filters: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Query the RAG engine with optional conversation history and metadata filtering
@@ -58,6 +90,25 @@ class RAGEngine:
             # Get context from vector store if RAG is enabled
             context = ""
             sources = []
+            
+            # Generate a user_id if not provided
+            if not user_id:
+                user_id = f"session_{str(uuid.uuid4())[:8]}"
+                logger.info(f"Generated session user_id: {user_id}")
+            
+            # Integrate with Mem0 if available
+            if self.mem0_client and user_id:
+                # Store the user query in Mem0
+                await store_message(user_id, "user", query)
+                
+                # Get user preferences if available
+                user_prefs = await get_user_preferences(user_id)
+                if user_prefs:
+                    logger.info(f"Retrieved user preferences: {user_prefs}")
+                    # Apply user preferences if available
+                    if "preferred_model" in user_prefs and user_prefs["preferred_model"]:
+                        model = user_prefs["preferred_model"]
+                        logger.info(f"Using preferred model from user preferences: {model}")
             
             # Format conversation history if provided
             conversation_context = ""
@@ -76,6 +127,20 @@ class RAGEngine:
                 
                 conversation_context = "\n".join(history_pieces)
                 logger.info(f"Including conversation history with {len(recent_history)} messages")
+            elif self.mem0_client and user_id:
+                # Try to get conversation history from Mem0 if not provided
+                mem0_history = await get_conversation_history(user_id, limit=5)
+                if mem0_history:
+                    # Format the conversation history from Mem0
+                    history_pieces = []
+                    for msg in mem0_history:
+                        role_prefix = "User" if msg["role"] == "user" else "Assistant"
+                        history_pieces.append(f"{role_prefix}: {msg['content']}")
+                    
+                    conversation_context = "\n".join(history_pieces)
+                    logger.info(f"Including conversation history from Mem0 with {len(mem0_history)} messages")
+                else:
+                    logger.info("No previous conversation history found in Mem0")
             else:
                 logger.info("No previous conversation history to include")
             
@@ -87,7 +152,8 @@ class RAGEngine:
                         query=query,
                         conversation_context=conversation_context,
                         top_k=top_k,
-                        metadata_filters=metadata_filters
+                        metadata_filters=metadata_filters,
+                        user_id=user_id
                     )
                 else:
                     # Use standard retrieval
@@ -155,7 +221,7 @@ class RAGEngine:
                                     doc_id = metadata["document_id"]
                                     document_ids.append(doc_id)
                                     
-                                    sources.append({
+                                    source_info = {
                                         "document_id": doc_id,
                                         "chunk_id": result["chunk_id"],
                                         "relevance_score": relevance_score,
@@ -163,7 +229,23 @@ class RAGEngine:
                                         "filename": filename,
                                         "tags": tags,
                                         "folder": folder
-                                    })
+                                    }
+                                    
+                                    sources.append(source_info)
+                                    
+                                    # Store document interaction in Mem0 if available
+                                    if self.mem0_client and user_id:
+                                        await store_document_interaction(
+                                            human_id=user_id,
+                                            document_id=doc_id,
+                                            interaction_type="retrieval",
+                                            data={
+                                                "query": query,
+                                                "chunk_id": result["chunk_id"],
+                                                "relevance_score": relevance_score,
+                                                "filename": filename
+                                            }
+                                        )
                                     
                                     relevant_results.append(result)
                                 else:
@@ -244,7 +326,20 @@ IMPORTANT INSTRUCTIONS:
             
             # Create system prompt if not provided
             if not system_prompt:
-                system_prompt = """You are a helpful assistant that provides accurate, factual responses based on the Metis RAG system.
+                # Check if this is a code-related query
+                is_code_query = self._is_code_related_query(query)
+                
+                if is_code_query:
+                    logger.info("Detected code-related query, using code generation system prompt")
+                    system_prompt = CODE_GENERATION_SYSTEM_PROMPT
+                    
+                    # Add language-specific guidelines if detected
+                    if re.search(r'\bpython\b', query.lower()):
+                        system_prompt += "\n\n" + PYTHON_CODE_GENERATION_PROMPT
+                    elif re.search(r'\bjavascript\b|\bjs\b', query.lower()):
+                        system_prompt += "\n\n" + JAVASCRIPT_CODE_GENERATION_PROMPT
+                else:
+                    system_prompt = """You are a helpful assistant that provides accurate, factual responses based on the Metis RAG system.
 
 ROLE AND CAPABILITIES:
 - You have access to a Retrieval-Augmented Generation (RAG) system that can retrieve relevant documents to answer questions.
@@ -290,13 +385,39 @@ RESPONSE STYLE:
             if stream:
                 # For streaming, just return the stream response
                 logger.info(f"Generating streaming response with model: {model}")
-                stream_response = await self.ollama_client.generate(
+                
+                # Create a wrapper for the stream that applies text normalization
+                original_stream = await self.ollama_client.generate(
                     prompt=full_prompt,
                     model=model,
                     system_prompt=system_prompt,
                     stream=True,
                     parameters=model_parameters or {}
                 )
+                
+                # Create a normalized stream wrapper
+                async def normalized_stream():
+                    buffer = ""
+                    async for chunk in original_stream:
+                        if "response" in chunk:
+                            buffer += chunk["response"]
+                            # Apply normalization to the buffer periodically
+                            # Only normalize when we have complete sentences or paragraphs
+                            if any(buffer.endswith(c) for c in ['.', '!', '?', '\n']):
+                                normalized_chunk = normalize_text(buffer)
+                                buffer = ""
+                                yield {"response": normalized_chunk}
+                            else:
+                                yield chunk
+                        else:
+                            yield chunk
+                    
+                    # Process any remaining text in the buffer
+                    if buffer:
+                        normalized_chunk = normalize_text(buffer)
+                        yield {"response": normalized_chunk}
+                
+                stream_response = normalized_stream()
                 
                 # Record analytics asynchronously
                 response_time_ms = (time.time() - start_time) * 1000
@@ -318,19 +439,59 @@ RESPONSE STYLE:
                     "sources": [Citation(**source) for source in sources] if sources else []
                 }
             else:
-                # For non-streaming, get the complete response
+                # For non-streaming, check cache first
                 logger.info(f"Generating non-streaming response with model: {model}")
-                response = await self.ollama_client.generate(
+                
+                # Create cache parameters
+                temperature = model_parameters.get("temperature", 0.0) if model_parameters else 0.0
+                max_tokens = model_parameters.get("max_tokens") if model_parameters else None
+                
+                # Check if response is in cache
+                cached_response = self.cache_manager.llm_response_cache.get_response(
                     prompt=full_prompt,
                     model=model,
-                    system_prompt=system_prompt,
-                    stream=False,
-                    parameters=model_parameters or {}
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    additional_params={"system_prompt": system_prompt} if system_prompt else None
                 )
                 
-                # Calculate response time
-                response_time_ms = (time.time() - start_time) * 1000
-                logger.info(f"Response time: {response_time_ms:.2f}ms")
+                if cached_response:
+                    logger.info("Using cached response")
+                    response = cached_response
+                    # Calculate response time (cache hit is very fast)
+                    response_time_ms = (time.time() - start_time) * 1000
+                    logger.info(f"Cache hit! Response time: {response_time_ms:.2f}ms")
+                else:
+                    # Generate new response
+                    logger.info("Cache miss, generating new response")
+                    response = await self.ollama_client.generate(
+                        prompt=full_prompt,
+                        model=model,
+                        system_prompt=system_prompt,
+                        stream=False,
+                        parameters=model_parameters or {}
+                    )
+                    
+                    # Calculate response time
+                    response_time_ms = (time.time() - start_time) * 1000
+                    logger.info(f"Response time: {response_time_ms:.2f}ms")
+                    
+                    # Cache the response if appropriate
+                    if "error" not in response and self.cache_manager.llm_response_cache.should_cache_response(
+                        prompt=full_prompt,
+                        model=model,
+                        temperature=temperature,
+                        response=response
+                    ):
+                        self.cache_manager.llm_response_cache.set_response(
+                            prompt=full_prompt,
+                            model=model,
+                            response=response,
+                            temperature=temperature,
+                            max_tokens=max_tokens,
+                            additional_params={"system_prompt": system_prompt} if system_prompt else None
+                        )
+                        logger.info("Response cached for future use")
                 
                 # Check if there was an error in the response
                 if "error" in response:
@@ -340,12 +501,21 @@ RESPONSE STYLE:
                 else:
                     # Get response text
                     response_text = response.get("response", "")
+                    
+                    # Apply text normalization to improve formatting
+                    response_text = normalize_text(response_text)
+                    response_text = format_code_blocks(response_text)
                 
                 logger.info(f"Response length: {len(response_text)} characters")
                 
                 # Log a preview of the response
                 if response_text:
                     logger.debug(f"Response preview: {response_text[:100]}...")
+                
+                # Store assistant response in Mem0 if available
+                if self.mem0_client and user_id:
+                    await store_message(user_id, "assistant", response_text)
+                    logger.info(f"Stored assistant response in Mem0 for user {user_id}")
                 
                 # Record analytics asynchronously
                 await self._record_analytics(
@@ -371,7 +541,8 @@ RESPONSE STYLE:
         query: str,
         conversation_context: str = "",
         top_k: int = 10,
-        metadata_filters: Optional[Dict[str, Any]] = None
+        metadata_filters: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None
     ) -> Tuple[str, List[Dict[str, Any]], List[str]]:
         """
         Enhanced retrieval using the Retrieval Judge
@@ -525,7 +696,7 @@ RESPONSE STYLE:
                 # Get relevance score (either from judge or distance)
                 relevance_score = result.get("relevance_score", 1.0 - (result["distance"] if result["distance"] is not None else 0))
                 
-                sources.append({
+                source_info = {
                     "document_id": doc_id,
                     "chunk_id": result["chunk_id"],
                     "relevance_score": relevance_score,
@@ -533,7 +704,23 @@ RESPONSE STYLE:
                     "filename": filename,
                     "tags": tags,
                     "folder": folder
-                })
+                }
+                
+                sources.append(source_info)
+                
+                # Store document interaction in Mem0 if available
+                if self.mem0_client and user_id:
+                    await store_document_interaction(
+                        human_id=user_id,
+                        document_id=doc_id,
+                        interaction_type="retrieval",
+                        data={
+                            "query": query,
+                            "chunk_id": result["chunk_id"],
+                            "relevance_score": relevance_score,
+                            "filename": filename
+                        }
+                    )
             
             # Join all context pieces
             context = "\n\n".join(context_pieces)
@@ -558,6 +745,99 @@ RESPONSE STYLE:
             logger.error(f"Error in enhanced retrieval: {str(e)}")
             # Return empty context in case of error
             return "Note: An error occurred during retrieval. The system cannot provide a specific answer based on the available documents.", [], []
+    
+    def _is_code_related_query(self, query: str) -> bool:
+        """
+        Determine if a query is related to code or programming.
+        
+        Args:
+            query: The user query
+            
+        Returns:
+            True if the query is code-related, False otherwise
+        """
+        # Convert to lowercase for case-insensitive matching
+        query_lower = query.lower()
+        
+        # Check for code-related keywords
+        code_keywords = [
+            'code', 'program', 'function', 'class', 'method', 'variable',
+            'algorithm', 'implement', 'python', 'javascript', 'java', 'c++', 'c#',
+            'typescript', 'html', 'css', 'php', 'ruby', 'go', 'rust', 'swift',
+            'kotlin', 'scala', 'perl', 'r', 'bash', 'shell', 'sql', 'database',
+            'api', 'framework', 'library', 'package', 'module', 'import',
+            'function', 'def ', 'return', 'for loop', 'while loop', 'if statement',
+            'create a', 'write a', 'develop a', 'build a', 'implement a',
+            'tic tac toe', 'tic-tac-toe', 'game', 'application', 'app',
+            'script', 'syntax', 'error', 'debug', 'fix', 'optimize'
+        ]
+        
+        # Check if any code keyword is in the query
+        for keyword in code_keywords:
+            if keyword in query_lower:
+                return True
+        
+        # Check for code patterns
+        code_patterns = [
+            r'```[\s\S]*```',  # Code blocks
+            r'def\s+\w+\s*\(',  # Python function definition
+            r'function\s+\w+\s*\(',  # JavaScript function definition
+            r'class\s+\w+',  # Class definition
+            r'import\s+\w+',  # Import statement
+            r'from\s+\w+\s+import',  # Python import
+            r'<\w+>.*</\w+>',  # HTML tags
+            r'\w+\s*=\s*function\(',  # JavaScript function assignment
+            r'const\s+\w+\s*=',  # JavaScript const declaration
+            r'let\s+\w+\s*=',  # JavaScript let declaration
+            r'var\s+\w+\s*=',  # JavaScript var declaration
+            r'public\s+\w+\s+\w+\(',  # Java method
+            r'SELECT\s+.*\s+FROM',  # SQL query
+            r'CREATE\s+TABLE',  # SQL create table
+            r'@app\.route',  # Flask route
+            r'npm\s+install',  # npm command
+            r'pip\s+install',  # pip command
+            r'git\s+\w+'  # git command
+        ]
+        
+        # Check if any code pattern is in the query
+        for pattern in code_patterns:
+            if re.search(pattern, query, re.IGNORECASE):
+                return True
+        
+        return False
+    
+    async def optimize_memory(self) -> Dict[str, Any]:
+        """
+        Optimize memory usage by clearing unnecessary resources.
+        This method should be called periodically to prevent memory leaks.
+        
+        Returns:
+            Dictionary with memory optimization statistics
+        """
+        try:
+            # Force garbage collection
+            gc.collect()
+            
+            # Get cache statistics before optimization
+            cache_stats_before = self.cache_manager.get_all_cache_stats()
+            
+            # Perform a second garbage collection pass for better results
+            gc.collect()
+            
+            # Get cache statistics after optimization
+            cache_stats_after = self.cache_manager.get_all_cache_stats()
+            
+            # Log memory optimization
+            logger.info("Memory optimization performed")
+            
+            # Return memory usage statistics
+            return {
+                "cache_stats_before": cache_stats_before,
+                "cache_stats_after": cache_stats_after
+            }
+        except Exception as e:
+            logger.error(f"Error during memory optimization: {str(e)}")
+            return {"error": str(e)}
     
     async def _record_analytics(
         self,
@@ -592,6 +872,12 @@ RESPONSE STYLE:
                 )
             
             logger.debug(f"Recorded analytics for query: {query[:30]}...")
+            
+            # Periodically optimize memory after processing queries
+            # This helps prevent memory leaks over time
+            if random.random() < 0.1:  # 10% chance to optimize after each query
+                await self.optimize_memory()
+                
         except Exception as e:
             # Don't let analytics errors affect the main functionality
             logger.error(f"Error recording analytics: {str(e)}")
