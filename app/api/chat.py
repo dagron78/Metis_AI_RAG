@@ -64,28 +64,28 @@ async def query_chat(
             # Try to get existing conversation
             try:
                 conversation_uuid = UUID(conversation_id)
-                conversation = conversation_repository.get_by_id(conversation_uuid)
+                conversation = await conversation_repository.get_by_id(conversation_uuid)
                 if not conversation:
                     # Create new conversation if not found
-                    conversation = conversation_repository.create_conversation(user_id=user_id)
+                    conversation = await conversation_repository.create_conversation(user_id=user_id)
                     conversation_id = str(conversation.id)
-                elif user_id and not conversation.user_id:
+                elif user_id and not conversation.conv_metadata.get("user_id"):
                     # Update user_id if provided and not already set
-                    conversation = conversation_repository.update_conversation(
+                    conversation = await conversation_repository.update_conversation(
                         conversation_id=conversation_uuid,
                         user_id=user_id
                     )
             except ValueError:
                 # Invalid UUID format, create new conversation
-                conversation = conversation_repository.create_conversation(user_id=user_id)
+                conversation = await conversation_repository.create_conversation(user_id=user_id)
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
-            conversation = conversation_repository.create_conversation(user_id=user_id)
+            conversation = await conversation_repository.create_conversation(user_id=user_id)
             conversation_id = str(conversation.id)
         
         # Add user message to conversation
-        user_message = conversation_repository.add_message(
+        user_message = await conversation_repository.add_message(
             conversation_id=UUID(conversation_id),
             content=query.message,
             role="user"
@@ -103,7 +103,7 @@ async def query_chat(
                 full_response = ""
                 
                 # Get conversation history
-                conversation_messages = conversation_repository.get_conversation_messages(
+                conversation_messages = await conversation_repository.get_conversation_messages(
                     conversation_id=UUID(conversation_id),
                     limit=MAX_HISTORY_MESSAGES
                 )
@@ -120,7 +120,7 @@ async def query_chat(
                     model_parameters=query.model_parameters,
                     conversation_history=conversation_messages,
                     metadata_filters=metadata_filters,
-                    user_id=conversation.user_id
+                    user_id=conversation.conv_metadata.get("user_id")
                 )
                 
                 # Get sources (with safety check)
@@ -135,7 +135,7 @@ async def query_chat(
                     yield token
                 
                 # Add assistant message to conversation
-                assistant_message = conversation_repository.add_message(
+                assistant_message = await conversation_repository.add_message(
                     conversation_id=UUID(conversation_id),
                     content=full_response,
                     role="assistant"
@@ -144,7 +144,7 @@ async def query_chat(
                 # Add citations if any
                 if sources:
                     for source in sources:
-                        conversation_repository.add_citation(
+                        await conversation_repository.add_citation(
                             message_id=assistant_message.id,
                             document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
                             chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
@@ -158,7 +158,7 @@ async def query_chat(
             logger.info(f"Generating response for conversation {conversation_id}")
             
             # Get conversation history
-            conversation_messages = conversation_repository.get_conversation_messages(
+            conversation_messages = await conversation_repository.get_conversation_messages(
                 conversation_id=UUID(conversation_id),
                 limit=MAX_HISTORY_MESSAGES
             )
@@ -175,7 +175,7 @@ async def query_chat(
                 model_parameters=query.model_parameters,
                 conversation_history=conversation_messages,
                 metadata_filters=metadata_filters,
-                user_id=conversation.user_id
+                user_id=conversation.conv_metadata.get("user_id")
             )
             
             # Get response and sources
@@ -186,7 +186,7 @@ async def query_chat(
                 sources = []
             
             # Add assistant message to conversation
-            assistant_message = conversation_repository.add_message(
+            assistant_message = await conversation_repository.add_message(
                 conversation_id=UUID(conversation_id),
                 content=response_text,
                 role="assistant"
@@ -195,7 +195,7 @@ async def query_chat(
             # Add citations if any
             if sources:
                 for source in sources:
-                    conversation_repository.add_citation(
+                    await conversation_repository.add_citation(
                         message_id=assistant_message.id,
                         document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
                         chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
@@ -219,10 +219,10 @@ async def query_chat(
         if "conversation_id" in locals() and conversation_id:
             try:
                 conversation_uuid = UUID(conversation_id)
-                conversation = conversation_repository.get_by_id(conversation_uuid)
+                conversation = await conversation_repository.get_by_id(conversation_uuid)
                 if conversation:
                     # Get the last user message
-                    last_message = conversation_repository.get_last_user_message(conversation_uuid)
+                    last_message = await conversation_repository.get_last_user_message(conversation_uuid)
                     if last_message:
                         user_query = last_message.content.lower()
                         
@@ -258,12 +258,12 @@ async def get_history(
     """
     Get conversation history with pagination
     """
-    conversation = conversation_repository.get_by_id(conversation_id)
+    conversation = await conversation_repository.get_by_id(conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
     
     # Get messages with pagination
-    messages = conversation_repository.get_conversation_messages(
+    messages = await conversation_repository.get_conversation_messages(
         conversation_id=conversation_id,
         skip=skip,
         limit=limit
@@ -274,7 +274,7 @@ async def get_history(
     
     return {
         "id": str(conversation.id),
-        "user_id": conversation.user_id,
+        "user_id": conversation.conv_metadata.get("user_id"),
         "created_at": conversation.created_at,
         "updated_at": conversation.updated_at,
         "messages": messages,
@@ -296,16 +296,16 @@ async def save_conversation(
     """
     Save a conversation (mark as saved in metadata)
     """
-    conversation = conversation_repository.get_by_id(conversation_id)
+    conversation = await conversation_repository.get_by_id(conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
     
     # Update metadata to mark as saved
-    metadata = conversation.metadata or {}
+    metadata = conversation.conv_metadata or {}
     metadata["saved"] = True
     
     # Update conversation
-    updated_conversation = conversation_repository.update_conversation(
+    updated_conversation = await conversation_repository.update_conversation(
         conversation_id=conversation_id,
         metadata=metadata
     )
@@ -323,18 +323,18 @@ async def clear_conversation(
     Clear a conversation or all conversations
     """
     if conversation_id:
-        conversation = conversation_repository.get_by_id(conversation_id)
+        conversation = await conversation_repository.get_by_id(conversation_id)
         if not conversation:
             raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
         
         # Delete specific conversation
-        conversation_repository.delete(conversation_id)
+        await conversation_repository.delete(conversation_id)
         return {"success": True, "message": f"Conversation {conversation_id} cleared"}
     else:
         # Delete all conversations
         # Note: This is a dangerous operation and might need additional authorization
         # In a real application, you might want to limit this to admin users
-        conversation_repository.delete_all()
+        await conversation_repository.delete_all()
         return {"success": True, "message": "All conversations cleared"}
 
 @router.post("/langgraph_rag", response_model=ChatResponse)
@@ -364,7 +364,7 @@ async def langgraph_query_chat(
                     # Create new conversation if not found
                     conversation = conversation_repository.create_conversation(user_id=user_id)
                     conversation_id = str(conversation.id)
-                elif user_id and not conversation.user_id:
+                elif user_id and not conversation.conv_metadata.get("user_id"):
                     # Update user_id if provided and not already set
                     conversation = conversation_repository.update_conversation(
                         conversation_id=conversation_uuid,
@@ -560,7 +560,7 @@ async def enhanced_langgraph_query_chat(
                     # Create new conversation if not found
                     conversation = conversation_repository.create_conversation(user_id=user_id)
                     conversation_id = str(conversation.id)
-                elif user_id and not conversation.user_id:
+                elif user_id and not conversation.conv_metadata.get("user_id"):
                     # Update user_id if provided and not already set
                     conversation = conversation_repository.update_conversation(
                         conversation_id=conversation_uuid,
@@ -740,24 +740,24 @@ async def list_conversations(
     List conversations with optional filtering by user_id and pagination
     """
     # Get conversations with pagination
-    conversations = conversation_repository.get_conversations(
+    conversations = await conversation_repository.get_conversations(
         user_id=user_id,
         skip=skip,
         limit=limit
     )
     
     # Get total count
-    total_count = conversation_repository.count_conversations(user_id=user_id)
+    total_count = await conversation_repository.count_conversations(user_id=user_id)
     
     return {
         "conversations": [
             {
                 "id": str(conv.id),
-                "user_id": conv.user_id,
+                "user_id": conv.conv_metadata.get("user_id"),
                 "created_at": conv.created_at,
                 "updated_at": conv.updated_at,
                 "message_count": conv.message_count,
-                "metadata": conv.metadata
+                "metadata": conv.conv_metadata
             }
             for conv in conversations
         ],
