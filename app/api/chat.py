@@ -146,10 +146,10 @@ async def query_chat(
                     for source in sources:
                         await conversation_repository.add_citation(
                             message_id=assistant_message.id,
-                            document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
-                            chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
-                            relevance_score=source.get("relevance_score"),
-                            excerpt=source.get("excerpt", "")
+                            document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
+                            chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
+                            relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
+                            excerpt=source.excerpt if hasattr(source, "excerpt") else ""
                         )
             
             return EventSourceResponse(event_generator())
@@ -197,10 +197,10 @@ async def query_chat(
                 for source in sources:
                     await conversation_repository.add_citation(
                         message_id=assistant_message.id,
-                        document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
-                        chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
-                        relevance_score=source.get("relevance_score"),
-                        excerpt=source.get("excerpt", "")
+                        document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
+                        chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
+                        relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
+                        excerpt=source.excerpt if hasattr(source, "excerpt") else ""
                     )
             
             # Return response
@@ -460,10 +460,10 @@ async def langgraph_query_chat(
                     for source in sources:
                         conversation_repository.add_citation(
                             message_id=assistant_message.id,
-                            document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
-                            chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
-                            relevance_score=source.get("relevance_score"),
-                            excerpt=source.get("excerpt", "")
+                            document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
+                            chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
+                            relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
+                            excerpt=source.excerpt if hasattr(source, "excerpt") else ""
                         )
             
             return EventSourceResponse(event_generator())
@@ -503,10 +503,10 @@ async def langgraph_query_chat(
                 for source in sources:
                     conversation_repository.add_citation(
                         message_id=assistant_message.id,
-                        document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
-                        chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
-                        relevance_score=source.get("relevance_score"),
-                        excerpt=source.get("excerpt", "")
+                        document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
+                        chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
+                        relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
+                        excerpt=source.excerpt if hasattr(source, "excerpt") else ""
                     )
             
             # Return response
@@ -656,10 +656,10 @@ async def enhanced_langgraph_query_chat(
                     for source in sources:
                         conversation_repository.add_citation(
                             message_id=assistant_message.id,
-                            document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
-                            chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
-                            relevance_score=source.get("relevance_score"),
-                            excerpt=source.get("excerpt", "")
+                            document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
+                            chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
+                            relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
+                            excerpt=source.excerpt if hasattr(source, "excerpt") else ""
                         )
             
             return EventSourceResponse(event_generator())
@@ -701,10 +701,10 @@ async def enhanced_langgraph_query_chat(
                 for source in sources:
                     conversation_repository.add_citation(
                         message_id=assistant_message.id,
-                        document_id=UUID(source.get("document_id")) if source.get("document_id") else None,
-                        chunk_id=UUID(source.get("chunk_id")) if source.get("chunk_id") else None,
-                        relevance_score=source.get("relevance_score"),
-                        excerpt=source.get("excerpt", "")
+                        document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
+                        chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
+                        relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
+                        excerpt=source.excerpt if hasattr(source, "excerpt") else ""
                     )
             
             # Return response
