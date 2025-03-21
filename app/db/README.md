@@ -41,6 +41,29 @@ Several models use JSON fields for flexible metadata storage:
 
 When accessing these fields in code, always use the attribute name (e.g., `conversation.conv_metadata.get("user_id")`) rather than trying to access properties directly (e.g., `conversation.user_id`).
 
+#### Working with Pydantic Models vs. SQLAlchemy Models
+
+The system uses both SQLAlchemy models (in `app/db/models.py`) and Pydantic models (in `app/models/*.py`). It's important to understand the difference:
+
+- **SQLAlchemy Models**: Used for database operations, with attributes accessed directly (e.g., `citation.document_id`)
+- **Pydantic Models**: Used for API requests/responses, with attributes accessed directly (e.g., `citation.document_id`)
+
+When working with objects that could be either type:
+- For SQLAlchemy models with JSON fields, use the get method (e.g., `conversation.conv_metadata.get("user_id")`)
+- For Pydantic models, check if attributes exist with hasattr (e.g., `if hasattr(source, "document_id")`)
+
+Example with Citation objects:
+```python
+# For SQLAlchemy Citation model
+citation.document_id  # Direct access
+
+# For Pydantic Citation model
+if hasattr(source, "document_id"):
+    document_id = source.document_id
+else:
+    document_id = None
+```
+
 ### Repository Classes (`repositories/`)
 
 Implements the repository pattern for database operations:
