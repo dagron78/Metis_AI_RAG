@@ -7,6 +7,8 @@ Metis RAG is an application that combines conversational AI with Retrieval Augme
 - Chat with large language models through Ollama
 - Upload and process documents (PDF, TXT, CSV, MD)
 - Retrieval Augmented Generation for contextual responses
+- User authentication and access control
+- Multi-user support with resource ownership
 - LLM-enhanced document processing with intelligent chunking strategies
 - Advanced query refinement and retrieval enhancement
 - Response quality assurance with evaluation and refinement
@@ -17,6 +19,34 @@ Metis RAG is an application that combines conversational AI with Retrieval Augme
 - Background Task System for asynchronous processing
 - Responsive UI with light/dark mode
 - Enhanced logging and debugging capabilities
+
+## Authentication System
+
+Metis RAG includes a comprehensive authentication system that provides user management and access control:
+
+### User Management
+
+- User registration and login
+- Role-based access control (user/admin)
+- JWT-based authentication
+- Secure password hashing with bcrypt
+
+### Access Control
+
+- Resource ownership validation
+- Protected API endpoints
+- Route protection middleware
+- Multi-user support with data isolation
+
+### Security Features
+
+- Token-based authentication
+- Password hashing and validation
+- CORS protection
+- Security headers
+- Route-based access control
+
+For more details, see the [Authentication Documentation](docs/technical/AUTHENTICATION.md).
 
 ## LLM-Enhanced RAG System
 
@@ -66,6 +96,8 @@ These enhancements make the RAG system more adaptable to different document type
 Metis RAG is built with the following technologies:
 
 - **Backend**: FastAPI, Python
+- **Authentication**: JWT-based authentication with bcrypt password hashing
+- **Database**: PostgreSQL with SQLAlchemy ORM
 - **Vector Database**: ChromaDB with optimized caching
 - **LLM Integration**: Ollama API with enhanced prompt engineering
 - **Document Processing**: LangChain with LLM-enhanced dynamic chunking strategies
@@ -105,6 +137,9 @@ Metis RAG is built with the following technologies:
    - `QUALITY_THRESHOLD`: Minimum quality score for responses (default: 8.0)
    - `MAX_REFINEMENT_ITERATIONS`: Maximum number of refinement iterations (default: 2)
    - `ENABLE_AUDIT_REPORTS`: Enable/disable audit report generation (default: True)
+   - `SECRET_KEY`: Secret key for JWT token generation (required for authentication)
+   - `ALGORITHM`: Algorithm for JWT token generation (default: HS256)
+   - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time in minutes (default: 30)
 
 3. Build and start the application with Docker Compose:
    ```bash
@@ -151,6 +186,15 @@ The document management page allows you to:
 - View document information
 - Delete documents
 
+### Authentication
+
+The authentication system provides:
+- User registration and login pages
+- Secure access to personal resources
+- Role-based access control
+- Token-based authentication for API access
+- Protection of sensitive operations
+
 ### System Management
 
 The system page allows you to:
@@ -187,7 +231,18 @@ The Background Task System allows you to:
 metis_rag/
 ├── app/
 │   ├── api/         # API endpoints
+│   │   ├── auth.py  # Authentication endpoints
+│   │   └── ...      # Other API endpoints
 │   ├── core/        # Core configuration
+│   │   ├── security.py # Authentication and security
+│   │   └── ...      # Other core modules
+│   ├── middleware/  # Middleware components
+│   │   └── auth.py  # Authentication middleware
+│   ├── db/          # Database components
+│   │   ├── repositories/ # Repository pattern implementations
+│   │   │   ├── user_repository.py # User data access
+│   │   │   └── ...    # Other repositories
+│   │   └── ...      # Other database modules
 │   ├── rag/         # RAG engine
 │   │   ├── agents/  # LLM-based agents for RAG enhancement
 │   │   ├── response_synthesizer.py  # Response synthesis
@@ -204,8 +259,17 @@ metis_rag/
 │   │   ├── task_repository.py       # Task database operations
 │   │   └── example_tasks.py         # Example task handlers
 │   ├── models/      # Data models
+│   │   ├── user.py  # User models
+│   │   └── ...      # Other models
 │   ├── static/      # Static files
+│   │   ├── js/      # JavaScript files
+│   │   │   ├── main.js # Authentication JS
+│   │   │   └── ...  # Other JS files
+│   │   └── ...      # Other static files
 │   ├── templates/   # HTML templates
+│   │   ├── login.html    # Login page
+│   │   ├── register.html # Registration page
+│   │   └── ...      # Other templates
 │   └── utils/       # Utility functions
 ├── tests/           # Tests
 │   ├── unit/        # Unit tests
@@ -239,6 +303,9 @@ pytest tests/integration/test_response_quality_integration.py
 
 # Test background task system
 python scripts/test_background_tasks.py
+
+# Test authentication system
+python scripts/test_authentication.py
 ```
 
 These test scripts create test documents, process them, and test various aspects of the system:
@@ -246,6 +313,7 @@ These test scripts create test documents, process them, and test various aspects
 - Response quality tests verify that responses are accurate, complete, relevant, and free from hallucinations
 - Integration tests verify that all components work together correctly in end-to-end workflows
 - Background task tests verify that the task system correctly handles task submission, execution, prioritization, and resource management
+- Authentication tests verify user registration, login, token generation, and access control for resources
 
 ## License
 
