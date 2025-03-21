@@ -6,6 +6,7 @@ from app.db.session import get_session
 from app.db.repositories.document_repository import DocumentRepository
 from app.db.repositories.conversation_repository import ConversationRepository
 from app.db.repositories.analytics_repository import AnalyticsRepository
+from app.db.repositories.user_repository import UserRepository
 from app.rag.document_processor import DocumentProcessor
 from app.core.config import UPLOAD_DIR, CHUNK_SIZE, CHUNK_OVERLAP
 
@@ -26,7 +27,6 @@ async def get_document_repository(db: AsyncSession = Depends(get_db)) -> Documen
     """
     return DocumentRepository(db)
 
-
 async def get_conversation_repository(db: AsyncSession = Depends(get_db)) -> ConversationRepository:
     """
     Get a conversation repository
@@ -38,7 +38,7 @@ async def get_conversation_repository(db: AsyncSession = Depends(get_db)) -> Con
         Conversation repository
     """
     return ConversationRepository(db)
-
+    return ConversationRepository(db)
 
 async def get_analytics_repository(db: AsyncSession = Depends(get_db)) -> AnalyticsRepository:
     """
@@ -51,6 +51,19 @@ async def get_analytics_repository(db: AsyncSession = Depends(get_db)) -> Analyt
         Analytics repository
     """
     return AnalyticsRepository(db)
+
+
+async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
+    """
+    Get a user repository
+    
+    Args:
+        db: Database session
+        
+    Returns:
+        User repository
+    """
+    return UserRepository(db)
 
 
 def get_document_processor(

@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import Dict, List, Optional, Any
 from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Depends, Response, Query, Request
@@ -12,6 +13,7 @@ from app.models.chat import (
     Message,
     Citation
 )
+from app.models.user import User
 from app.rag.rag_engine import RAGEngine
 from app.rag.agents.langgraph_rag_agent import LangGraphRAGAgent
 from app.rag.agents.enhanced_langgraph_rag_agent import EnhancedLangGraphRAGAgent
@@ -19,6 +21,7 @@ from app.utils.text_utils import extract_citations
 from app.core.config import DEFAULT_MODEL, USE_LANGGRAPH_RAG, USE_ENHANCED_LANGGRAPH_RAG
 from app.db.dependencies import get_db, get_conversation_repository
 from app.db.repositories.conversation_repository import ConversationRepository
+from app.core.security import get_current_active_user
 
 # Create router
 router = APIRouter()
@@ -47,10 +50,11 @@ MAX_HISTORY_MESSAGES = 25
 
 @router.post("/query", response_model=ChatResponse)
 async def query_chat(
-    query: ChatQuery, 
+    query: ChatQuery,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository)
+    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Send a chat query and get a response
@@ -58,23 +62,22 @@ async def query_chat(
     try:
         # Get or create conversation
         conversation_id = query.conversation_id
-        user_id = query.user_id
+        user_id = current_user.id  # Use the authenticated user's ID
         
         if conversation_id:
             # Try to get existing conversation
             try:
                 conversation_uuid = UUID(conversation_id)
                 conversation = await conversation_repository.get_by_id(conversation_uuid)
+                
+                # Check if conversation belongs to the current user
+                if conversation and conversation.conv_metadata.get("user_id") != user_id:
+                    raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
+                
                 if not conversation:
                     # Create new conversation if not found
                     conversation = await conversation_repository.create_conversation(user_id=user_id)
                     conversation_id = str(conversation.id)
-                elif user_id and not conversation.conv_metadata.get("user_id"):
-                    # Update user_id if provided and not already set
-                    conversation = await conversation_repository.update_conversation(
-                        conversation_id=conversation_uuid,
-                        user_id=user_id
-                    )
             except ValueError:
                 # Invalid UUID format, create new conversation
                 conversation = await conversation_repository.create_conversation(user_id=user_id)
@@ -101,6 +104,10 @@ async def query_chat(
             
             async def event_generator():
                 full_response = ""
+                
+                # First, send the conversation ID as a separate event with a specific event type
+                # The SSE format requires a dictionary with 'event' and 'data' keys
+                yield {"event": "conversation_id", "data": conversation_id}
                 
                 # Get conversation history
                 conversation_messages = await conversation_repository.get_conversation_messages(
@@ -253,7 +260,8 @@ async def get_history(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository)
+    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Get conversation history with pagination
@@ -261,6 +269,10 @@ async def get_history(
     conversation = await conversation_repository.get_by_id(conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
+    
+    # Check if conversation belongs to the current user
+    if conversation.conv_metadata.get("user_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
     
     # Get messages with pagination
     messages = await conversation_repository.get_conversation_messages(
@@ -291,7 +303,8 @@ async def save_conversation(
     conversation_id: UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository)
+    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Save a conversation (mark as saved in metadata)
@@ -299,6 +312,10 @@ async def save_conversation(
     conversation = await conversation_repository.get_by_id(conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
+    
+    # Check if conversation belongs to the current user
+    if conversation.conv_metadata.get("user_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to save this conversation")
     
     # Update metadata to mark as saved
     metadata = conversation.conv_metadata or {}
@@ -317,32 +334,36 @@ async def clear_conversation(
     request: Request,
     conversation_id: Optional[UUID] = None,
     db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository)
+    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
-    Clear a conversation or all conversations
+    Clear a conversation or all conversations for the current user
     """
     if conversation_id:
         conversation = await conversation_repository.get_by_id(conversation_id)
         if not conversation:
             raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
         
+        # Check if conversation belongs to the current user
+        if conversation.conv_metadata.get("user_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this conversation")
+        
         # Delete specific conversation
         await conversation_repository.delete(conversation_id)
         return {"success": True, "message": f"Conversation {conversation_id} cleared"}
     else:
-        # Delete all conversations
-        # Note: This is a dangerous operation and might need additional authorization
-        # In a real application, you might want to limit this to admin users
-        await conversation_repository.delete_all()
-        return {"success": True, "message": "All conversations cleared"}
+        # Delete all conversations for the current user
+        await conversation_repository.delete_by_user_id(current_user.id)
+        return {"success": True, "message": "All your conversations cleared"}
 
 @router.post("/langgraph_rag", response_model=ChatResponse)
 async def langgraph_query_chat(
     query: ChatQuery,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository)
+    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Send a chat query to the LangGraph RAG Agent and get a response
@@ -353,34 +374,33 @@ async def langgraph_query_chat(
     try:
         # Get or create conversation
         conversation_id = query.conversation_id
-        user_id = query.user_id
+        user_id = current_user.id  # Use the authenticated user's ID
         
         if conversation_id:
             # Try to get existing conversation
             try:
                 conversation_uuid = UUID(conversation_id)
-                conversation = conversation_repository.get_by_id(conversation_uuid)
+                conversation = await conversation_repository.get_by_id(conversation_uuid)
+                
+                # Check if conversation belongs to the current user
+                if conversation and conversation.conv_metadata.get("user_id") != user_id:
+                    raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
+                
                 if not conversation:
                     # Create new conversation if not found
-                    conversation = conversation_repository.create_conversation(user_id=user_id)
+                    conversation = await conversation_repository.create_conversation(user_id=user_id)
                     conversation_id = str(conversation.id)
-                elif user_id and not conversation.conv_metadata.get("user_id"):
-                    # Update user_id if provided and not already set
-                    conversation = conversation_repository.update_conversation(
-                        conversation_id=conversation_uuid,
-                        user_id=user_id
-                    )
             except ValueError:
                 # Invalid UUID format, create new conversation
-                conversation = conversation_repository.create_conversation(user_id=user_id)
+                conversation = await conversation_repository.create_conversation(user_id=user_id)
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
-            conversation = conversation_repository.create_conversation(user_id=user_id)
+            conversation = await conversation_repository.create_conversation(user_id=user_id)
             conversation_id = str(conversation.id)
         
         # Add user message to conversation
-        user_message = conversation_repository.add_message(
+        user_message = await conversation_repository.add_message(
             conversation_id=UUID(conversation_id),
             content=query.message,
             role="user"
@@ -391,7 +411,7 @@ async def langgraph_query_chat(
         
         # Format conversation history
         conversation_context = None
-        messages = conversation_repository.get_conversation_messages(
+        messages = await conversation_repository.get_conversation_messages(
             conversation_id=UUID(conversation_id),
             limit=6  # Get 6 messages to exclude the current one
         )
@@ -424,6 +444,9 @@ async def langgraph_query_chat(
             async def event_generator():
                 full_response = ""
                 
+                # First, send the conversation ID as a separate event with a specific event type
+                yield {"event": "conversation_id", "data": conversation_id}
+                
                 # Get LangGraph RAG response
                 langgraph_response = await langgraph_rag_agent.query(
                     query=query.message,
@@ -449,7 +472,7 @@ async def langgraph_query_chat(
                     yield token
                 
                 # Add assistant message to conversation
-                assistant_message = conversation_repository.add_message(
+                assistant_message = await conversation_repository.add_message(
                     conversation_id=UUID(conversation_id),
                     content=full_response,
                     role="assistant"
@@ -458,7 +481,7 @@ async def langgraph_query_chat(
                 # Add citations if any
                 if sources:
                     for source in sources:
-                        conversation_repository.add_citation(
+                        await conversation_repository.add_citation(
                             message_id=assistant_message.id,
                             document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
                             chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
@@ -492,7 +515,7 @@ async def langgraph_query_chat(
                 sources = []
             
             # Add assistant message to conversation
-            assistant_message = conversation_repository.add_message(
+            assistant_message = await conversation_repository.add_message(
                 conversation_id=UUID(conversation_id),
                 content=response_text,
                 role="assistant"
@@ -501,7 +524,7 @@ async def langgraph_query_chat(
             # Add citations if any
             if sources:
                 for source in sources:
-                    conversation_repository.add_citation(
+                    await conversation_repository.add_citation(
                         message_id=assistant_message.id,
                         document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
                         chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
@@ -533,7 +556,8 @@ async def enhanced_langgraph_query_chat(
     query: ChatQuery,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository)
+    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Send a chat query to the Enhanced LangGraph RAG Agent and get a response
@@ -549,34 +573,33 @@ async def enhanced_langgraph_query_chat(
     try:
         # Get or create conversation
         conversation_id = query.conversation_id
-        user_id = query.user_id
+        user_id = current_user.id  # Use the authenticated user's ID
         
         if conversation_id:
             # Try to get existing conversation
             try:
                 conversation_uuid = UUID(conversation_id)
-                conversation = conversation_repository.get_by_id(conversation_uuid)
+                conversation = await conversation_repository.get_by_id(conversation_uuid)
+                
+                # Check if conversation belongs to the current user
+                if conversation and conversation.conv_metadata.get("user_id") != user_id:
+                    raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
+                
                 if not conversation:
                     # Create new conversation if not found
-                    conversation = conversation_repository.create_conversation(user_id=user_id)
+                    conversation = await conversation_repository.create_conversation(user_id=user_id)
                     conversation_id = str(conversation.id)
-                elif user_id and not conversation.conv_metadata.get("user_id"):
-                    # Update user_id if provided and not already set
-                    conversation = conversation_repository.update_conversation(
-                        conversation_id=conversation_uuid,
-                        user_id=user_id
-                    )
             except ValueError:
                 # Invalid UUID format, create new conversation
-                conversation = conversation_repository.create_conversation(user_id=user_id)
+                conversation = await conversation_repository.create_conversation(user_id=user_id)
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
-            conversation = conversation_repository.create_conversation(user_id=user_id)
+            conversation = await conversation_repository.create_conversation(user_id=user_id)
             conversation_id = str(conversation.id)
         
         # Add user message to conversation
-        user_message = conversation_repository.add_message(
+        user_message = await conversation_repository.add_message(
             conversation_id=UUID(conversation_id),
             content=query.message,
             role="user"
@@ -587,7 +610,7 @@ async def enhanced_langgraph_query_chat(
         
         # Format conversation history
         conversation_context = None
-        messages = conversation_repository.get_conversation_messages(
+        messages = await conversation_repository.get_conversation_messages(
             conversation_id=UUID(conversation_id),
             limit=6  # Get 6 messages to exclude the current one
         )
@@ -620,6 +643,9 @@ async def enhanced_langgraph_query_chat(
             async def event_generator():
                 full_response = ""
                 
+                # First, send the conversation ID as a separate event with a specific event type
+                yield {"event": "conversation_id", "data": conversation_id}
+                
                 # Get Enhanced LangGraph RAG response
                 enhanced_response = await enhanced_langgraph_rag_agent.query(
                     query=query.message,
@@ -645,7 +671,7 @@ async def enhanced_langgraph_query_chat(
                     yield token
                 
                 # Add assistant message to conversation
-                assistant_message = conversation_repository.add_message(
+                assistant_message = await conversation_repository.add_message(
                     conversation_id=UUID(conversation_id),
                     content=full_response,
                     role="assistant"
@@ -654,7 +680,7 @@ async def enhanced_langgraph_query_chat(
                 # Add citations if any
                 if sources:
                     for source in sources:
-                        conversation_repository.add_citation(
+                        await conversation_repository.add_citation(
                             message_id=assistant_message.id,
                             document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
                             chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
@@ -690,7 +716,7 @@ async def enhanced_langgraph_query_chat(
                 sources = []
             
             # Add assistant message to conversation
-            assistant_message = conversation_repository.add_message(
+            assistant_message = await conversation_repository.add_message(
                 conversation_id=UUID(conversation_id),
                 content=response_text,
                 role="assistant"
@@ -699,7 +725,7 @@ async def enhanced_langgraph_query_chat(
             # Add citations if any
             if sources:
                 for source in sources:
-                    conversation_repository.add_citation(
+                    await conversation_repository.add_citation(
                         message_id=assistant_message.id,
                         document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
                         chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
@@ -730,15 +756,17 @@ async def enhanced_langgraph_query_chat(
 @router.get("/list")
 async def list_conversations(
     request: Request,
-    user_id: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository)
+    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
-    List conversations with optional filtering by user_id and pagination
+    List conversations for the current user with pagination
     """
+    # Use the current user's ID
+    user_id = current_user.id
     # Get conversations with pagination
     conversations = await conversation_repository.get_conversations(
         user_id=user_id,
