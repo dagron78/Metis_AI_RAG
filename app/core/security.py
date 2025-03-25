@@ -46,13 +46,27 @@ def setup_security(app: FastAPI) -> None:
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         
-        # Basic Content Security Policy
+        # Add Referrer-Policy to prevent leaking URL parameters to external sites
+        response.headers["Referrer-Policy"] = "same-origin"
+        
+        # Add HSTS header for HTTPS enforcement
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        
+        # Add Cache-Control for sensitive pages
+        path = request.url.path
+        if path in ["/login", "/register", "/forgot-password", "/reset-password"]:
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        
+        # Enhanced Content Security Policy
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self'; "
             "style-src 'self'; "
             "img-src 'self' data:; "
             "connect-src 'self';"
+            "form-action 'self';"
         )
         
         return response

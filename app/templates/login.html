@@ -36,6 +36,8 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
         }
         .btn:hover {
             background-color: #0069d9;
@@ -44,16 +46,43 @@
             color: red;
             margin-bottom: 15px;
         }
-        .register-link {
+        .success-message {
+            color: green;
+            margin-bottom: 15px;
+        }
+        .register-link, .forgot-password-link {
             margin-top: 15px;
             text-align: center;
+        }
+        .forgot-password-link a {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .forgot-password-link a:hover {
+            text-decoration: underline;
+        }
+        #debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #6c757d;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h2>Login to Metis RAG</h2>
+        <div id="success-message" class="success-message" style="display: none;"></div>
         <div id="error-message" class="error-message"></div>
+        
+        <!-- Security notice -->
+        <div class="security-notice" style="margin-bottom: 15px; padding: 8px; background-color: #fff8e6; border-left: 4px solid #ffe066; font-size: 0.9em;">
+            <strong>Security Notice:</strong> Never include your credentials in URLs or bookmarks. Always use this secure login form.
+        </div>
         <form id="login-form">
             <div class="form-group">
                 <label for="username">Username</label>
@@ -63,21 +92,101 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
+            <div class="forgot-password-link">
+                <a href="/forgot-password">Forgot your password?</a>
+            </div>
             <button type="submit" class="btn">Login</button>
         </form>
         <div class="register-link">
             <p>Don't have an account? <a href="/register">Register</a></p>
         </div>
+        <div id="debug-info"></div>
     </div>
 
     <script>
+        // Enable debug mode for troubleshooting
+        const debugMode = true;
+        
+        function debugLog(message) {
+            if (debugMode) {
+                const debugInfo = document.getElementById('debug-info');
+                debugInfo.style.display = 'block';
+                debugInfo.innerHTML += message + '<br>';
+                console.log(message);
+            }
+        }
+        
+        // Check for credentials in URL and clean them up
+        function checkAndCleanCredentialsInUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasUsername = urlParams.has('username');
+            const hasPassword = urlParams.has('password');
+            
+            if (hasUsername || hasPassword) {
+                // Show warning
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = 'WARNING: Credentials should never be included in URLs as this is a security risk. The URL has been cleaned.';
+                errorMessage.style.display = 'block';
+                
+                // Save redirect parameter if present
+                const redirect = urlParams.get('redirect');
+                
+                // Clean the URL (keep only redirect parameter if it exists)
+                const cleanUrl = redirect
+                    ? `/login?redirect=${encodeURIComponent(redirect)}`
+                    : '/login';
+                
+                // Replace current URL without reloading
+                window.history.replaceState({}, document.title, cleanUrl);
+                
+                debugLog('Credentials detected in URL and cleaned');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('Page loaded');
+            
+            // Check for credentials in URL
+            checkAndCleanCredentialsInUrl();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check if there's a registered parameter
+            const registered = urlParams.get('registered');
+            if (registered === 'true') {
+                document.getElementById('success-message').textContent = 'Registration successful! Please log in.';
+                document.getElementById('success-message').style.display = 'block';
+                
+                // Clean up the URL
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+            
+            // Check if there's a security warning
+            const securityWarning = urlParams.get('security_warning');
+            if (securityWarning === 'credentials_in_url') {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = 'WARNING: Credentials should never be included in URLs as this is a security risk.';
+                errorMessage.style.display = 'block';
+                
+                // Clean up the URL
+                const redirect = urlParams.get('redirect');
+                const cleanUrl = redirect
+                    ? `/login?redirect=${encodeURIComponent(redirect)}`
+                    : '/login';
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        });
+
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            debugLog('Form submitted');
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
             try {
+                debugLog('Sending login request');
                 const response = await fetch('/api/auth/token', {
                     method: 'POST',
                     headers: {
@@ -86,7 +195,9 @@
                     body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
                 });
                 
+                debugLog(`Response status: ${response.status}`);
                 const data = await response.json();
+                debugLog(`Response data: ${JSON.stringify(data)}`);
                 
                 if (response.ok) {
                     // Store token and username in localStorage
@@ -94,19 +205,32 @@
                     localStorage.setItem('token_type', data.token_type);
                     localStorage.setItem('username', username);
                     
+                    // Show success message
+                    document.getElementById('success-message').textContent = 'Login successful! Redirecting...';
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('error-message').textContent = '';
+                    
                     // Check for redirect parameter
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirect = urlParams.get('redirect');
                     
-                    // Redirect to the specified page or home page
-                    window.location.href = redirect || '/';
+                    // Log the redirect
+                    debugLog(`Redirecting to: ${redirect || '/'}`);
+                    
+                    // Redirect to the specified page or home page after a short delay
+                    setTimeout(() => {
+                        window.location.href = redirect || '/';
+                    }, 1000);
                 } else {
                     // Display error message
                     document.getElementById('error-message').textContent = data.detail || 'Login failed';
+                    document.getElementById('success-message').style.display = 'none';
                 }
             } catch (error) {
                 console.error('Error:', error);
+                debugLog(`Error: ${error.message}`);
                 document.getElementById('error-message').textContent = 'An error occurred during login';
+                document.getElementById('success-message').style.display = 'none';
             }
         });
     </script>

@@ -2,6 +2,41 @@ from fastapi import Request, status
 from fastapi.responses import RedirectResponse, JSONResponse
 from typing import List, Callable, Optional, Dict, Any
 from starlette.types import ASGIApp, Scope, Receive, Send
+import logging
+
+# Setup logging
+logger = logging.getLogger("app.middleware.auth")
+
+async def log_suspicious_requests(request: Request, call_next):
+    """
+    Middleware to log suspicious requests that might pose security risks
+    """
+    path = request.url.path
+    query_params = request.query_params
+    
+    # Check for sensitive parameters in URLs
+    sensitive_params = ['username', 'password', 'token', 'key', 'secret', 'api_key', 'auth']
+    found_sensitive = [param for param in sensitive_params if param in query_params]
+    
+    if found_sensitive:
+        # Collect request metadata for security analysis
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        referrer = request.headers.get("referer", "none")
+        
+        # Log security event (without logging the actual sensitive values)
+        logger.warning(
+            f"Security alert: Sensitive parameters ({', '.join(found_sensitive)}) "
+            f"detected in URL for path: {path}. "
+            f"IP: {client_ip}, "
+            f"User-Agent: {user_agent}, "
+            f"Referrer: {referrer}"
+        )
+    
+    # Continue with the request
+    response = await call_next(request)
+    return response
+
 
 class AuthMiddleware:
     """
