@@ -242,3 +242,28 @@ pytest tests/test_file.py
 
 # Run with coverage
 pytest --cov=app tests/
+```
+
+## Lessons Learned
+
+### Library Migration Issues
+
+1. **LangChain Migration**
+   - LangChain v0.2+ has moved many components to separate packages
+   - Document loaders moved from `langchain.document_loaders` to `langchain_community.document_loaders`
+   - Embeddings moved from `langchain.embeddings` to `langchain_community.embeddings`
+   - Schema imports updated from `langchain.schema` to `langchain.schema.document`
+   - When upgrading, use the LangChain CLI to automatically update imports
+
+2. **SQLAlchemy Model Issues**
+   - Avoid using reserved names like 'metadata' in SQLAlchemy models
+   - Ensure proper relationships are defined between models
+   - Use `backref` correctly in relationship definitions
+   - Be careful with table arguments and indexes
+
+3. **Async/Await Issues**
+   - Ensure all async functions are properly awaited
+   - Pay attention to database session handling in async contexts
+   - Close database sessions with `await db.close()` in async functions
+   - Initialize database connections with `await init_db()`
+   - Remove synchronous session handling like `db_session.remove()` when using async sessions

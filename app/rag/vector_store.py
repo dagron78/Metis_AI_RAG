@@ -136,7 +136,7 @@ class VectorStore:
         """Create embeddings for a list of texts (batched)"""
         try:
             # Attempt to use Langchain's embed_documents for batch embedding
-            from langchain.embeddings import OllamaEmbeddings
+            from langchain_community.embeddings import OllamaEmbeddings
             embeddings_model = OllamaEmbeddings(model=self.embedding_model)
             return embeddings_model.embed_documents(texts)
         except (ImportError, NotImplementedError) as e:

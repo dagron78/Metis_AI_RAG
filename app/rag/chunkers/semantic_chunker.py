@@ -6,7 +6,7 @@ import json
 import re
 from typing import List, Dict, Any, Optional, Tuple
 
-from langchain.schema import Document as LangchainDocument
+from langchain.schema.document import Document as LangchainDocument
 from langchain.text_splitter import TextSplitter
 
 from app.rag.ollama_client import OllamaClient

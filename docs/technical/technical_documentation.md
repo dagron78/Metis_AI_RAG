@@ -154,6 +154,17 @@ Metis RAG is configured through environment variables:
 | USE_RETRIEVAL_JUDGE | Enable/disable Retrieval Judge | True |
 | USE_LANGGRAPH_AGENT | Enable/disable LangGraph RAG Agent | True |
 
+### LangChain Integration
+
+Metis RAG uses LangChain for various components:
+
+- Document loaders from `langchain_community.document_loaders`
+- Text splitters from `langchain.text_splitter`
+- Embeddings from `langchain_community.embeddings`
+- Schema definitions from `langchain.schema.document`
+
+The application is compatible with LangChain v0.2+ which has moved many components to separate packages. When upgrading LangChain, be aware of these package changes to ensure imports are correctly updated.
+
 ## API Reference
 
 ### Document API

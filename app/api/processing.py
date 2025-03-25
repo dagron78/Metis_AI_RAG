@@ -53,13 +53,13 @@ async def startup_event():
     """Start the processing service on startup"""
     # Get document repository
     from app.db.dependencies import get_document_repository
-    from app.db.session import SessionLocal
+    from app.db.session import AsyncSessionLocal
     
     # Create a session
-    db = SessionLocal()
+    db = AsyncSessionLocal()
     try:
         # Get document repository
-        document_repo = get_document_repository(db)
+        document_repo = await get_document_repository(db)
         
         # Set document repository for processing service
         processing_service.set_document_repository(document_repo)
@@ -71,7 +71,7 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Error starting processing service: {str(e)}")
     finally:
-        db.close()
+        await db.close()
 
 # Shutdown event
 @router.on_event("shutdown")

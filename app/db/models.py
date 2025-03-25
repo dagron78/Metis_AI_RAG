@@ -5,7 +5,7 @@ from sqlalchemy import (
     DateTime, ForeignKey, JSON, Table, Index, UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 from app.db.session import Base
 
@@ -25,7 +25,7 @@ class Document(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     filename = Column(String, nullable=False)
     content = Column(Text, nullable=True)  # Can be null if we only store metadata
-    metadata = Column(JSONB, default={})
+    doc_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'doc_metadata'
     folder = Column(String, ForeignKey('folders.path'), default="/")
     uploaded = Column(DateTime, default=datetime.utcnow)
     processing_status = Column(String, default="pending")  # pending, processing, completed, failed
@@ -33,12 +33,14 @@ class Document(Base):
     file_size = Column(Integer, nullable=True)
     file_type = Column(String, nullable=True)
     last_accessed = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
 
     # Relationships
     chunks = relationship("Chunk", back_populates="document", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=document_tags, back_populates="documents")
     folder_rel = relationship("Folder", back_populates="documents")
     citations = relationship("Citation", back_populates="document")
+    user = relationship("User", back_populates="documents")
 
     # Indexes
     __table_args__ = (
@@ -58,7 +60,7 @@ class Chunk(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     document_id = Column(UUID(as_uuid=True), ForeignKey('documents.id'), nullable=False)
     content = Column(Text, nullable=False)
-    metadata = Column(JSONB, default={})
+    chunk_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'chunk_metadata'
     index = Column(Integer, nullable=False)  # Position in the document
     embedding_quality = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -110,8 +112,8 @@ class Folder(Base):
 
     # Relationships
     documents = relationship("Document", back_populates="folder_rel")
-    subfolders = relationship("Folder", 
-                             backref=relationship.backref("parent", remote_side=[path]),
+    subfolders = relationship("Folder",
+                             backref=backref("parent", remote_side=[path]),
                              cascade="all, delete-orphan")
 
     # Indexes
@@ -130,11 +132,13 @@ class Conversation(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    metadata = Column(JSONB, default={})
+    conv_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'conv_metadata'
     message_count = Column(Integer, default=0)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
 
     # Relationships
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="conversations")
 
     # Indexes
     __table_args__ = (
@@ -211,7 +215,7 @@ class ProcessingJob(Base):
     document_count = Column(Integer, default=0)
     processed_count = Column(Integer, default=0)
     strategy = Column(String, nullable=True)
-    metadata = Column(JSONB, default={})
+    job_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'job_metadata'
     progress_percentage = Column(Float, default=0.0)
     error_message = Column(Text, nullable=True)
 
@@ -236,7 +240,7 @@ class AnalyticsQuery(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
     response_time_ms = Column(Float, nullable=True)
     token_count = Column(Integer, nullable=True)
-    document_ids = Column(JSONB, default=[])
+    document_id_list = Column(JSONB, default=[])  # Renamed from 'document_ids' to 'document_id_list'
     query_type = Column(String, nullable=True)  # simple, complex, agentic
     successful = Column(Boolean, default=True)
 
@@ -249,3 +253,70 @@ class AnalyticsQuery(Base):
 
     def __repr__(self):
         return f"<AnalyticsQuery(id={self.id}, query_type='{self.query_type}', response_time={self.response_time_ms}ms)>"
+
+
+class User(Base):
+    """User model for database"""
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
+    password_hash = Column(String, nullable=False)
+    full_name = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
+    user_metadata = Column(JSONB, default={})  # Using user_metadata to match other models' naming pattern
+
+    # Relationships
+    documents = relationship("Document", back_populates="user")
+    conversations = relationship("Conversation", back_populates="user")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_users_username', username),
+        Index('ix_users_email', email),
+    )
+
+    def __repr__(self):
+        return f"<User(id={self.id}, username='{self.username}')>"
+
+
+class BackgroundTask(Base):
+    """Background task model for database"""
+    __tablename__ = "background_tasks"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    task_type = Column(String, nullable=False)
+    params = Column(JSONB, nullable=True)
+    priority = Column(Integer, nullable=True, default=50)
+    dependencies = Column(Text, nullable=True)
+    schedule_time = Column(DateTime, nullable=True)
+    timeout_seconds = Column(Integer, nullable=True)
+    max_retries = Column(Integer, nullable=True, default=0)
+    task_metadata = Column(JSONB, nullable=True)  # Renamed from 'metadata' to 'task_metadata'
+    status = Column(String, nullable=False, default="pending")
+    created_at = Column(DateTime, nullable=True, default=datetime.utcnow)
+    scheduled_at = Column(DateTime, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    retry_count = Column(Integer, nullable=True, default=0)
+    result = Column(Text, nullable=True)
+    error = Column(Text, nullable=True)
+    progress = Column(Float, nullable=True, default=0.0)
+    resource_usage = Column(JSONB, nullable=True)
+    execution_time_ms = Column(Float, nullable=True)
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_background_tasks_status', status),
+        Index('ix_background_tasks_task_type', task_type),
+        Index('ix_background_tasks_created_at', created_at),
+        Index('ix_background_tasks_schedule_time', schedule_time),
+    )
+
+    def __repr__(self):
+        return f"<BackgroundTask(id={self.id}, name='{self.name}', status='{self.status}')>"

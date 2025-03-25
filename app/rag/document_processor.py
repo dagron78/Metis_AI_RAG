@@ -6,8 +6,8 @@ from langchain.text_splitter import (
     MarkdownHeaderTextSplitter,
     TokenTextSplitter
 )
-from langchain.document_loaders import TextLoader, PyPDFLoader, CSVLoader, UnstructuredMarkdownLoader
-from langchain.schema import Document as LangchainDocument
+from langchain_community.document_loaders import TextLoader, PyPDFLoader, CSVLoader, UnstructuredMarkdownLoader
+from langchain.schema.document import Document as LangchainDocument
 
 from app.core.config import UPLOAD_DIR, CHUNK_SIZE, CHUNK_OVERLAP, USE_CHUNKING_JUDGE
 from app.models.document import Document, Chunk

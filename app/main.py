@@ -15,7 +15,7 @@ from app.api.analytics import router as analytics_router
 from app.api.processing import router as processing_router
 from app.api.query_analysis import router as query_analysis_router
 from app.api.tasks import router as tasks_router
-from app.db.session import init_db, db_session
+from app.db.session import init_db, get_session
 
 # Setup logging
 setup_logging()
@@ -94,7 +94,7 @@ async def startup_event():
     # Initialize database
     try:
         logger.info("Initializing database connection")
-        init_db()
+        await init_db()
         logger.info("Database connection initialized successfully")
     except Exception as e:
         logger.error(f"Error initializing database: {str(e)}")
@@ -106,6 +106,3 @@ async def shutdown_event():
     Actions to run on application shutdown
     """
     logger.info("Shutting down Metis RAG application")
-    
-    # Close database session
-    db_session.remove()

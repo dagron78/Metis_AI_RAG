@@ -83,7 +83,7 @@ class EnhancedLangGraphRAGAgent:
         
         # Initialize components for planning and execution
         self.tool_registry = tool_registry or ToolRegistry()
-        self.query_analyzer = query_analyzer or QueryAnalyzer(ollama_client=self.ollama_client)
+        self.query_analyzer = query_analyzer or QueryAnalyzer(llm_provider=self.ollama_client)
         self.query_planner = QueryPlanner(query_analyzer=self.query_analyzer, tool_registry=self.tool_registry)
         self.process_logger = process_logger or ProcessLogger()
         self.plan_executor = PlanExecutor(

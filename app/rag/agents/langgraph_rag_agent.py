@@ -7,7 +7,7 @@ import re
 from typing import Dict, Any, List, Optional, TypedDict, Annotated, Sequence, cast, Tuple
 from enum import Enum
 
-from langchain.schema import Document as LangchainDocument
+from langchain.schema.document import Document as LangchainDocument
 from langgraph.graph import StateGraph, END
 # langgraph 0.0.20 doesn't have ToolNode in prebuilt or MemorySaver
 
