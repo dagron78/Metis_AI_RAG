@@ -5,9 +5,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.core.config import API_V1_STR, PROJECT_NAME
+from app.core.config import API_V1_STR, PROJECT_NAME, SETTINGS
 from app.core.security import setup_security
 from app.core.logging import setup_logging
+from app.core.rate_limit import setup_rate_limiting, ip_ban_middleware
+from app.core.security_alerts import SecurityEvent, log_security_event
 from app.middleware.auth import log_suspicious_requests
 from app.api.chat import router as chat_router
 from app.api.documents import router as documents_router
@@ -30,6 +32,9 @@ app = FastAPI(title=PROJECT_NAME)
 
 # Add security middleware to log suspicious requests
 app.middleware("http")(log_suspicious_requests)
+
+# Add IP ban middleware
+app.middleware("http")(ip_ban_middleware)
 
 # Setup security
 setup_security(app)
@@ -120,6 +125,22 @@ async def login_page(request: Request):
             f"User-Agent: {user_agent}"
         )
         
+        # Create and log security event
+        security_event = SecurityEvent(
+            event_type="credentials_in_url",
+            severity="high",
+            source_ip=client_host,
+            username=params.get("username", "unknown"),
+            user_agent=user_agent,
+            details={
+                "path": request.url.path,
+                "query_params": str(request.url.query),
+                "has_username": "username" in params,
+                "has_password": "password" in params
+            }
+        )
+        log_security_event(security_event)
+        
         # Get redirect param if it exists
         redirect_param = params.get("redirect", "")
         # Create clean URL (without credentials)
@@ -174,6 +195,18 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Error initializing database: {str(e)}")
         raise
+    
+    # Initialize rate limiting if enabled
+    if SETTINGS.rate_limiting_enabled:
+        try:
+            logger.info("Initializing rate limiting")
+            rate_limiting_success = await setup_rate_limiting()
+            if rate_limiting_success:
+                logger.info("Rate limiting initialized successfully")
+            else:
+                logger.warning("Rate limiting initialization failed, continuing without rate limiting")
+        except Exception as e:
+            logger.error(f"Error initializing rate limiting: {str(e)}")
 
 @app.on_event("shutdown")
 async def shutdown_event():

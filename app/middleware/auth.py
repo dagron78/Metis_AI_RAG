@@ -4,6 +4,8 @@ from typing import List, Callable, Optional, Dict, Any
 from starlette.types import ASGIApp, Scope, Receive, Send
 import logging
 
+from app.core.security_alerts import SecurityEvent, log_security_event
+
 # Setup logging
 logger = logging.getLogger("app.middleware.auth")
 
@@ -23,7 +25,6 @@ async def log_suspicious_requests(request: Request, call_next):
         client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "unknown")
         referrer = request.headers.get("referer", "none")
-        
         # Log security event (without logging the actual sensitive values)
         logger.warning(
             f"Security alert: Sensitive parameters ({', '.join(found_sensitive)}) "
@@ -32,6 +33,21 @@ async def log_suspicious_requests(request: Request, call_next):
             f"User-Agent: {user_agent}, "
             f"Referrer: {referrer}"
         )
+        
+        # Create and log security event
+        security_event = SecurityEvent(
+            event_type="sensitive_params_in_url",
+            severity="medium",
+            source_ip=client_ip,
+            user_agent=user_agent,
+            details={
+                "path": path,
+                "sensitive_params": found_sensitive,
+                "referrer": referrer,
+                "query_params": str(query_params)
+            }
+        )
+        log_security_event(security_event)
     
     # Continue with the request
     response = await call_next(request)

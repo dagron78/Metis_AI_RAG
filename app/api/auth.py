@@ -1,34 +1,75 @@
 from datetime import timedelta
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 
 from app.models.user import User, UserCreate, UserUpdate
 from app.core.security import create_access_token, get_current_user, get_current_active_user, get_current_admin_user, Token
 from app.core.config import SETTINGS
+from app.core.rate_limit import login_rate_limit
+from app.core.security_alerts import SecurityEvent, log_security_event
 from app.db.dependencies import get_db, get_user_repository
 from app.db.repositories.user_repository import UserRepository
+
+# Setup logging
+logger = logging.getLogger("app.api.auth")
 
 # Create router
 router = APIRouter()
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    rate_limiter: None = Depends(login_rate_limit) if SETTINGS.rate_limiting_enabled else None
 ):
     """
     Get an access token for a user
     """
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
+    # Log login attempt
+    logger.info(f"Login attempt for user: {form_data.username}, IP: {client_ip}, User-Agent: {user_agent}")
+    
     user_repository = await get_user_repository(db)
     user = await user_repository.authenticate_user(form_data.username, form_data.password)
     if not user:
+        # Log failed login attempt
+        logger.warning(f"Failed login attempt for user: {form_data.username}, IP: {client_ip}, User-Agent: {user_agent}")
+        
+        # Create and log security event
+        security_event = SecurityEvent(
+            event_type="failed_login",
+            severity="medium",
+            source_ip=client_ip,
+            username=form_data.username,
+            user_agent=user_agent,
+            details={"reason": "Incorrect username or password"}
+        )
+        log_security_event(security_event)
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Log successful login
+    logger.info(f"Successful login for user: {form_data.username}, IP: {client_ip}")
+    
+    # Create and log security event for successful login
+    security_event = SecurityEvent(
+        event_type="successful_login",
+        severity="low",
+        source_ip=client_ip,
+        username=form_data.username,
+        user_agent=user_agent
+    )
+    log_security_event(security_event)
     
     # Create access token
     access_token_expires = timedelta(minutes=SETTINGS.access_token_expire_minutes)
