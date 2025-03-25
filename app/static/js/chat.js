@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const temperature = document.getElementById('temperature');
     const metadataFilters = document.getElementById('metadata-filters');
     
+    // Store conversation ID for maintaining context between messages
+    let currentConversationId = null;
+    
     // Toggle RAG parameters visibility
     if (ragToggle) {
         ragToggle.addEventListener('change', function() {
@@ -27,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load available models
     if (modelSelect) {
         console.log('Loading models...');
-        fetch('/api/system/models')
+        authenticatedFetch('/api/system/models')
             .then(response => {
                 console.log('Response status:', response.status);
                 return response.json();
@@ -39,14 +42,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Clear the dropdown
                 modelSelect.innerHTML = '';
                 
-                // Add models to dropdown
-                models.forEach(model => {
+                if (models && models.length > 0) {
+                    // Add models to dropdown
+                    models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.name;
+                        option.textContent = model.name;
+                        modelSelect.appendChild(option);
+                        console.log('Added model to dropdown:', model.name);
+                    });
+                } else {
+                    // Add a default option if no models are available
                     const option = document.createElement('option');
-                    option.value = model.name;
-                    option.textContent = model.name;
+                    option.value = 'gemma3:4b';
+                    option.textContent = 'gemma3:4b (default)';
                     modelSelect.appendChild(option);
-                    console.log('Added model to dropdown:', model.name);
-                });
+                    console.log('No models available, added default model');
+                }
             })
             .catch(error => {
                 console.error('Error loading models:', error);
@@ -57,6 +69,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function sendMessage() {
         const message = userInput.value.trim();
         if (!message) return;
+        
+        // Check if user is authenticated
+        if (!isAuthenticated()) {
+            // Redirect to login page
+            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+            return;
+        }
         
         // Log the selected model
         console.log('Selected model for this message:', modelSelect.value);
@@ -73,8 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Prepare query
         const query = {
             message: message,
-            model: modelSelect.value,
+            model: modelSelect.value || 'gemma3:4b', // Use default model if none selected
             use_rag: ragToggle.checked,
+            conversation_id: currentConversationId, // Include conversation ID if available
             model_parameters: {
                 temperature: parseFloat(temperature.value),
                 max_results: ragToggle.checked ? parseInt(maxResults.value) : 0
@@ -119,11 +139,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Scroll to bottom
         chatContainer.scrollTop = chatContainer.scrollHeight;
         
-        // Send to API
-        fetch('/api/chat/query', {
+        // Send to API with a timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+        
+        authenticatedFetch('/api/chat/query', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(query)
+            body: JSON.stringify(query),
+            signal: controller.signal
         })
         .then(response => {
             if (!response.ok) {
@@ -137,10 +161,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 let decoder = new TextDecoder();
                 let fullResponse = '';
                 
-                // Function to process the stream
+                // Variable to track if the previous line was a conversation_id event
+                let previousLineWasConversationIdEvent = false;
+                
+                // Function to process the stream with improved error handling
                 function processStream() {
+                    let streamTimeout;
+                    let lastActivityTime = Date.now();
+                    
+                    // Set a timeout for the stream reading
+                    const setStreamTimeout = () => {
+                        clearTimeout(streamTimeout);
+                        streamTimeout = setTimeout(() => {
+                            // Check if we've had activity in the last 10 seconds
+                            const inactiveTime = Date.now() - lastActivityTime;
+                            if (inactiveTime > 10000) {
+                                console.warn(`Stream reading timeout after ${inactiveTime}ms of inactivity - aborting`);
+                                reader.cancel('Timeout');
+                                
+                                // Try again without streaming
+                                if (streamToggle.checked) {
+                                    // Update UI to show we're retrying
+                                    contentDiv.textContent = 'The streaming response timed out. Retrying without streaming...';
+                                    
+                                    // Disable streaming and retry
+                                    streamToggle.checked = false;
+                                    sendButton.click();
+                                }
+                            } else {
+                                // Reset the timeout
+                                setStreamTimeout();
+                            }
+                        }, 5000); // Check every 5 seconds
+                    };
+                    
+                    // Start the timeout
+                    setStreamTimeout();
+                    
                     return reader.read().then(({ done, value }) => {
+                        // Update the last activity time
+                        lastActivityTime = Date.now();
+                        
                         if (done) {
+                            // Clear the timeout when done
+                            clearTimeout(streamTimeout);
+                            
                             // Hide loading indicator when done
                             loadingIndicator.style.display = 'none';
                             return;
@@ -152,46 +217,56 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Process the chunk (which may contain multiple SSE events)
                         const lines = chunk.split('\n');
                         for (const line of lines) {
-                            if (line.startsWith('data:')) {
+                            // Check for event type
+                            if (line.startsWith('event:')) {
+                                const eventType = line.substring(6).trim();
+                                // Handle conversation_id event
+                                if (eventType === 'conversation_id') {
+                                    // The next line should be the data
+                                    previousLineWasConversationIdEvent = true;
+                                    continue;
+                                }
+                            }
+                            else if (line.startsWith('data:')) {
                                 const data = line.substring(5).trim();
                                 if (data) {
                                     try {
                                         // Try to parse as JSON (for newer format)
                                         try {
                                             const jsonData = JSON.parse(data);
+                                            
+                                            // Check if this is conversation ID data
+                                            if (previousLineWasConversationIdEvent) {
+                                                try {
+                                                    // The data should be the conversation ID
+                                                    // Remove any quotes if present (in case it's a JSON string)
+                                                    currentConversationId = data.replace(/^"|"$/g, '');
+                                                    console.log('Conversation ID received in stream:', currentConversationId);
+                                                } catch (e) {
+                                                    console.error('Error parsing conversation ID:', e);
+                                                }
+                                                previousLineWasConversationIdEvent = false;
+                                                continue; // Skip adding this to the response
+                                            }
+                                            
                                             if (jsonData.chunk) {
                                                 fullResponse += jsonData.chunk;
                                             } else {
                                                 fullResponse += data;
                                             }
                                         } catch (e) {
-                                            // If not JSON, just append the data (older format)
-                                            // Check if we need to add a space before the new token
-                                            const needsSpace = fullResponse.length > 0 &&
-                                                              !fullResponse.endsWith(' ') &&
-                                                              !fullResponse.endsWith('\n') &&
-                                                              !fullResponse.endsWith('.') &&
-                                                              !fullResponse.endsWith(',') &&
-                                                              !fullResponse.endsWith('!') &&
-                                                              !fullResponse.endsWith('?') &&
-                                                              !fullResponse.endsWith(':') &&
-                                                              !fullResponse.endsWith(';') &&
-                                                              !fullResponse.endsWith('(') &&
-                                                              !data.startsWith(' ') &&
-                                                              !data.startsWith('\n') &&
-                                                              !data.startsWith('.') &&
-                                                              !data.startsWith(',') &&
-                                                              !data.startsWith('!') &&
-                                                              !data.startsWith('?') &&
-                                                              !data.startsWith(':') &&
-                                                              !data.startsWith(';') &&
-                                                              !data.startsWith(')');
-                                            
-                                            if (needsSpace) {
-                                                fullResponse += ' ';
+                                            // Skip if this is the conversation ID data that wasn't properly caught earlier
+                                            if (previousLineWasConversationIdEvent) {
+                                                // The data should be the conversation ID
+                                                currentConversationId = data.replace(/^"|"$/g, '');
+                                                console.log('Conversation ID received in stream (fallback):', currentConversationId);
+                                                previousLineWasConversationIdEvent = false;
+                                            } else {
+                                                // If not JSON and not conversation ID, append the data (older format)
+                                                // With streaming tokens from Ollama, we should not add spaces
+                                                // as the model already handles proper spacing
+                                                fullResponse += data;
                                             }
-                                            
-                                            fullResponse += data;
                                         }
                                     } catch (e) {
                                         console.error('Error processing chunk:', e);
@@ -201,7 +276,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         
                         // Update the content div with the current response
-                        contentDiv.textContent = fullResponse;
+                        // Check if the response starts with a UUID pattern (conversation ID)
+                        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
+                        if (fullResponse.match(uuidPattern)) {
+                            // Remove the UUID from the beginning of the response
+                            contentDiv.textContent = fullResponse.replace(uuidPattern, '');
+                        } else {
+                            contentDiv.textContent = fullResponse;
+                        }
                         
                         // Scroll to bottom
                         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -209,8 +291,46 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Continue reading
                         return processStream();
                     }).catch(error => {
+                        // Clear the timeout
+                        clearTimeout(streamTimeout);
+                        
                         console.error('Error reading stream:', error);
+                        
+                        // If we already have some response, show it
+                        if (fullResponse.length > 0) {
+                            contentDiv.textContent = fullResponse + "\n\n[Response was cut off due to a connection issue]";
+                            
+                            // Add a note about the error
+                            const noteDiv = document.createElement('div');
+                            noteDiv.className = 'streaming-note';
+                            noteDiv.textContent = '(Note: The response was cut off due to a connection issue)';
+                            noteDiv.style.fontSize = '0.8em';
+                            noteDiv.style.fontStyle = 'italic';
+                            noteDiv.style.marginTop = '10px';
+                            noteDiv.style.color = 'var(--muted-color)';
+                            messageDiv.appendChild(noteDiv);
+                        } else {
+                            // Update the content div with an error message
+                            contentDiv.textContent = 'There was an error processing your request. ' +
+                                'This might be due to a connection issue with the language model. ' +
+                                'Try disabling streaming mode or check if the Ollama server is running properly.';
+                        }
+                        
+                        // Hide loading indicator
                         loadingIndicator.style.display = 'none';
+                        
+                        // Add a retry button
+                        const retryButton = document.createElement('button');
+                        retryButton.textContent = 'Retry without streaming';
+                        retryButton.className = 'retry-button';
+                        retryButton.onclick = function() {
+                            // Disable streaming and retry
+                            if (streamToggle && streamToggle.checked) {
+                                streamToggle.checked = false;
+                                sendButton.click();
+                            }
+                        };
+                        messageDiv.appendChild(retryButton);
                     });
                 }
                 
@@ -222,8 +342,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Hide loading indicator
                     loadingIndicator.style.display = 'none';
                     
+                    // Store conversation ID for future messages
+                    if (data.conversation_id) {
+                        currentConversationId = data.conversation_id;
+                        console.log('Conversation ID updated:', currentConversationId);
+                    }
+                    
                     // Display the response
-                    contentDiv.textContent = data.message;
+                    // Check if the response starts with a UUID pattern (conversation ID)
+                    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
+                    if (data.message && data.message.match(uuidPattern)) {
+                        // Remove the UUID from the beginning of the response
+                        contentDiv.textContent = data.message.replace(uuidPattern, '');
+                    } else {
+                        contentDiv.textContent = data.message;
+                    }
                     
                     // Scroll to bottom
                     chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -250,6 +383,78 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error:', error);
             
+            // Check if it's an abort error (timeout)
+            if (error.name === 'AbortError') {
+                console.log('Request timed out, trying again without streaming');
+                
+                // If streaming was enabled, try again without streaming
+                if (streamToggle.checked) {
+                    // Update UI to show we're retrying
+                    contentDiv.textContent = 'The streaming request timed out. Retrying without streaming...';
+                    
+                    // Disable streaming and retry
+                    query.stream = false;
+                    
+                    // Clear the previous timeout
+                    clearTimeout(timeoutId);
+                    
+                    // Send the request again without streaming
+                    authenticatedFetch('/api/chat/query', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(query)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        loadingIndicator.style.display = 'none';
+                        
+                        // Store conversation ID for future messages
+                        if (data.conversation_id) {
+                            currentConversationId = data.conversation_id;
+                            console.log('Conversation ID updated:', currentConversationId);
+                        }
+                        
+                        // Display the response
+                        contentDiv.textContent = data.message;
+                        
+                        // Add a note that streaming was disabled
+                        const noteDiv = document.createElement('div');
+                        noteDiv.className = 'streaming-note';
+                        noteDiv.textContent = '(Note: Streaming was disabled due to timeout)';
+                        noteDiv.style.fontSize = '0.8em';
+                        noteDiv.style.fontStyle = 'italic';
+                        noteDiv.style.marginTop = '10px';
+                        noteDiv.style.color = 'var(--muted-color)';
+                        messageDiv.appendChild(noteDiv);
+                        
+                        // Uncheck streaming toggle for future requests
+                        streamToggle.checked = false;
+                    })
+                    .catch(fallbackError => {
+                        console.error('Error in fallback request:', fallbackError);
+                        handleErrorMessage(fallbackError, contentDiv, message, ragToggle, streamToggle);
+                        loadingIndicator.style.display = 'none';
+                    });
+                } else {
+                    // If streaming was already disabled, show a regular error
+                    handleErrorMessage(error, contentDiv, message, ragToggle, streamToggle);
+                    loadingIndicator.style.display = 'none';
+                }
+            } else {
+                // For other types of errors
+                handleErrorMessage(error, contentDiv, message, ragToggle, streamToggle);
+                loadingIndicator.style.display = 'none';
+            }
+        });
+        
+        // Helper function to handle error messages
+        function handleErrorMessage(error, contentDiv, message, ragToggle, streamToggle) {
             // Add error message with more details
             contentDiv.textContent = 'Sorry, there was an error processing your request. ';
             
@@ -275,14 +480,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add suggestion based on streaming status
             else if (streamToggle.checked) {
                 contentDiv.textContent += 'You might try disabling streaming mode for better error handling. ';
+                
+                // Add a retry button
+                const retryButton = document.createElement('button');
+                retryButton.textContent = 'Retry without streaming';
+                retryButton.className = 'retry-button';
+                retryButton.onclick = function() {
+                    // Disable streaming and retry
+                    streamToggle.checked = false;
+                    sendButton.click();
+                };
+                messageDiv.appendChild(retryButton);
             }
             else {
                 contentDiv.textContent += 'Please try again later or with different parameters.';
             }
-            
-            // Hide loading indicator
-            loadingIndicator.style.display = 'none';
-        });
+        }
     }
     
     // Clear chat
@@ -347,13 +560,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Clear conversation
     function clearConversation() {
+        // Reset conversation ID
+        currentConversationId = null;
+        console.log('Conversation ID reset');
+        
         // Clear conversation from local storage or API
-        fetch('/api/chat/clear', {
+        authenticatedFetch('/api/chat/clear', {
             method: 'DELETE'
         })
         .then(response => response.json())
         .then(data => {
             console.log('Conversation cleared:', data);
+            // Use the globally exposed clearConversation function from main.js
+            // This ensures proper clearing of localStorage and updating the UI
+            if (window.clearConversation) {
+                window.clearConversation();
+            } else {
+                // Fallback if the global function isn't available
+                localStorage.removeItem('metis_conversation');
+                console.warn('window.clearConversation not found, using fallback clear method');
+            }
         })
         .catch(error => {
             console.error('Error clearing conversation:', error);

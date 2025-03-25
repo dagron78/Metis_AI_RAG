@@ -399,23 +399,35 @@ RESPONSE STYLE:
                 async def normalized_stream():
                     buffer = ""
                     async for chunk in original_stream:
-                        if "response" in chunk:
+                        # Handle string chunks (from OllamaClient)
+                        if isinstance(chunk, str):
+                            buffer += chunk
+                            # Apply normalization to the buffer periodically
+                            # Only normalize when we have complete sentences or paragraphs
+                            if any(buffer.endswith(c) for c in ['.', '!', '?', '\n']):
+                                normalized_chunk = normalize_text(buffer)
+                                buffer = ""
+                                yield normalized_chunk
+                            else:
+                                yield chunk
+                        # Handle dictionary chunks (for backward compatibility)
+                        elif isinstance(chunk, dict) and "response" in chunk:
                             buffer += chunk["response"]
                             # Apply normalization to the buffer periodically
                             # Only normalize when we have complete sentences or paragraphs
                             if any(buffer.endswith(c) for c in ['.', '!', '?', '\n']):
                                 normalized_chunk = normalize_text(buffer)
                                 buffer = ""
-                                yield {"response": normalized_chunk}
+                                yield normalized_chunk
                             else:
-                                yield chunk
+                                yield chunk["response"]
                         else:
                             yield chunk
                     
                     # Process any remaining text in the buffer
                     if buffer:
                         normalized_chunk = normalize_text(buffer)
-                        yield {"response": normalized_chunk}
+                        yield normalized_chunk
                 
                 stream_response = normalized_stream()
                 
