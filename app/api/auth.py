@@ -1,12 +1,17 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Depends, status, Request
+from fastapi import APIRouter, HTTPException, Depends, status, Request, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
+import uuid
 
 from app.models.user import User, UserCreate, UserUpdate
-from app.core.security import create_access_token, get_current_user, get_current_active_user, get_current_admin_user, Token
+from app.core.security import (
+    create_access_token, create_refresh_token, verify_refresh_token,
+    get_current_user, get_current_active_user, get_current_admin_user,
+    Token, RefreshToken
+)
 from app.core.config import SETTINGS
 from app.core.rate_limit import login_rate_limit
 from app.core.security_alerts import SecurityEvent, log_security_event
@@ -27,7 +32,22 @@ async def login_for_access_token(
     rate_limiter: None = Depends(login_rate_limit) if SETTINGS.rate_limiting_enabled else None
 ):
     """
-    Get an access token for a user
+    Get an access token and refresh token for a user
+    
+    This endpoint authenticates a user with username and password,
+    and returns JWT access and refresh tokens if successful.
+    
+    Args:
+        request: The FastAPI request object
+        form_data: The OAuth2 password request form data
+        db: The database session
+        rate_limiter: Optional rate limiter dependency
+        
+    Returns:
+        A Token object containing the access token, refresh token, and expiration
+        
+    Raises:
+        HTTPException: If authentication fails
     """
     client_ip = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
@@ -71,14 +91,148 @@ async def login_for_access_token(
     )
     log_security_event(security_event)
     
+    # Update user's last login time
+    await user_repository.update_user(user.id, {"last_login": datetime.utcnow()})
+    
+    # Create tokens with additional claims
+    token_data = {
+        "sub": user.username,
+        "user_id": user.id,
+        "aud": SETTINGS.jwt_audience,
+        "iss": SETTINGS.jwt_issuer,
+        "jti": str(uuid.uuid4())  # Unique token ID
+    }
+    
     # Create access token
     access_token_expires = timedelta(minutes=SETTINGS.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user.username, "user_id": user.id},
+        data=token_data,
         expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    # Create refresh token
+    refresh_token_expires = timedelta(days=SETTINGS.refresh_token_expire_days)
+    refresh_token = create_refresh_token(
+        data=token_data,
+        expires_delta=refresh_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": SETTINGS.access_token_expire_minutes * 60,  # in seconds
+        "refresh_token": refresh_token
+    }
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    request: Request,
+    refresh_token_data: RefreshToken,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Refresh an access token using a refresh token
+    
+    This endpoint validates a refresh token and issues a new access token
+    if the refresh token is valid.
+    
+    Args:
+        request: The FastAPI request object
+        refresh_token_data: The refresh token data
+        db: The database session
+        
+    Returns:
+        A Token object containing the new access token and expiration
+        
+    Raises:
+        HTTPException: If the refresh token is invalid
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
+    # Verify refresh token
+    payload = verify_refresh_token(refresh_token_data.refresh_token)
+    if not payload:
+        # Log failed refresh attempt
+        logger.warning(f"Failed token refresh attempt, IP: {client_ip}, User-Agent: {user_agent}")
+        
+        # Create and log security event
+        security_event = SecurityEvent(
+            event_type="failed_token_refresh",
+            severity="medium",
+            source_ip=client_ip,
+            user_agent=user_agent,
+            details={"reason": "Invalid refresh token"}
+        )
+        log_security_event(security_event)
+        
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Extract user information from payload
+    username = payload.get("sub")
+    user_id = payload.get("user_id")
+    
+    if not username or not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Verify user exists
+    user_repository = await get_user_repository(db)
+    user = await user_repository.get_by_username(username)
+    
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Log successful token refresh
+    logger.info(f"Successful token refresh for user: {username}, IP: {client_ip}")
+    
+    # Create and log security event for successful token refresh
+    security_event = SecurityEvent(
+        event_type="successful_token_refresh",
+        severity="low",
+        source_ip=client_ip,
+        username=username,
+        user_agent=user_agent
+    )
+    log_security_event(security_event)
+    
+    # Update user's last login time
+    await user_repository.update_user(user.id, {"last_login": datetime.utcnow()})
+    
+    # Create new token with the same claims as the refresh token
+    # but with a new JTI (JWT ID)
+    token_data = {
+        "sub": username,
+        "user_id": user_id,
+        "aud": payload.get("aud", SETTINGS.jwt_audience),
+        "iss": payload.get("iss", SETTINGS.jwt_issuer),
+        "jti": str(uuid.uuid4())  # New unique token ID
+    }
+    
+    # Create new access token
+    access_token_expires = timedelta(minutes=SETTINGS.access_token_expire_minutes)
+    access_token = create_access_token(
+        data=token_data,
+        expires_delta=access_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": SETTINGS.access_token_expire_minutes * 60,  # in seconds
+        "refresh_token": refresh_token_data.refresh_token  # Return the same refresh token
+    }
 
 @router.post("/register", response_model=User)
 async def register_user(

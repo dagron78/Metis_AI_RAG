@@ -78,6 +78,25 @@ DATABASE_MAX_OVERFLOW = int(os.getenv("DATABASE_MAX_OVERFLOW", "10"))
 
 # Security settings
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+TOKEN_URL = f"{API_V1_STR}/auth/token"
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+RATE_LIMITING_ENABLED = os.getenv("RATE_LIMITING_ENABLED", "True").lower() == "true"
+JWT_AUDIENCE = os.getenv("JWT_AUDIENCE", "metis-rag-api")
+JWT_ISSUER = os.getenv("JWT_ISSUER", "metis-rag")
+
+# Email settings
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_SENDER = os.getenv("SMTP_SENDER", "noreply@metisrag.com")
+SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "True").lower() == "true"
+EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "False").lower() == "true"
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 # Mem0 settings
 MEM0_ENDPOINT = os.getenv("MEM0_ENDPOINT", "http://localhost:8050")
@@ -129,6 +148,26 @@ SETTINGS = SimpleNamespace(
     
     # Security settings
     cors_origins=CORS_ORIGINS,
+    secret_key=SECRET_KEY,
+    algorithm=ALGORITHM,
+    access_token_expire_minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
+    refresh_token_expire_days=REFRESH_TOKEN_EXPIRE_DAYS,
+    token_url=TOKEN_URL,
+    redis_url=REDIS_URL,
+    rate_limiting_enabled=RATE_LIMITING_ENABLED,
+    jwt_audience=JWT_AUDIENCE,
+    jwt_issuer=JWT_ISSUER,
+    
+    # Email settings
+    smtp_server=SMTP_SERVER,
+    smtp_port=SMTP_PORT,
+    smtp_username=SMTP_USERNAME,
+    smtp_password=SMTP_PASSWORD,
+    smtp_sender=SMTP_SENDER,
+    smtp_tls=SMTP_USE_TLS,
+    email_enabled=EMAIL_ENABLED,
+    email_sender=SMTP_SENDER,
+    base_url=BASE_URL,
     
     # Mem0 settings
     mem0_endpoint=MEM0_ENDPOINT,

@@ -10,7 +10,7 @@ from app.core.security import setup_security
 from app.core.logging import setup_logging
 from app.core.rate_limit import setup_rate_limiting, ip_ban_middleware
 from app.core.security_alerts import SecurityEvent, log_security_event
-from app.middleware.auth import log_suspicious_requests
+from app.middleware.auth import log_suspicious_requests, AuthMiddleware
 from app.api.chat import router as chat_router
 from app.api.documents import router as documents_router
 from app.api.system import router as system_router
@@ -28,7 +28,14 @@ setup_logging()
 logger = logging.getLogger("app.main")
 
 # Create FastAPI app
-app = FastAPI(title=PROJECT_NAME)
+app = FastAPI(
+    title=PROJECT_NAME,
+    description="Metis RAG API with JWT Authentication",
+    version=SETTINGS.version,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json"
+)
 
 # Add security middleware to log suspicious requests
 app.middleware("http")(log_suspicious_requests)
@@ -38,6 +45,9 @@ app.middleware("http")(ip_ban_middleware)
 
 # Setup security
 setup_security(app)
+
+# Add authentication middleware
+app.add_middleware(AuthMiddleware)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

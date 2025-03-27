@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metis RAG Authentication Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .panel {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .success {
+            color: #27ae60;
+        }
+        
+        .error {
+            color: #e74c3c;
+        }
+        
+        .token-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+        }
+        
+        .token-info p {
+            margin: 5px 0;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom-color: #3498db;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-indicator.active {
+            background-color: #27ae60;
+        }
+        
+        .status-indicator.inactive {
+            background-color: #e74c3c;
+        }
+        
+        .timer {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .flow-diagram {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .code-block {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: monospace;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Metis RAG Authentication Demo</h1>
+    
+    <div class="header">
+        <p>This demo demonstrates the JWT authentication flow for the Metis RAG application.</p>
+        <div class="user-info" id="userInfo" style="display: none;">
+            <div class="avatar" id="userAvatar">U</div>
+            <div>
+                <strong id="userDisplayName">User</strong>
+                <button id="logoutBtn" style="margin-left: 10px;">Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="auth">Authentication</div>
+        <div class="tab" data-tab="api">API Access</div>
+        <div class="tab" data-tab="tokens">Token Management</div>
+        <div class="tab" data-tab="docs">Documentation</div>
+    </div>
+    
+    <div class="tab-content active" id="auth">
+        <div class="container">
+            <div class="panel">
+                <h2>Register</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regUsername">Username</label>
+                        <input type="text" id="regUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email</label>
+                        <input type="email" id="regEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regFullName">Full Name</label>
+                        <input type="text" id="regFullName">
+                    </div>
+                    <button type="submit">Register</button>
+                </form>
+                <div id="registerResult" class="result" style="display: none;"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+                <div id="loginResult" class="result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Authentication Status</h2>
+            <div>
+                <p>
+                    <span class="status-indicator inactive" id="authStatus"></span>
+                    <span id="authStatusText">Not authenticated</span>
+                </p>
+                <div id="tokenInfo" class="token-info" style="display: none;">
+                    <p><strong>Access Token:</strong> <span id="accessTokenDisplay"></span></p>
+                    <p><strong>Refresh Token:</strong> <span id="refreshTokenDisplay"></span></p>
+                    <p><strong>Expires:</strong> <span id="tokenExpiry"></span></p>
+                    <div class="timer" id="tokenTimer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="api">
+        <div class="container">
+            <div class="panel">
+                <h2>Protected API Endpoints</h2>
+                <div class="form-group">
+                    <label for="apiEndpoint">Endpoint</label>
+                    <select id="apiEndpoint">
+                        <option value="/api/auth/me">Get Current User (/api/auth/me)</option>
+                        <option value="/api/documents">List Documents (/api/documents)</option>
+                        <option value="/api/system/info">System Info (/api/system/info)</option>
+                    </select>
+                </div>
+                <button id="callApiBtn">Call API</button>
+                <div id="apiResult" class="result" style="display: none;"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>API Request Details</h2>
+                <div class="code-block" id="requestDetails">
+                    // API request details will appear here
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="tokens">
+        <div class="container">
+            <div class="panel">
+                <h2>Token Management</h2>
+                <button id="refreshTokenBtn">Refresh Token</button>
+                <p>Use this to manually refresh your access token using the refresh token.</p>
+                <div id="refreshResult" class="result" style="display: none;"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>Token Decoder</h2>
+                <div class="form-group">
+                    <label for="tokenToDecode">JWT Token</label>
+                    <textarea id="tokenToDecode" rows="5" placeholder="Paste a JWT token here"></textarea>
+                </div>
+                <button id="decodeTokenBtn">Decode Token</button>
+                <div id="decodedToken" class="result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Token Lifecycle</h2>
+            <p>JWT tokens have a limited lifetime. The access token expires after a short period (default: 30 minutes), while the refresh token lasts longer (default: 7 days).</p>
+            <p>When the access token expires, you can use the refresh token to get a new access token without requiring the user to log in again.</p>
+            <p>This demo will automatically refresh the access token when it expires.</p>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="docs">
+        <div class="panel">
+            <h2>Authentication Flow</h2>
+            <p>The authentication flow consists of the following steps:</p>
+            <ol>
+                <li>User registers or logs in with credentials</li>
+                <li>Server validates credentials and issues access and refresh tokens</li>
+                <li>Client includes access token in API requests</li>
+                <li>When access token expires, client uses refresh token to get a new access token</li>
+                <li>User identity remains consistent regardless of token refreshes or password changes</li>
+            </ol>
+            
+            <h3>Flow Diagram</h3>
+            <pre class="code-block">
+Client                                 Server
+  |                                      |
+  |  Register/Login with credentials     |
+  | ------------------------------------> |
+  |                                      |
+  |  Access token + Refresh token        |
+  | <------------------------------------ |
+  |                                      |
+  |  API request with Access token       |
+  | ------------------------------------> |
+  |                                      |
+  |  Protected resource                  |
+  | <------------------------------------ |
+  |                                      |
+  |  API request (token expired)         |
+  | ------------------------------------> |
+  |                                      |
+  |  401 Unauthorized                    |
+  | <------------------------------------ |
+  |                                      |
+  |  Refresh token request               |
+  | ------------------------------------> |
+  |                                      |
+  |  New access token                    |
+  | <------------------------------------ |
+  |                                      |
+  |  API request with new Access token   |
+  | ------------------------------------> |
+  |                                      |
+  |  Protected resource                  |
+  | <------------------------------------ |
+  |                                      |
+            </pre>
+        </div>
+        
+        <div class="panel">
+            <h2>API Endpoints</h2>
+            <h3>Registration</h3>
+            <pre class="code-block">
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "securepassword",
+  "full_name": "Test User"
+}
+            </pre>
+            
+            <h3>Login</h3>
+            <pre class="code-block">
+POST /api/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=testuser&password=securepassword
+            </pre>
+            
+            <h3>Token Refresh</h3>
+            <pre class="code-block">
+POST /api/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+            </pre>
+            
+            <h3>Get Current User</h3>
+            <pre class="code-block">
+GET /api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+        </div>
+    </div>
+    
+    <script>
+        // Base URL for API
+        const BASE_URL = 'http://localhost:8000';
+        
+        // DOM Elements
+        const registerForm = document.getElementById('registerForm');
+        const loginForm = document.getElementById('loginForm');
+        const registerResult = document.getElementById('registerResult');
+        const loginResult = document.getElementById('loginResult');
+        const authStatus = document.getElementById('authStatus');
+        const authStatusText = document.getElementById('authStatusText');
+        const tokenInfo = document.getElementById('tokenInfo');
+        const accessTokenDisplay = document.getElementById('accessTokenDisplay');
+        const refreshTokenDisplay = document.getElementById('refreshTokenDisplay');
+        const tokenExpiry = document.getElementById('tokenExpiry');
+        const tokenTimer = document.getElementById('tokenTimer');
+        const callApiBtn = document.getElementById('callApiBtn');
+        const apiEndpoint = document.getElementById('apiEndpoint');
+        const apiResult = document.getElementById('apiResult');
+        const requestDetails = document.getElementById('requestDetails');
+        const refreshTokenBtn = document.getElementById('refreshTokenBtn');
+        const refreshResult = document.getElementById('refreshResult');
+        const tokenToDecode = document.getElementById('tokenToDecode');
+        const decodeTokenBtn = document.getElementById('decodeTokenBtn');
+        const decodedToken = document.getElementById('decodedToken');
+        const userInfo = document.getElementById('userInfo');
+        const userAvatar = document.getElementById('userAvatar');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Token storage
+        let accessToken = localStorage.getItem('access_token');
+        let refreshToken = localStorage.getItem('refresh_token');
+        let tokenExpiryTime = localStorage.getItem('token_expiry');
+        let tokenRefreshInterval;
+        let currentUser = null;
+        
+        // Initialize
+        function init() {
+            // Check if user is logged in
+            if (accessToken) {
+                updateAuthStatus(true);
+                startTokenTimer();
+                fetchCurrentUser();
+            } else {
+                updateAuthStatus(false);
+            }
+            
+            // Set up event listeners
+            registerForm.addEventListener('submit', handleRegister);
+            loginForm.addEventListener('submit', handleLogin);
+            callApiBtn.addEventListener('click', callApi);
+            refreshTokenBtn.addEventListener('click', handleRefreshToken);
+            decodeTokenBtn.addEventListener('click', decodeToken);
+            logoutBtn.addEventListener('click', logout);
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+            
+            // Populate token decoder if token exists
+            if (accessToken) {
+                tokenToDecode.value = accessToken;
+            }
+        }
+        
+        // Update authentication status display
+        function updateAuthStatus(isAuthenticated) {
+            if (isAuthenticated) {
+                authStatus.classList.remove('inactive');
+                authStatus.classList.add('active');
+                authStatusText.textContent = 'Authenticated';
+                tokenInfo.style.display = 'block';
+                
+                // Display token info
+                accessTokenDisplay.textContent = truncateToken(accessToken);
+                refreshTokenDisplay.textContent = truncateToken(refreshToken);
+                
+                const expiryDate = new Date(parseInt(tokenExpiryTime));
+                tokenExpiry.textContent = expiryDate.toLocaleString();
+                
+                // Show user info if available
+                if (currentUser) {
+                    userInfo.style.display = 'flex';
+                    userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                    userDisplayName.textContent = currentUser.full_name || currentUser.username;
+                }
+            } else {
+                authStatus.classList.remove('active');
+                authStatus.classList.add('inactive');
+                authStatusText.textContent = 'Not authenticated';
+                tokenInfo.style.display = 'none';
+                userInfo.style.display = 'none';
+                
+                // Clear token timer
+                if (tokenRefreshInterval) {
+                    clearInterval(tokenRefreshInterval);
+                }
+            }
+        }
+        
+        // Handle register form submission
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('regUsername').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                full_name: document.getElementById('regFullName').value
+            };
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                registerResult.style.display = 'block';
+                
+                if (response.ok) {
+                    registerResult.innerHTML = `<span class="success">Registration successful!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    // Pre-fill login form
+                    document.getElementById('loginUsername').value = userData.username;
+                    document.getElementById('loginPassword').value = userData.password;
+                } else {
+                    registerResult.innerHTML = `<span class="error">Registration failed:</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                registerResult.style.display = 'block';
+                registerResult.innerHTML = `<span class="error">Error:</span><pre>${error.message}</pre>`;
+            }
+        }
+        
+        // Handle login form submission
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const formData = new URLSearchParams();
+            formData.append('username', document.getElementById('loginUsername').value);
+            formData.append('password', document.getElementById('loginPassword').value);
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                loginResult.style.display = 'block';
+                
+                if (response.ok) {
+                    loginResult.innerHTML = `<span class="success">Login successful!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    
+                    // Store tokens
+                    accessToken = data.access_token;
+                    refreshToken = data.refresh_token;
+                    tokenExpiryTime = Date.now() + (data.expires_in * 1000);
+                    
+                    localStorage.setItem('access_token', accessToken);
+                    localStorage.setItem('refresh_token', refreshToken);
+                    localStorage.setItem('token_expiry', tokenExpiryTime);
+                    
+                    updateAuthStatus(true);
+                    startTokenTimer();
+                    fetchCurrentUser();
+                    
+                    // Populate token decoder
+                    tokenToDecode.value = accessToken;
+                } else {
+                    loginResult.innerHTML = `<span class="error">Login failed:</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                loginResult.style.display = 'block';
+                loginResult.innerHTML = `<span class="error">Error:</span><pre>${error.message}</pre>`;
+            }
+        }
+        
+        // Fetch current user
+        async function fetchCurrentUser() {
+            if (!accessToken) return;
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    
+                    // Update user info display
+                    userInfo.style.display = 'flex';
+                    userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                    userDisplayName.textContent = currentUser.full_name || currentUser.username;
+                } else {
+                    // Token might be invalid
+                    if (response.status === 401) {
+                        await refreshAccessToken();
+                        fetchCurrentUser();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user:', error);
+            }
+        }
+        
+        // Call API endpoint
+        async function callApi() {
+            const endpoint = apiEndpoint.value;
+            
+            // Check if token needs refresh
+            if (tokenExpiryTime && Date.now() > tokenExpiryTime) {
+                await refreshAccessToken();
+            }
+            
+            try {
+                // Update request details
+                requestDetails.textContent = `// Request
+fetch('${BASE_URL}${endpoint}', {
+    headers: {
+        'Authorization': 'Bearer ${truncateToken(accessToken)}'
+    }
+})`;
+                
+                const response = await fetch(`${BASE_URL}${endpoint}`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                apiResult.style.display = 'block';
+                
+                if (response.ok) {
+                    apiResult.innerHTML = `<span class="success">API call successful!</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    apiResult.innerHTML = `<span class="error">API call failed:</span><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    
+                    // Token might be invalid
+                    if (response.status === 401) {
+                        await refreshAccessToken();
+                    }
+                }
+            } catch (error) {
+                apiResult.style.display = 'block';
+                apiResult.innerHTML = `<span class="error">Error:</span><pre>${error.message}</pre>`;
+            }
+        }
+        
+        // Handle manual token refresh
+        async function handleRefreshToken() {
+            const result = await refreshAccessToken();
+            
+            refreshResult.style.display = 'block';
+            
+            if (result.success) {
+                refreshResult.innerHTML = `<span class="success">Token refreshed successfully!</span><pre>${JSON.stringify(result.data, null, 2)}</pre>`;
+            } else {
+                refreshResult.innerHTML = `<span class="error">Token refresh failed:</span><pre>${result.error}</pre>`;
+            }
+        }
+        
+        // Refresh access token
+        async function refreshAccessToken() {
+            if (!refreshToken) {
+                return { success: false, error: 'No refresh token available' };
+            }
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/refresh`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Update tokens
+                    accessToken = data.access_token;
+                    tokenExpiryTime = Date.now() + (data.expires_in * 1000);
+                    
+                    localStorage.setItem('access_token', accessToken);
+                    localStorage.setItem('token_expiry', tokenExpiryTime);
+                    
+                    // Update display
+                    accessTokenDisplay.textContent = truncateToken(accessToken);
+                    const expiryDate = new Date(parseInt(tokenExpiryTime));
+                    tokenExpiry.textContent = expiryDate.toLocaleString();
+                    
+                    // Populate token decoder
+                    tokenToDecode.value = accessToken;
+                    
+                    return { success: true, data };
+                } else {
+                    // If refresh fails, user needs to log in again
+                    if (response.status === 401) {
+                        logout();
+                    }
+                    
+                    return { success: false, error: JSON.stringify(data, null, 2) };
+                }
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // Decode JWT token
+        function decodeToken() {
+            const token = tokenToDecode.value.trim();
+            
+            if (!token) {
+                decodedToken.style.display = 'block';
+                decodedToken.innerHTML = '<span class="error">Please enter a token</span>';
+                return;
+            }
+            
+            try {
+                // Split the token
+                const parts = token.split('.');
+                
+                if (parts.length !== 3) {
+                    throw new Error('Invalid JWT token format');
+                }
+                
+                // Decode the payload (second part)
+                const payload = JSON.parse(atob(parts[1]));
+                
+                // Format dates
+                if (payload.exp) {
+                    payload.exp_date = new Date(payload.exp * 1000).toLocaleString();
+                }
+                
+                if (payload.iat) {
+                    payload.iat_date = new Date(payload.iat * 1000).toLocaleString();
+                }
+                
+                decodedToken.style.display = 'block';
+                decodedToken.innerHTML = `<span class="success">Token decoded:</span><pre>${JSON.stringify(payload, null, 2)}</pre>`;
+            } catch (error) {
+                decodedToken.style.display = 'block';
+                decodedToken.innerHTML = `<span class="error">Error decoding token:</span><pre>${error.message}</pre>`;
+            }
+        }
+        
+        // Logout
+        function logout() {
+            // Clear tokens
+            accessToken = null;
+            refreshToken = null;
+            tokenExpiryTime = null;
+            currentUser = null;
+            
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('token_expiry');
+            
+            updateAuthStatus(false);
+            
+            // Clear results
+            loginResult.style.display = 'none';
+            registerResult.style.display = 'none';
+            apiResult.style.display = 'none';
+            refreshResult.style.display = 'none';
+            
+            // Switch to auth tab
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('.tab[data-tab="auth"]').classList.add('active');
+            document.getElementById('auth').classList.add('active');
+        }
+        
+        // Start token timer
+        function startTokenTimer() {
+            if (tokenRefreshInterval) {
+                clearInterval(tokenRefreshInterval);
+            }
+            
+            tokenRefreshInterval = setInterval(() => {
+                if (!tokenExpiryTime) return;
+                
+                const now = Date.now();
+                const timeLeft = tokenExpiryTime - now;
+                
+                if (timeLeft <= 0) {
+                    tokenTimer.textContent = 'Token expired. Refreshing...';
+                    refreshAccessToken();
+                } else {
+                    const minutes = Math.floor(timeLeft / 60000);
+                    const seconds = Math.floor((timeLeft % 60000) / 1000);
+                    tokenTimer.textContent = `Token expires in: ${minutes}m ${seconds}s`;
+                    
+                    // Auto refresh when less than 1 minute left
+                    if (timeLeft < 60000) {
+                        tokenTimer.style.color = '#e74c3c';
+                    } else {
+                        tokenTimer.style.color = '#7f8c8d';
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Helper function to truncate token for display
+        function truncateToken(token) {
+            if (!token) return '';
+            return token.substring(0, 10) + '...' + token.substring(token.length - 5);
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
