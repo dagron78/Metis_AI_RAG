@@ -175,59 +175,91 @@ Implement JWT authentication system for Metis RAG based on the plan in docs/Meti
 The existing user model is defined in app/models/user.py and the current authentication middleware is in app/middleware/auth.py.
 ```
 
-### Phase 2: Database Level Security
+### Phase 2: Database Level Security (COMPLETED)
 
 #### 2.1 Database Schema Updates
 
-- [ ] Update `documents` table
-  - Add `user_id` foreign key column
-  - Create index on `user_id`
-  - Add `is_public` boolean flag for public documents
+- [x] Update `documents` table
+  - ✅ User ID foreign key already exists
+  - ✅ Added `is_public` boolean flag for public documents
 
-- [ ] Update `conversations` table
-  - Add `user_id` foreign key column
-  - Create index on `user_id`
+- [x] Update `conversations` table
+  - ✅ User ID foreign key already exists
 
-- [ ] Create `document_permissions` table for document sharing
-  - Document ID reference
-  - User ID reference
-  - Permission level (read, write, admin)
-  - Created timestamp
+- [x] Create `document_permissions` table for document sharing
+  - ✅ Document ID reference with CASCADE delete
+  - ✅ User ID reference with CASCADE delete
+  - ✅ Permission level (read, write, admin)
+  - ✅ Created timestamp
+  - ✅ Unique constraint on document_id and user_id
 
 #### 2.2 Row Level Security Implementation
 
-- [ ] Enable RLS on document tables
+- [x] Enable RLS on document tables
   ```sql
   ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE document_sections ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE chunks ENABLE ROW LEVEL SECURITY;
   ```
 
-- [ ] Create ownership RLS policies
+- [x] Create ownership RLS policies
   ```sql
-  CREATE POLICY "Users can view their own documents" 
-  ON documents FOR SELECT 
-  USING (owner_id = auth.uid() OR is_public = true);
+  CREATE POLICY "Users can view their own documents"
+  ON documents FOR SELECT
+  USING (user_id = current_setting('app.current_user_id')::uuid OR is_public = true);
+  
+  CREATE POLICY "Users can update their own documents"
+  ON documents FOR UPDATE
+  USING (user_id = current_setting('app.current_user_id')::uuid);
+  
+  CREATE POLICY "Users can delete their own documents"
+  ON documents FOR DELETE
+  USING (user_id = current_setting('app.current_user_id')::uuid);
   ```
 
-- [ ] Create document sharing RLS policies
+- [x] Create document sharing RLS policies
   ```sql
-  CREATE POLICY "Users can view documents shared with them" 
-  ON documents FOR SELECT 
+  CREATE POLICY "Users can view documents shared with them"
+  ON documents FOR SELECT
   USING (id IN (
-    SELECT document_id FROM document_permissions WHERE user_id = auth.uid()
+    SELECT document_id FROM document_permissions WHERE user_id = current_setting('app.current_user_id')::uuid
+  ));
+  
+  CREATE POLICY "Users can update documents shared with write permission"
+  ON documents FOR UPDATE
+  USING (id IN (
+    SELECT document_id FROM document_permissions
+    WHERE user_id = current_setting('app.current_user_id')::uuid
+    AND permission_level IN ('write', 'admin')
   ));
   ```
 
-- [ ] Create policies for document sections
+- [x] Create policies for document sections (chunks)
   ```sql
-  CREATE POLICY "Users can view their own document sections" 
-  ON document_sections FOR SELECT 
+  CREATE POLICY "Users can view their own document sections"
+  ON chunks FOR SELECT
   USING (document_id IN (
-    SELECT id FROM documents WHERE owner_id = auth.uid() OR is_public = true
+    SELECT id FROM documents WHERE user_id = current_setting('app.current_user_id')::uuid OR is_public = true
+  ));
+  
+  CREATE POLICY "Users can view document sections shared with them"
+  ON chunks FOR SELECT
+  USING (document_id IN (
+    SELECT document_id FROM document_permissions WHERE user_id = current_setting('app.current_user_id')::uuid
   ));
   ```
 
-#### 2.3 Repository Layer Updates
+#### 2.3 Database Context Middleware
+
+- [x] Create database context middleware in `app/middleware/db_context.py`
+  - ✅ Extract user ID from JWT token
+  - ✅ Set database session parameter for RLS
+  - ✅ Handle authentication errors gracefully
+
+- [x] Register middleware in `app/main.py`
+  - ✅ Add middleware after authentication middleware
+  - ✅ Ensure proper ordering for security
+
+#### 2.4 Repository Layer Updates
 
 - [ ] Update document repository in `app/db/repositories/document_repository.py`
   - Modify CRUD operations to include user context
@@ -446,14 +478,15 @@ This is the final phase of the authentication implementation plan.
 - [x] Update authentication middleware
 - [x] Apply middleware to FastAPI app
 
-### Phase 2: Database Level Security
-- [ ] Update `documents` table with `user_id` column
-- [ ] Update `conversations` table with `user_id` column
-- [ ] Create `document_permissions` table
-- [ ] Enable RLS on document tables
-- [ ] Create ownership RLS policies
-- [ ] Create document sharing RLS policies
-- [ ] Create policies for document sections
+### Phase 2: Database Level Security (PARTIALLY COMPLETED)
+- [x] Update `documents` table with `is_public` column (user_id already existed)
+- [x] Update `conversations` table with `user_id` column (already existed)
+- [x] Create `document_permissions` table
+- [x] Enable RLS on document tables
+- [x] Create ownership RLS policies
+- [x] Create document sharing RLS policies
+- [x] Create policies for document sections (chunks)
+- [x] Create database context middleware
 - [ ] Update document repository
 - [ ] Update conversation repository
 
@@ -548,6 +581,25 @@ Phase 1 of the authentication system has been successfully implemented and teste
 
 6. **Testing**: Created and validated the authentication flow with `run_authentication_test.py` and an interactive demo in `docs/authentication_demo.html`.
 
+### Phase 2 Partial Completion (March 2025)
+
+Phase 2 of the database-level security has been partially implemented. The implementation includes:
+
+1. **Database Schema Updates**:
+   - Added `is_public` boolean flag to the `documents` table
+   - Created `document_permissions` table with proper foreign key constraints and indexes
+
+2. **Row Level Security Implementation**:
+   - Enabled Row Level Security on `documents` and `chunks` tables
+   - Created RLS policies for document ownership
+   - Created RLS policies for document sharing
+   - Created RLS policies for document sections (chunks)
+
+3. **Database Context Middleware**:
+   - Created `app/middleware/db_context.py` to set database context for RLS
+   - Implemented JWT token extraction for user identification
+   - Added middleware to the FastAPI application
+
 ### Implementation Notes
 
 During implementation, we encountered and resolved the following issues:
@@ -558,13 +610,18 @@ During implementation, we encountered and resolved the following issues:
 
 3. **Token Claims**: Added standard JWT claims (iss, aud, jti) for better security and compliance.
 
+4. **Migration Issues**: Encountered issues with Alembic migrations due to multiple head revisions. Resolved by creating a merge migration and modifying the migration script to check if tables already exist before creating them.
+
+5. **Database Context**: Implemented a database context middleware that sets the `app.current_user_id` parameter in the database session, which is used by the RLS policies to filter rows based on the current user.
+
 ## Next Steps
 
 1. ✅ Complete Phase 1 (JWT Authentication)
-2. Proceed with Phase 2 (Database Level Security)
-   - Update database schema with user_id foreign keys
-   - Implement Row Level Security policies
-   - Update repositories to include user context
+2. ✅ Partially Complete Phase 2 (Database Level Security)
+   - ✅ Update database schema (added is_public flag, document_permissions table)
+   - ✅ Implement Row Level Security policies
+   - ✅ Create database context middleware
+   - Complete repository layer updates to include user context
 3. Continue with Phase 3 (Vector Database Security)
 4. Implement Phase 4 (Advanced Permission Models)
 5. Complete Phase 5 (Testing and Security Hardening)

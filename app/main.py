@@ -49,6 +49,10 @@ setup_security(app)
 # Add authentication middleware
 app.add_middleware(AuthMiddleware)
 
+# Add database context middleware for Row Level Security
+from app.middleware.db_context import DBContextMiddleware
+app.add_middleware(DBContextMiddleware)
+
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

@@ -34,6 +34,7 @@ class Document(Base):
     file_type = Column(String, nullable=True)
     last_accessed = Column(DateTime, default=datetime.utcnow)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    is_public = Column(Boolean, default=False)  # Whether the document is publicly accessible
 
     # Relationships
     chunks = relationship("Chunk", back_populates="document", cascade="all, delete-orphan")
@@ -41,16 +42,43 @@ class Document(Base):
     folder_rel = relationship("Folder", back_populates="documents")
     citations = relationship("Citation", back_populates="document")
     user = relationship("User", back_populates="documents")
+    shared_with = relationship("DocumentPermission", back_populates="document", cascade="all, delete-orphan")
 
     # Indexes
     __table_args__ = (
         Index('ix_documents_filename', filename),
         Index('ix_documents_folder', folder),
         Index('ix_documents_processing_status', processing_status),
+        Index('ix_documents_is_public', is_public),
     )
 
     def __repr__(self):
         return f"<Document(id={self.id}, filename='{self.filename}')>"
+
+
+class DocumentPermission(Base):
+    """Document permission model for database"""
+    __tablename__ = "document_permissions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey('documents.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    permission_level = Column(String, nullable=False)  # 'read', 'write', 'admin'
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    document = relationship("Document", back_populates="shared_with")
+    user = relationship("User", back_populates="document_permissions")
+
+    # Indexes and constraints
+    __table_args__ = (
+        Index('ix_document_permissions_document_id', document_id),
+        Index('ix_document_permissions_user_id', user_id),
+        UniqueConstraint('document_id', 'user_id', name='uq_document_permissions_document_user'),
+    )
+
+    def __repr__(self):
+        return f"<DocumentPermission(document_id={self.document_id}, user_id={self.user_id}, level='{self.permission_level}')>"
 
 
 class Chunk(Base):
@@ -268,11 +296,13 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
-    user_metadata = Column(JSONB, default={})  # Using user_metadata to match other models' naming pattern
+    user_metadata = Column('metadata', JSONB, default={})  # Map user_metadata attribute to 'metadata' column
 
     # Relationships
     documents = relationship("Document", back_populates="user")
     conversations = relationship("Conversation", back_populates="user")
+    password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
+    document_permissions = relationship("DocumentPermission", back_populates="user", cascade="all, delete-orphan")
 
     # Indexes
     __table_args__ = (
@@ -282,6 +312,31 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"
+
+
+class PasswordResetToken(Base):
+    """Password reset token model for database"""
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
+    token = Column(String, nullable=False, unique=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
+
+    # Relationships
+    user = relationship("User", back_populates="password_reset_tokens")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_password_reset_tokens_token', token),
+        Index('ix_password_reset_tokens_user_id', user_id),
+        Index('ix_password_reset_tokens_expires_at', expires_at),
+    )
+
+    def __repr__(self):
+        return f"<PasswordResetToken(id={self.id}, user_id={self.user_id}, is_used={self.is_used})>"
 
 
 class BackgroundTask(Base):
