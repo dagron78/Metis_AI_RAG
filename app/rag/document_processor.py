@@ -1,6 +1,8 @@
 import os
 import logging
+import json
 from typing import List, Dict, Any, Optional, Literal
+from uuid import UUID
 from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
     MarkdownHeaderTextSplitter,
@@ -27,7 +29,8 @@ class DocumentProcessor:
         chunk_size: int = CHUNK_SIZE,
         chunk_overlap: int = CHUNK_OVERLAP,
         chunking_strategy: str = "recursive",
-        llm_provider = None
+        llm_provider = None,
+        user_id: Optional[UUID] = None
     ):
         self.upload_dir = upload_dir
         self.chunk_size = chunk_size
@@ -42,6 +45,7 @@ class DocumentProcessor:
         self.llm_provider = llm_provider
         self.document_analysis_service = DocumentAnalysisService(llm_provider=self.llm_provider)
         self.text_splitter = self._get_text_splitter()
+        self.user_id = user_id  # Store the user ID for permission metadata
     
     def _get_text_splitter(self, file_ext=None):
         """Get the appropriate text splitter based on chunking strategy and file type"""
@@ -226,6 +230,29 @@ class DocumentProcessor:
                         "folder": pydantic_document.folder
                     })
                     
+                    # Add user context and permission information
+                    if hasattr(document, 'user_id') and document.user_id:
+                        metadata["user_id"] = str(document.user_id)
+                    elif self.user_id:
+                        metadata["user_id"] = str(self.user_id)
+                    
+                    # Add is_public flag for permission filtering
+                    if hasattr(document, 'is_public'):
+                        metadata["is_public"] = document.is_public
+                    
+                    # Add document permissions information
+                    if hasattr(document, 'shared_with') and document.shared_with:
+                        # Store shared user IDs and their permission levels
+                        shared_users = {}
+                        for permission in document.shared_with:
+                            shared_users[str(permission.user_id)] = permission.permission_level
+                        
+                        # Store as JSON string for ChromaDB compatibility
+                        metadata["shared_with"] = json.dumps(shared_users)
+                        
+                        # Also store a list of user IDs with access for easier filtering
+                        metadata["shared_user_ids"] = ",".join(shared_users.keys())
+                    
                     # Handle tags specially - store as string for ChromaDB compatibility
                     if hasattr(pydantic_document, 'tags') and pydantic_document.tags:
                         metadata["tags_list"] = pydantic_document.tags  # Keep original list for internal use
@@ -308,6 +335,7 @@ class DocumentProcessor:
     def _split_document(self, docs: List[LangchainDocument]) -> List[LangchainDocument]:
         """
         Split a document into chunks with a limit on total chunks
+        Ensures security metadata is preserved during chunking
         """
         try:
             # Split the document using the configured text splitter
@@ -316,14 +344,52 @@ class DocumentProcessor:
             # Log the original number of chunks
             logger.info(f"Document initially split into {len(chunks)} chunks")
             
+            # Preserve security metadata across all chunks
+            # This ensures that all chunks inherit the security properties of the parent document
+            for chunk in chunks:
+                # Make sure each chunk has the security metadata from the original document
+                for doc in docs:
+                    # Copy security-related metadata from the original document
+                    if 'user_id' in doc.metadata:
+                        chunk.metadata['user_id'] = doc.metadata['user_id']
+                    
+                    if 'is_public' in doc.metadata:
+                        chunk.metadata['is_public'] = doc.metadata['is_public']
+                    
+                    # Handle shared permissions
+                    if 'shared_with' in doc.metadata:
+                        chunk.metadata['shared_with'] = doc.metadata['shared_with']
+                    
+                    if 'shared_user_ids' in doc.metadata:
+                        chunk.metadata['shared_user_ids'] = doc.metadata['shared_user_ids']
+                    
+                    # Handle section-specific permissions if they exist
+                    # This allows for different permissions within the same document
+                    if 'section_permissions' in doc.metadata:
+                        # Check if this chunk belongs to a section with specific permissions
+                        section_permissions = doc.metadata['section_permissions']
+                        
+                        # Determine which section this chunk belongs to based on content
+                        # This is a simplified approach - in a real implementation, you might
+                        # use more sophisticated methods to match chunks to sections
+                        for section, permissions in section_permissions.items():
+                            if section in chunk.page_content:
+                                # Override the document-level permissions with section-specific ones
+                                if 'is_public' in permissions:
+                                    chunk.metadata['is_public'] = permissions['is_public']
+                                
+                                if 'shared_with' in permissions:
+                                    chunk.metadata['shared_with'] = permissions['shared_with']
+                                
+                                # Log that we're applying section-specific permissions
+                                logger.info(f"Applied section-specific permissions for section '{section}'")
+                                break
+            
             # Limit the maximum number of chunks per document to prevent excessive chunking
             MAX_CHUNKS = 30  # Reduced from 50 to 30 to prevent excessive chunking
             
             if len(chunks) > MAX_CHUNKS:
                 logger.warning(f"Document produced {len(chunks)} chunks, limiting to {MAX_CHUNKS}")
-                
-                # Option 1: Simply truncate to the first MAX_CHUNKS
-                # return chunks[:MAX_CHUNKS]
                 
                 # Option 2: Take evenly distributed chunks to maintain coverage of the document
                 step = len(chunks) // MAX_CHUNKS
@@ -351,6 +417,10 @@ class DocumentProcessor:
                 "created_at": file_stats.st_ctime,
                 "modified_at": file_stats.st_mtime
             }
+            
+            # Add user context if available
+            if self.user_id:
+                metadata["user_id"] = str(self.user_id)
             
             # Add file type-specific metadata extraction here
             if ext == ".pdf":

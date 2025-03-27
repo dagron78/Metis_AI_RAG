@@ -3,6 +3,7 @@ import os
 import json
 import time
 from typing import List, Dict, Any, Optional, Tuple
+from uuid import UUID
 import chromadb
 from chromadb.config import Settings
 
@@ -16,6 +17,7 @@ logger = logging.getLogger("app.rag.vector_store")
 class VectorStore:
     """
     Vector store for document embeddings using ChromaDB with caching for performance
+    and security filtering based on user permissions
     """
     def __init__(
         self,
@@ -25,11 +27,13 @@ class VectorStore:
         cache_ttl: int = 3600,  # 1 hour in seconds
         cache_max_size: int = 1000,
         cache_persist: bool = True,
-        cache_persist_dir: str = "data/cache"
+        cache_persist_dir: str = "data/cache",
+        user_id: Optional[UUID] = None
     ):
         self.persist_directory = persist_directory
         self.embedding_model = embedding_model
         self.ollama_client = None
+        self.user_id = user_id  # Store the user ID for permission filtering
         
         # Cache settings
         self.enable_cache = enable_cache
@@ -109,6 +113,23 @@ class VectorStore:
                     "folder": document.folder
                 }
                 
+                # Add user context and permission information
+                if hasattr(document, 'user_id') and document.user_id:
+                    metadata["user_id"] = str(document.user_id)
+                elif self.user_id:
+                    metadata["user_id"] = str(self.user_id)
+                
+                # Add is_public flag for permission filtering
+                if hasattr(document, 'is_public'):
+                    metadata["is_public"] = document.is_public
+                
+                # Add document permissions information from chunk metadata
+                if "shared_with" in chunk.metadata:
+                    metadata["shared_with"] = chunk.metadata["shared_with"]
+                
+                if "shared_user_ids" in chunk.metadata:
+                    metadata["shared_user_ids"] = chunk.metadata["shared_user_ids"]
+                
                 # Add any additional metadata from the chunk
                 for key, value in chunk.metadata.items():
                     # Convert lists to strings if present
@@ -187,15 +208,28 @@ class VectorStore:
         self,
         query: str,
         top_k: int = 5,
-        filter_criteria: Optional[Dict[str, Any]] = None
+        filter_criteria: Optional[Dict[str, Any]] = None,
+        user_id: Optional[UUID] = None
     ) -> List[Dict[str, Any]]:
         """
         Search for documents similar to the query with caching for performance
+        and security filtering based on user permissions
         """
         try:
+            # Use provided user_id or fall back to the instance's user_id
+            effective_user_id = user_id or self.user_id
+            
+            # Apply security filtering
+            secure_filter = self._apply_security_filter(filter_criteria, effective_user_id)
+            
             # Check cache if enabled
             if self.enable_cache:
-                cached_result = self.vector_cache.get_results(query, top_k, filter_criteria)
+                # Include user_id in cache key to ensure proper isolation
+                cache_key_parts = [query, top_k, secure_filter]
+                if effective_user_id:
+                    cache_key_parts.append(str(effective_user_id))
+                
+                cached_result = self.vector_cache.get_results(query, top_k, secure_filter)
                 
                 if cached_result:
                     logger.info(f"Cache hit for query: {query[:50]}...")
@@ -219,14 +253,14 @@ class VectorStore:
             logger.debug(f"Query embedding (first 5 values): {query_embedding[:5]}")
             
             # Log filter criteria if present
-            if filter_criteria:
-                logger.info(f"Applying filter criteria: {filter_criteria}")
+            if secure_filter:
+                logger.info(f"Applying security filter criteria: {secure_filter}")
             
             # Search for similar documents
             results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=top_k,
-                where=filter_criteria
+                where=secure_filter
             )
             
             # Format results
@@ -257,6 +291,10 @@ class VectorStore:
                         })
                     else:
                         logger.warning(f"Skipping result with chunk_id {chunk_id} due to None content")
+                
+                # Apply post-retrieval permission check
+                if effective_user_id:
+                    formatted_results = self._post_retrieval_permission_check(formatted_results, effective_user_id)
             else:
                 logger.warning(f"No results found for query: {query[:50]}...")
             
@@ -269,21 +307,70 @@ class VectorStore:
             
             # Cache results if enabled
             if self.enable_cache:
-                self.vector_cache.set_results(query, top_k, formatted_results, filter_criteria)
+                self.vector_cache.set_results(query, top_k, formatted_results, secure_filter)
             
             return formatted_results
         except Exception as e:
             logger.error(f"Error searching for documents: {str(e)}")
             raise
     
-    # Cache-related methods have been replaced by the VectorSearchCache class
+    def _apply_security_filter(self, filter_criteria: Optional[Dict[str, Any]], user_id: Optional[UUID]) -> Dict[str, Any]:
+        """
+        Apply security filtering based on user permissions
+        
+        Args:
+            filter_criteria: Original filter criteria
+            user_id: User ID for permission filtering
+            
+        Returns:
+            Updated filter criteria with security constraints
+        """
+        # Start with the original filter criteria or an empty dict
+        secure_filter = filter_criteria.copy() if filter_criteria else {}
+        
+        # If no user_id, only allow public documents
+        if not user_id:
+            secure_filter["is_public"] = True
+            return secure_filter
+        
+        # For authenticated users, allow:
+        # 1. Documents owned by the user
+        # 2. Public documents
+        # 3. Documents explicitly shared with the user
+        
+        # Convert user_id to string for comparison
+        user_id_str = str(user_id)
+        
+        # Create a filter that matches any of:
+        # - Documents owned by the user
+        # - Public documents
+        # - Documents shared with the user
+        permission_filter = {
+            "$or": [
+                {"user_id": user_id_str},                    # Documents owned by the user
+                {"is_public": True},                         # Public documents
+                {"shared_user_ids": {"$contains": user_id_str}}  # Documents shared with the user
+            ]
+        }
+        
+        # Log the permission filter for debugging
+        logger.debug(f"Applied permission filter for user {user_id_str}: {permission_filter}")
+        
+        # If there are existing filters, combine them with the permission filter
+        if secure_filter:
+            # Combine existing filters with permission filter using $and
+            return {"$and": [secure_filter, permission_filter]}
+        else:
+            # Just use the permission filter
+            return permission_filter
     
     async def search_by_tags(
         self,
         query: str,
         tags: List[str],
         top_k: int = 5,
-        additional_filters: Optional[Dict[str, Any]] = None
+        additional_filters: Optional[Dict[str, Any]] = None,
+        user_id: Optional[UUID] = None
     ) -> List[Dict[str, Any]]:
         """
         Search for documents with specific tags
@@ -313,7 +400,7 @@ class VectorStore:
                     filter_criteria["tags"] = {"$and": [existing_filter, {"$or": tag_conditions}]}
             
             # Perform search with filters
-            return await self.search(query, top_k, filter_criteria)
+            return await self.search(query, top_k, filter_criteria, user_id)
         except Exception as e:
             logger.error(f"Error searching for documents by tags: {str(e)}")
             raise
@@ -323,7 +410,8 @@ class VectorStore:
         query: str,
         folder: str,
         top_k: int = 5,
-        additional_filters: Optional[Dict[str, Any]] = None
+        additional_filters: Optional[Dict[str, Any]] = None,
+        user_id: Optional[UUID] = None
     ) -> List[Dict[str, Any]]:
         """
         Search for documents in a specific folder
@@ -339,7 +427,7 @@ class VectorStore:
                 filter_criteria["folder"] = folder
             
             # Perform search with filters
-            return await self.search(query, top_k, filter_criteria)
+            return await self.search(query, top_k, filter_criteria, user_id)
         except Exception as e:
             logger.error(f"Error searching for documents by folder: {str(e)}")
             raise
@@ -394,6 +482,75 @@ class VectorStore:
         if self.enable_cache:
             self.vector_cache.clear()
             logger.info("Vector store cache cleared")
+    
+    def _post_retrieval_permission_check(self, results: List[Dict[str, Any]], user_id: UUID) -> List[Dict[str, Any]]:
+        """
+        Perform a secondary permission check on search results
+        
+        This provides an additional security layer beyond the initial query filtering.
+        It verifies that each result is accessible to the user based on:
+        1. Document ownership
+        2. Public access
+        3. Explicit sharing permissions
+        
+        Args:
+            results: List of search results
+            user_id: User ID for permission checking
+            
+        Returns:
+            Filtered list of results that the user has permission to access
+        """
+        if not results:
+            return results
+            
+        user_id_str = str(user_id)
+        filtered_results = []
+        unauthorized_access_attempts = 0
+        
+        for result in results:
+            metadata = result.get("metadata", {})
+            document_id = metadata.get("document_id")
+            
+            # Check permissions
+            has_permission = False
+            
+            # Case 1: User owns the document
+            if metadata.get("user_id") == user_id_str:
+                has_permission = True
+                
+            # Case 2: Document is public
+            elif metadata.get("is_public") is True:
+                has_permission = True
+                
+            # Case 3: Document is shared with the user
+            elif "shared_with" in metadata:
+                try:
+                    # Parse the shared_with JSON string
+                    shared_with = json.loads(metadata["shared_with"])
+                    if user_id_str in shared_with:
+                        has_permission = True
+                except (json.JSONDecodeError, TypeError):
+                    logger.warning(f"Invalid shared_with format in document {document_id}")
+            
+            # Alternative check using shared_user_ids
+            elif "shared_user_ids" in metadata:
+                shared_user_ids = metadata["shared_user_ids"].split(",")
+                if user_id_str in shared_user_ids:
+                    has_permission = True
+            
+            if has_permission:
+                filtered_results.append(result)
+            else:
+                unauthorized_access_attempts += 1
+                logger.warning(f"Blocked unauthorized access attempt to document {document_id} by user {user_id_str}")
+        
+        # Log summary of permission filtering
+        if unauthorized_access_attempts > 0:
+            logger.warning(f"Filtered out {unauthorized_access_attempts} results due to permission restrictions")
+            
+        logger.info(f"Post-retrieval permission check: {len(filtered_results)}/{len(results)} results passed")
+        
+        return filtered_results
     
     def get_cache_stats(self) -> Dict[str, Any]:
         """
