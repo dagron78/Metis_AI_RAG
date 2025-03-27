@@ -261,14 +261,14 @@ The existing user model is defined in app/models/user.py and the current authent
 
 #### 2.4 Repository Layer Updates
 
-- [ ] Update document repository in `app/db/repositories/document_repository.py`
-  - Modify CRUD operations to include user context
-  - Implement document sharing functionality
-  - Add permission checking methods
+- [x] Update document repository in `app/db/repositories/document_repository.py`
+  - ✅ Modify CRUD operations to include user context
+  - ✅ Implement document sharing functionality
+  - ✅ Add permission checking methods
 
-- [ ] Update conversation repository in `app/db/repositories/conversation_repository.py`
-  - Associate conversations with users
-  - Filter conversations by user ID
+- [x] Update conversation repository in `app/db/repositories/conversation_repository.py`
+  - ✅ Associate conversations with users
+  - ✅ Filter conversations by user ID
 
 #### Completion Prompt for Phase 2:
 
@@ -283,43 +283,43 @@ Implement database-level security for Metis RAG based on the plan in docs/Metis_
 The existing database models are defined in app/db/models.py and the repositories are in app/db/repositories/.
 ```
 
-### Phase 3: Vector Database Security
+### Phase 3: Vector Database Security (PARTIALLY COMPLETED)
 
 #### 3.1 Vector Storage with User Context
 
-- [ ] Update document processing pipeline
-  - Include `user_id` in document metadata during embedding
-  - Add permission flags to vector metadata
-  - Store document categorization information
+- [x] Update document processing pipeline
+  - ✅ Include `user_id` in document metadata during embedding
+  - ✅ Add permission flags to vector metadata
+  - ✅ Store document categorization information
 
-- [ ] Modify vector database schema
-  - Add user ID field to vector metadata
-  - Add permission level field to metadata
-  - Include document categorization in metadata
+- [x] Modify vector database schema
+  - ✅ Add user ID field to vector metadata
+  - ✅ Add permission level field to metadata
+  - ✅ Include document categorization in metadata
 
 #### 3.2 Secure Vector Search Implementation
 
-- [ ] Implement metadata filtering in vector search
-  - Filter by user ID during vector search
-  - Include shared documents in search results
-  - Consider permission levels in search results
+- [x] Implement metadata filtering in vector search
+  - ✅ Filter by user ID during vector search
+  - ✅ Include shared documents in search results
+  - ✅ Consider permission levels in search results
 
-- [ ] Create post-retrieval filtering function
-  - Verify document permissions after similarity search
-  - Check for document access rights
-  - Log unauthorized access attempts
+- [x] Create post-retrieval filtering function
+  - ✅ Verify document permissions after similarity search
+  - ✅ Check for document access rights
+  - ✅ Log unauthorized access attempts
 
 #### 3.3 RAG Pipeline Integration
 
-- [ ] Update RAG query processor
-  - Include user context in query processing
-  - Apply security filters to retrieved documents
-  - Handle security-related errors gracefully
+- [x] Update RAG query processor
+  - ✅ Include user context in query processing
+  - ✅ Apply security filters to retrieved documents
+  - ✅ Handle security-related errors gracefully
 
 - [ ] Implement secure document chunking
-  - Preserve security metadata during chunking
-  - Ensure chunk-level permissions match document permissions
-  - Handle permission transitions within documents
+  - [ ] Preserve security metadata during chunking
+  - [ ] Ensure chunk-level permissions match document permissions
+  - [ ] Handle permission transitions within documents
 
 #### Completion Prompt for Phase 3:
 
@@ -478,7 +478,7 @@ This is the final phase of the authentication implementation plan.
 - [x] Update authentication middleware
 - [x] Apply middleware to FastAPI app
 
-### Phase 2: Database Level Security (PARTIALLY COMPLETED)
+### Phase 2: Database Level Security (COMPLETED)
 - [x] Update `documents` table with `is_public` column (user_id already existed)
 - [x] Update `conversations` table with `user_id` column (already existed)
 - [x] Create `document_permissions` table
@@ -487,15 +487,15 @@ This is the final phase of the authentication implementation plan.
 - [x] Create document sharing RLS policies
 - [x] Create policies for document sections (chunks)
 - [x] Create database context middleware
-- [ ] Update document repository
-- [ ] Update conversation repository
+- [x] Update document repository
+- [x] Update conversation repository
 
-### Phase 3: Vector Database Security
-- [ ] Update document processing pipeline with user context
-- [ ] Modify vector database schema
-- [ ] Implement metadata filtering in vector search
-- [ ] Create post-retrieval filtering function
-- [ ] Update RAG query processor
+### Phase 3: Vector Database Security (PARTIALLY COMPLETED)
+- [x] Update document processing pipeline with user context
+- [x] Modify vector database schema
+- [x] Implement metadata filtering in vector search
+- [x] Create post-retrieval filtering function
+- [x] Update RAG query processor
 - [ ] Implement secure document chunking
 
 ### Phase 4: Advanced Permission Models
@@ -581,9 +581,9 @@ Phase 1 of the authentication system has been successfully implemented and teste
 
 6. **Testing**: Created and validated the authentication flow with `run_authentication_test.py` and an interactive demo in `docs/authentication_demo.html`.
 
-### Phase 2 Partial Completion (March 2025)
+### Phase 2 Completion (March 2025)
 
-Phase 2 of the database-level security has been partially implemented. The implementation includes:
+Phase 2 of the database-level security has been fully implemented. The implementation includes:
 
 1. **Database Schema Updates**:
    - Added `is_public` boolean flag to the `documents` table
@@ -600,6 +600,36 @@ Phase 2 of the database-level security has been partially implemented. The imple
    - Implemented JWT token extraction for user identification
    - Added middleware to the FastAPI application
 
+4. **Repository Layer Updates**:
+   - Updated document repository to include user context and permission checking
+   - Implemented document sharing functionality in the repository
+   - Added permission checking methods for various operations
+   - Updated conversation repository to properly use the user_id field
+
+### Phase 3 Partial Completion (March 2025)
+
+Phase 3 of the vector database security has been partially implemented. The implementation includes:
+
+1. **Vector Storage with User Context**:
+   - Updated document processing pipeline to include user_id in document metadata
+   - Added permission flags to vector metadata
+   - Modified vector database schema to store permission information
+
+2. **Secure Vector Search Implementation**:
+   - Implemented metadata filtering in vector search based on user permissions
+   - Created post-retrieval filtering function to verify document access rights
+   - Added logging for unauthorized access attempts
+
+3. **RAG Pipeline Integration**:
+   - Refactored RAGEngine into multiple files for better maintainability:
+     - rag_engine_base.py: Base class with core functionality
+     - rag_retrieval.py: Retrieval-related functionality
+     - rag_generation.py: Response generation functionality
+     - rag_engine.py: Main class that combines all components
+     - system_prompts.py: Separate file for system prompts
+   - Updated RAG query processor to include user context and respect document permissions
+   - Modified retrieve method to include user_id for permission filtering
+
 ### Implementation Notes
 
 During implementation, we encountered and resolved the following issues:
@@ -614,15 +644,22 @@ During implementation, we encountered and resolved the following issues:
 
 5. **Database Context**: Implemented a database context middleware that sets the `app.current_user_id` parameter in the database session, which is used by the RLS policies to filter rows based on the current user.
 
+6. **RAGEngine Refactoring**: Refactored the RAGEngine into multiple files to improve maintainability and make it easier to add security features. This approach allowed us to add user context and permission filtering without making the code too complex.
+
 ## Next Steps
 
 1. ✅ Complete Phase 1 (JWT Authentication)
-2. ✅ Partially Complete Phase 2 (Database Level Security)
+2. ✅ Complete Phase 2 (Database Level Security)
    - ✅ Update database schema (added is_public flag, document_permissions table)
    - ✅ Implement Row Level Security policies
    - ✅ Create database context middleware
-   - Complete repository layer updates to include user context
-3. Continue with Phase 3 (Vector Database Security)
+   - ✅ Update repository layer to include user context
+3. ✅ Partially Complete Phase 3 (Vector Database Security)
+   - ✅ Update document processing pipeline with user context
+   - ✅ Modify vector database schema
+   - ✅ Implement metadata filtering in vector search
+   - ✅ Update RAG query processor
+   - Complete secure document chunking
 4. Implement Phase 4 (Advanced Permission Models)
 5. Complete Phase 5 (Testing and Security Hardening)
 6. Conduct comprehensive security review
