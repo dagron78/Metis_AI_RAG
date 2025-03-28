@@ -76,15 +76,15 @@ async def query_chat(
                 
                 if not conversation:
                     # Create new conversation if not found
-                    conversation = await conversation_repository.create_conversation(user_id=user_id)
+                    conversation = await conversation_repository.create_conversation()
                     conversation_id = str(conversation.id)
             except ValueError:
                 # Invalid UUID format, create new conversation
-                conversation = await conversation_repository.create_conversation(user_id=user_id)
+                conversation = await conversation_repository.create_conversation()
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
-            conversation = await conversation_repository.create_conversation(user_id=user_id)
+            conversation = await conversation_repository.create_conversation()
             conversation_id = str(conversation.id)
         
         # Add user message to conversation
@@ -388,15 +388,15 @@ async def langgraph_query_chat(
                 
                 if not conversation:
                     # Create new conversation if not found
-                    conversation = await conversation_repository.create_conversation(user_id=user_id)
+                    conversation = await conversation_repository.create_conversation()
                     conversation_id = str(conversation.id)
             except ValueError:
                 # Invalid UUID format, create new conversation
-                conversation = await conversation_repository.create_conversation(user_id=user_id)
+                conversation = await conversation_repository.create_conversation()
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
-            conversation = await conversation_repository.create_conversation(user_id=user_id)
+            conversation = await conversation_repository.create_conversation()
             conversation_id = str(conversation.id)
         
         # Add user message to conversation
@@ -587,15 +587,15 @@ async def enhanced_langgraph_query_chat(
                 
                 if not conversation:
                     # Create new conversation if not found
-                    conversation = await conversation_repository.create_conversation(user_id=user_id)
+                    conversation = await conversation_repository.create_conversation()
                     conversation_id = str(conversation.id)
             except ValueError:
                 # Invalid UUID format, create new conversation
-                conversation = await conversation_repository.create_conversation(user_id=user_id)
+                conversation = await conversation_repository.create_conversation()
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
-            conversation = await conversation_repository.create_conversation(user_id=user_id)
+            conversation = await conversation_repository.create_conversation()
             conversation_id = str(conversation.id)
         
         # Add user message to conversation

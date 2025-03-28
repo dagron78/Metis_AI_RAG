@@ -150,7 +150,7 @@ async def list_documents(
     try:
         # Use raw SQL query with text function
         sql_query = """
-        SELECT id, filename, content, metadata AS doc_metadata, folder, uploaded, processing_status,
+        SELECT id, filename, content, doc_metadata, folder, uploaded, processing_status,
                processing_strategy, file_size, file_type, last_accessed
         FROM documents
         """
@@ -209,7 +209,7 @@ async def filter_documents(
     try:
         # Use raw SQL query with text function
         sql_query = """
-        SELECT id, filename, content, metadata AS doc_metadata, folder, uploaded, processing_status,
+        SELECT id, filename, content, doc_metadata, folder, uploaded, processing_status,
                processing_strategy, file_size, file_type, last_accessed
         FROM documents
         """
@@ -495,7 +495,7 @@ async def process_document_background(
                 # Get document using raw SQL
                 from sqlalchemy import text
                 query = text("""
-                    SELECT id, filename, content, metadata, folder, uploaded, processing_status
+                    SELECT id, filename, content, doc_metadata, folder, uploaded, processing_status
                     FROM documents WHERE id = :id
                 """)
                 result = await db.execute(query, {"id": document_id})
@@ -527,7 +527,7 @@ async def process_document_background(
                     id=str(doc_row.id),
                     filename=doc_row.filename,
                     content=doc_row.content or "",
-                    metadata=doc_row.metadata or {},
+                    metadata=doc_row.doc_metadata or {},
                     folder=doc_row.folder,
                     uploaded=doc_row.uploaded
                 )
