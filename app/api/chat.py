@@ -62,7 +62,6 @@ async def query_chat(
     try:
         # Get or create conversation
         conversation_id = query.conversation_id
-        user_id = current_user.id  # Use the authenticated user's ID
         
         if conversation_id:
             # Try to get existing conversation
@@ -70,12 +69,11 @@ async def query_chat(
                 conversation_uuid = UUID(conversation_id)
                 conversation = await conversation_repository.get_by_id(conversation_uuid)
                 
-                # Check if conversation belongs to the current user
-                if conversation and conversation.conv_metadata.get("user_id") != user_id:
-                    raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
-                
+                # The repository will handle permission checks based on user_id
+                # If the conversation doesn't belong to the user, it will return None
                 if not conversation:
-                    # Create new conversation if not found
+                    # Create new conversation if not found or not authorized
+                    # The repository will use its user_id context
                     conversation = await conversation_repository.create_conversation()
                     conversation_id = str(conversation.id)
             except ValueError:
@@ -84,6 +82,7 @@ async def query_chat(
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
+            # The repository will use its user_id context
             conversation = await conversation_repository.create_conversation()
             conversation_id = str(conversation.id)
         
@@ -266,13 +265,13 @@ async def get_history(
     """
     Get conversation history with pagination
     """
+    # The repository will handle permission checks based on user_id
     conversation = await conversation_repository.get_by_id(conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
     
-    # Check if conversation belongs to the current user
-    if conversation.conv_metadata.get("user_id") != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
+    # Note: The repository's get_by_id method already checks permissions
+    # If the conversation doesn't belong to the user, it will return None
     
     # Get messages with pagination
     messages = await conversation_repository.get_conversation_messages(
@@ -309,13 +308,13 @@ async def save_conversation(
     """
     Save a conversation (mark as saved in metadata)
     """
+    # The repository will handle permission checks based on user_id
     conversation = await conversation_repository.get_by_id(conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
     
-    # Check if conversation belongs to the current user
-    if conversation.conv_metadata.get("user_id") != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to save this conversation")
+    # Note: The repository's get_by_id method already checks permissions
+    # If the conversation doesn't belong to the user, it will return None
     
     # Update metadata to mark as saved
     metadata = conversation.conv_metadata or {}
@@ -341,13 +340,13 @@ async def clear_conversation(
     Clear a conversation or all conversations for the current user
     """
     if conversation_id:
+        # The repository will handle permission checks based on user_id
         conversation = await conversation_repository.get_by_id(conversation_id)
         if not conversation:
             raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
         
-        # Check if conversation belongs to the current user
-        if conversation.conv_metadata.get("user_id") != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized to delete this conversation")
+        # Note: The repository's get_by_id method already checks permissions
+        # If the conversation doesn't belong to the user, it will return None
         
         # Delete specific conversation
         await conversation_repository.delete(conversation_id)
@@ -374,7 +373,6 @@ async def langgraph_query_chat(
     try:
         # Get or create conversation
         conversation_id = query.conversation_id
-        user_id = current_user.id  # Use the authenticated user's ID
         
         if conversation_id:
             # Try to get existing conversation
@@ -382,12 +380,11 @@ async def langgraph_query_chat(
                 conversation_uuid = UUID(conversation_id)
                 conversation = await conversation_repository.get_by_id(conversation_uuid)
                 
-                # Check if conversation belongs to the current user
-                if conversation and conversation.conv_metadata.get("user_id") != user_id:
-                    raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
-                
+                # The repository will handle permission checks based on user_id
+                # If the conversation doesn't belong to the user, it will return None
                 if not conversation:
-                    # Create new conversation if not found
+                    # Create new conversation if not found or not authorized
+                    # The repository will use its user_id context
                     conversation = await conversation_repository.create_conversation()
                     conversation_id = str(conversation.id)
             except ValueError:
@@ -396,6 +393,7 @@ async def langgraph_query_chat(
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
+            # The repository will use its user_id context
             conversation = await conversation_repository.create_conversation()
             conversation_id = str(conversation.id)
         
@@ -573,7 +571,6 @@ async def enhanced_langgraph_query_chat(
     try:
         # Get or create conversation
         conversation_id = query.conversation_id
-        user_id = current_user.id  # Use the authenticated user's ID
         
         if conversation_id:
             # Try to get existing conversation
@@ -581,12 +578,11 @@ async def enhanced_langgraph_query_chat(
                 conversation_uuid = UUID(conversation_id)
                 conversation = await conversation_repository.get_by_id(conversation_uuid)
                 
-                # Check if conversation belongs to the current user
-                if conversation and conversation.conv_metadata.get("user_id") != user_id:
-                    raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
-                
+                # The repository will handle permission checks based on user_id
+                # If the conversation doesn't belong to the user, it will return None
                 if not conversation:
-                    # Create new conversation if not found
+                    # Create new conversation if not found or not authorized
+                    # The repository will use its user_id context
                     conversation = await conversation_repository.create_conversation()
                     conversation_id = str(conversation.id)
             except ValueError:
@@ -595,6 +591,7 @@ async def enhanced_langgraph_query_chat(
                 conversation_id = str(conversation.id)
         else:
             # Create new conversation
+            # The repository will use its user_id context
             conversation = await conversation_repository.create_conversation()
             conversation_id = str(conversation.id)
         
@@ -765,17 +762,15 @@ async def list_conversations(
     """
     List conversations for the current user with pagination
     """
-    # Use the current user's ID
-    user_id = current_user.id
+    # The repository already has the user context from the dependency injection
     # Get conversations with pagination
     conversations = await conversation_repository.get_conversations(
-        user_id=user_id,
         skip=skip,
         limit=limit
     )
     
     # Get total count
-    total_count = await conversation_repository.count_conversations(user_id=user_id)
+    total_count = await conversation_repository.count_conversations()
     
     return {
         "conversations": [

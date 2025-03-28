@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, Union
 import logging
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -340,3 +340,53 @@ async def get_current_admin_user(current_user = Depends(get_current_user)):
         )
     
     return current_user
+
+async def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme)):
+    """
+    Get the current user from a JWT token, but return None if no valid token
+    
+    Args:
+        token: The JWT token (optional)
+        
+    Returns:
+        The user if the token is valid, None otherwise
+    """
+    if not token:
+        return None
+        
+    try:
+        # Decode token
+        payload = jwt.decode(
+            token,
+            SETTINGS.secret_key,
+            algorithms=[SETTINGS.algorithm],
+            options={"verify_aud": False}  # Don't verify audience claim for now
+        )
+        username: str = payload.get("sub")
+        user_id: str = payload.get("user_id")
+        token_type: str = payload.get("token_type")
+        
+        # Validate token data
+        if username is None or user_id is None or token_type != "access":
+            logger.warning("Invalid token data")
+            return None
+            
+        # Get user from database
+        from app.db.dependencies import get_user_repository
+        from app.db.session import AsyncSessionLocal
+        
+        db = AsyncSessionLocal()
+        try:
+            user_repository = await get_user_repository(db)
+            user = await user_repository.get_by_username(username)
+            
+            if user is None or not user.is_active:
+                logger.warning(f"User not found or inactive: {username}")
+                return None
+                
+            return user
+        finally:
+            await db.close()
+    except JWTError as e:
+        logger.warning(f"JWT validation error in optional auth: {str(e)}")
+        return None

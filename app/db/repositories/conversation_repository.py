@@ -3,6 +3,7 @@ from uuid import UUID
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_, select, delete
+from app.db.models import Conversation, Message, Citation, Document, Chunk
 
 from app.db.models import Conversation, Message, Citation, Document, Chunk
 from app.db.repositories.base import BaseRepository
@@ -522,3 +523,26 @@ class ConversationRepository(BaseRepository[Conversation]):
         """
         # Same as modify permissions - only owner can delete
         return self._can_modify_conversation(conversation)
+        
+    async def get_by_id(self, id: UUID) -> Optional[Conversation]:
+        """
+        Get a conversation by ID with permission check
+        
+        Args:
+            id: Conversation ID
+            
+        Returns:
+            Conversation if found and user has permission, None otherwise
+        """
+        # Get the conversation using the parent method
+        conversation = await super().get_by_id(id)
+        
+        # If conversation not found, return None
+        if not conversation:
+            return None
+            
+        # Check if user has permission to view this conversation
+        if not self._can_view_conversation(conversation):
+            return None
+            
+        return conversation
