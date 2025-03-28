@@ -1,15 +1,15 @@
 # Core dependencies
-fastapi>=0.95.1,<0.97.0
+fastapi~=0.111.0
 uvicorn>=0.22.0,<0.23.0
 python-multipart>=0.0.6
 httpx>=0.24.0,<0.25.0
-# Pydantic v1 (no Rust required)
-pydantic>=1.10.8,<2.0.0
+# Pydantic v2
+pydantic~=2.7.0
 # LangChain and LangGraph
-langchain>=0.0.235,<0.0.300
-langgraph>=0.0.20
+langchain~=0.3.0
+langgraph~=0.1.0
 langchain-core>=0.1.0
-langchain-community>=0.0.10
+langchain-community~=0.3.0
 # ChromaDB and dependencies
 chromadb>=0.4.13,<0.4.15
 # Document processing dependencies
@@ -20,6 +20,12 @@ python-dotenv>=1.0.0
 jinja2>=3.1.2
 sse-starlette>=1.6.5
 psutil>=5.9.5
+# Security dependencies
+fastapi-limiter>=0.1.5
+redis>=4.2.0
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.0.1
 
 # Database dependencies
 sqlalchemy>=2.0.0
@@ -27,4 +33,6 @@ alembic>=1.12.0
 psycopg2-binary>=2.9.9
 
 # Memory management
-pymem0>=0.1.0
+mem0ai>=0.1.0
+# Added for Pydantic v2 compatibility
+pydantic-settings~=2.0

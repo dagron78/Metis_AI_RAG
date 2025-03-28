@@ -1,0 +1,529 @@
+/* Document Management Sidebar Styles */
+.document-section {
+    margin-top: 20px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+    overflow: hidden;
+    max-height: 42px; /* Height of the header */
+    transition: max-height 0.3s ease-out;
+}
+
+.document-section.expanded {
+    max-height: 500px; /* Adjust based on expected content */
+    overflow-y: auto;
+}
+
+.document-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.document-section-title {
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-color);
+}
+
+.document-count {
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    margin-left: 5px;
+    transition: all 0.3s;
+}
+
+.document-count.has-documents {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.document-list {
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.sidebar-document-item {
+    background-color: var(--input-bg);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+}
+
+.doc-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.doc-select-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin: 0;
+}
+
+.doc-title {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--muted-color);
+    margin-bottom: 5px;
+}
+
+/* Document Tags */
+.doc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 5px;
+}
+
+.doc-tag {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.light-mode .doc-tag {
+    color: white;
+}
+
+/* Document Folder */
+.doc-folder {
+    font-size: 0.8rem;
+    color: var(--muted-color);
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-folder i {
+    margin-right: 4px;
+}
+
+.doc-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+.doc-action {
+    background-color: transparent;
+    color: var(--muted-color);
+    border: none;
+    padding: 2px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.doc-action:hover {
+    background-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.process-btn:hover {
+    color: var(--accent-color);
+}
+
+.delete-btn:hover {
+    color: var(--error-color);
+}
+
+.edit-btn:hover {
+    color: var(--secondary-color);
+}
+
+.document-upload {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-input {
+    display: flex;
+    align-items: center;
+}
+
+.upload-input input[type="file"] {
+    flex: 1;
+    font-size: 0.8rem;
+}
+
+.upload-button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    margin-top: 5px;
+    display: none;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--accent-color);
+    border-radius: 3px;
+    width: 0;
+    transition: width 0.3s;
+}
+
+.batch-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.batch-actions button {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+.document-loading,
+.document-empty,
+.document-error {
+    text-align: center;
+    padding: 10px;
+    color: var(--muted-color);
+    font-size: 0.9rem;
+}
+
+.document-error {
+    color: var(--error-color);
+}
+
+/* Tag Management */
+.tag-input-container {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.tag-input {
+    width: 100%;
+    padding-right: 30px;
+}
+
+.tag-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 10;
+    display: none;
+}
+
+.tag-suggestion-item {
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.tag-suggestion-item:hover {
+    background-color: var(--border-color);
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.tag-item {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.light-mode .tag-item {
+    color: white;
+}
+
+.tag-remove {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Folder Selection */
+.folder-select {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.folder-path {
+    font-size: 0.8rem;
+    color: var(--muted-color);
+    margin-top: 5px;
+}
+
+/* Filter Panel */
+.filter-panel {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--input-bg);
+}
+
+.filter-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.filter-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 0;
+}
+
+.filter-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.filter-content.show {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.filter-section {
+    margin-bottom: 10px;
+}
+
+.filter-section-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.filter-tags, .filter-folders {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.filter-tag, .filter-folder {
+    background-color: var(--border-color);
+    color: var(--text-color);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.filter-tag.active, .filter-folder.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.light-mode .filter-tag.active,
+.light-mode .filter-folder.active {
+    color: white;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.filter-actions button {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+
+/* Document Edit Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.modal-body {
+    margin-bottom: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .document-section.expanded {
+        max-height: 300px;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+    
+    /* Improve touch targets for mobile */
+    .doc-action {
+        padding: 8px 10px;
+        margin: 2px;
+    }
+    
+    .filter-tag, .filter-folder {
+        padding: 8px 12px;
+        margin-bottom: 8px;
+    }
+    
+    /* Adjust document items for better mobile experience */
+    .sidebar-document-item {
+        padding: 12px;
+    }
+    
+    /* Make checkboxes easier to tap */
+    input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* Improve form elements */
+    input[type="text"],
+    input[type="file"],
+    select,
+    button {
+        min-height: 44px; /* Apple's recommended minimum touch target size */
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    /* Add pull-to-refresh indicator */
+    .pull-to-refresh {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted-color);
+        font-size: 0.9rem;
+    }
+    
+    .pull-to-refresh .spinner {
+        margin-right: 10px;
+    }
+    
+    /* Add swipe actions for document items */
+    .sidebar-document-item {
+        position: relative;
+        transition: transform 0.3s;
+    }
+    
+    .sidebar-document-item.show-actions {
+        transform: translateX(-80px);
+    }
+    
+    .swipe-actions {
+        position: absolute;
+        right: -80px;
+        top: 0;
+        bottom: 0;
+        width: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .swipe-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--error-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

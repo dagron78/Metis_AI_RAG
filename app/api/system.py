@@ -70,7 +70,7 @@ async def get_models():
         model_infos = [
             ModelInfo(
                 name=model["name"],
-                size=model.get("size"),
+                size=str(model.get("size")) if model.get("size") is not None else None,
                 modified_at=model.get("modified_at"),
                 description=model.get("description", f"Ollama model: {model['name']}")
             )

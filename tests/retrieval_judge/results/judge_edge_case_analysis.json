@@ -1,0 +1,212 @@
+{
+  "by_type": {
+    "long": {
+      "query_analysis": {
+        "complexity_distribution": {
+          "simple": 0,
+          "moderate": 0,
+          "complex": 1
+        },
+        "avg_time": 11.576659202575684
+      },
+      "chunk_evaluation": {
+        "needs_refinement_rate": 0.0,
+        "avg_time": 8.356603860855103
+      },
+      "query_refinement": {
+        "avg_length_change_percent": 61.26582278481012,
+        "avg_time": 4.841519117355347
+      },
+      "context_optimization": {
+        "avg_chunk_reduction_percent": 40.0,
+        "avg_time": 14.76965880393982
+      }
+    },
+    "ambiguous": {
+      "query_analysis": {
+        "complexity_distribution": {
+          "simple": 0,
+          "moderate": 2,
+          "complex": 0
+        },
+        "avg_time": 7.90027117729187
+      },
+      "chunk_evaluation": {
+        "needs_refinement_rate": 1.0,
+        "avg_time": 9.0378919839859
+      },
+      "query_refinement": {
+        "avg_length_change_percent": 650.5714285714286,
+        "avg_time": 1.9932677745819092
+      },
+      "context_optimization": {
+        "avg_chunk_reduction_percent": 80.0,
+        "avg_time": 11.77471661567688
+      }
+    },
+    "domain-specific": {
+      "query_analysis": {
+        "complexity_distribution": {
+          "simple": 0,
+          "moderate": 2,
+          "complex": 0
+        },
+        "avg_time": 8.493697881698608
+      },
+      "chunk_evaluation": {
+        "needs_refinement_rate": 0.0,
+        "avg_time": 7.793140411376953
+      },
+      "query_refinement": {
+        "avg_length_change_percent": 138.01948051948054,
+        "avg_time": 1.816763997077942
+      },
+      "context_optimization": {
+        "avg_chunk_reduction_percent": 80.0,
+        "avg_time": 11.745663404464722
+      }
+    },
+    "short": {
+      "query_analysis": {
+        "complexity_distribution": {
+          "simple": 1,
+          "moderate": 1,
+          "complex": 0
+        },
+        "avg_time": 8.945188164710999
+      },
+      "chunk_evaluation": {
+        "needs_refinement_rate": 1.0,
+        "avg_time": 8.714293956756592
+      },
+      "query_refinement": {
+        "avg_length_change_percent": 887.5,
+        "avg_time": 1.51704740524292
+      },
+      "context_optimization": {
+        "avg_chunk_reduction_percent": 80.0,
+        "avg_time": 9.712874054908752
+      }
+    },
+    "multi-part": {
+      "query_analysis": {
+        "complexity_distribution": {
+          "simple": 0,
+          "moderate": 2,
+          "complex": 0
+        },
+        "avg_time": 8.343578577041626
+      },
+      "chunk_evaluation": {
+        "needs_refinement_rate": 1.0,
+        "avg_time": 8.42668604850769
+      },
+      "query_refinement": {
+        "avg_length_change_percent": 131.19658119658118,
+        "avg_time": 2.0405884981155396
+      },
+      "context_optimization": {
+        "avg_chunk_reduction_percent": 80.0,
+        "avg_time": 12.349776983261108
+      }
+    },
+    "typo": {
+      "query_analysis": {
+        "complexity_distribution": {
+          "simple": 0,
+          "moderate": 2,
+          "complex": 0
+        },
+        "avg_time": 7.732823133468628
+      },
+      "chunk_evaluation": {
+        "needs_refinement_rate": 0.5,
+        "avg_time": 7.933498740196228
+      },
+      "query_refinement": {
+        "avg_length_change_percent": 70.64516129032256,
+        "avg_time": 1.8848679065704346
+      },
+      "context_optimization": {
+        "avg_chunk_reduction_percent": 80.0,
+        "avg_time": 12.753327488899231
+      }
+    }
+  },
+  "overall": {
+    "query_analysis": {
+      "complexity_distribution": {
+        "moderate": 9,
+        "simple": 1,
+        "complex": 1
+      },
+      "avg_time": 8.58252518827265
+    },
+    "chunk_evaluation": {
+      "needs_refinement_rate": 0.6363636363636364,
+      "avg_time": 8.378875103863804
+    },
+    "query_refinement": {
+      "avg_length_change_percent": 347.0119205400397,
+      "avg_time": 2.122417298230258
+    },
+    "context_optimization": {
+      "avg_chunk_reduction_percent": 76.36363636363637,
+      "avg_time": 11.949306899851019
+    }
+  },
+  "type_performance_ranking": {
+    "by_refinement_rate": [
+      {
+        "type": "long",
+        "rate": 0.0
+      },
+      {
+        "type": "domain-specific",
+        "rate": 0.0
+      },
+      {
+        "type": "typo",
+        "rate": 0.5
+      },
+      {
+        "type": "ambiguous",
+        "rate": 1.0
+      },
+      {
+        "type": "short",
+        "rate": 1.0
+      },
+      {
+        "type": "multi-part",
+        "rate": 1.0
+      }
+    ],
+    "by_chunk_reduction": [
+      {
+        "type": "ambiguous",
+        "reduction": 80.0
+      },
+      {
+        "type": "domain-specific",
+        "reduction": 80.0
+      },
+      {
+        "type": "short",
+        "reduction": 80.0
+      },
+      {
+        "type": "multi-part",
+        "reduction": 80.0
+      },
+      {
+        "type": "typo",
+        "reduction": 80.0
+      },
+      {
+        "type": "long",
+        "reduction": 40.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Metis RAG{% endblock %}
+
+{% block head %}
+<style>
+    .analytics-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .analytics-section {
+        margin-bottom: 30px;
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .analytics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .analytics-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .analytics-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .analytics-card {
+        background-color: var(--input-bg);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-card {
+        background-color: var(--input-bg);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 10px 0;
+        color: var(--accent-color);
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--muted-color);
+    }
+    
+    .chart-container {
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    th {
+        background-color: var(--card-bg);
+        font-weight: 600;
+    }
+    
+    tr:hover {
+        background-color: var(--border-color);
+    }
+    
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        font-size: 1.2rem;
+        color: var(--muted-color);
+    }
+    
+    .spinner {
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--accent-color);
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <h1>Analytics Dashboard</h1>
+    
+    <div class="analytics-section">
+        <div class="analytics-header">
+            <h2 class="analytics-title">System Overview</h2>
+            <div class="analytics-controls">
+                <button id="refresh-stats" class="secondary">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div id="system-stats" class="analytics-grid">
+            <div class="loading">
+                <div class="spinner"></div> Loading system stats...
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-section">
+        <div class="analytics-header">
+            <h2 class="analytics-title">Query Analytics</h2>
+            <div class="analytics-controls">
+                <select id="query-time-period">
+                    <option value="all">All Time</option>
+                    <option value="day">Last 24 Hours</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="query-stats" class="analytics-grid">
+            <div class="loading">
+                <div class="spinner"></div> Loading query stats...
+            </div>
+        </div>
+        
+        <h3>Most Common Queries</h3>
+        <div id="common-queries" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Query</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <h3>Recent Queries</h3>
+        <div id="recent-queries" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Query</th>
+                        <th>Model</th>
+                        <th>RAG</th>
+                        <th>Response Time</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="analytics-section">
+        <div class="analytics-header">
+            <h2 class="analytics-title">Document Usage</h2>
+            <div class="analytics-controls">
+                <select id="document-time-period">
+                    <option value="all">All Time</option>
+                    <option value="day">Last 24 Hours</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="document-stats" class="analytics-grid">
+            <div class="loading">
+                <div class="spinner"></div> Loading document stats...
+            </div>
+        </div>
+        
+        <h3>Most Used Documents</h3>
+        <div id="most-used-documents" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document ID</th>
+                        <th>Usage Count</th>
+                        <th>Last Used</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load initial data
+        loadSystemStats();
+        loadQueryStats();
+        loadDocumentStats();
+        
+        // Set up event listeners
+        document.getElementById('refresh-stats').addEventListener('click', function() {
+            loadSystemStats();
+            loadQueryStats();
+            loadDocumentStats();
+        });
+        
+        document.getElementById('query-time-period').addEventListener('change', function() {
+            loadQueryStats();
+        });
+        
+        document.getElementById('document-time-period').addEventListener('change', function() {
+            loadDocumentStats();
+        });
+    });
+    
+    function loadSystemStats() {
+        const statsContainer = document.getElementById('system-stats');
+        statsContainer.innerHTML = '<div class="loading"><div class="spinner"></div> Loading system stats...</div>';
+        
+        fetch('/api/analytics/system_stats')
+            .then(response => response.json())
+            .then(data => {
+                statsContainer.innerHTML = '';
+                
+                // Vector store stats
+                const vectorStats = data.vector_store || {};
+                
+                // Add document count stat
+                addStatCard(statsContainer, data.document_count || 0, 'Documents');
+                
+                // Add vector store document count
+                addStatCard(statsContainer, vectorStats.count || 0, 'Vector Chunks');
+                
+                // Add query count stat
+                addStatCard(statsContainer, data.query_count || 0, 'Total Queries');
+                
+                // Add embedding model
+                addStatCard(statsContainer, vectorStats.embeddings_model || 'N/A', 'Embedding Model');
+                
+                // Add cache stats if available
+                if (vectorStats.cache_enabled) {
+                    addStatCard(statsContainer, vectorStats.cache_hit_ratio ? (vectorStats.cache_hit_ratio * 100).toFixed(1) + '%' : '0%', 'Cache Hit Ratio');
+                    addStatCard(statsContainer, vectorStats.cache_size || 0, 'Cache Size');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading system stats:', error);
+                statsContainer.innerHTML = '<div class="analytics-card">Error loading system stats</div>';
+            });
+    }
+    
+    function loadQueryStats() {
+        const statsContainer = document.getElementById('query-stats');
+        const commonQueriesTable = document.getElementById('common-queries').querySelector('tbody');
+        const recentQueriesTable = document.getElementById('recent-queries').querySelector('tbody');
+        const timePeriod = document.getElementById('query-time-period').value;
+        
+        statsContainer.innerHTML = '<div class="loading"><div class="spinner"></div> Loading query stats...</div>';
+        commonQueriesTable.innerHTML = '<tr><td colspan="2">Loading...</td></tr>';
+        recentQueriesTable.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+        
+        fetch(`/api/analytics/query_stats?time_period=${timePeriod}`)
+            .then(response => response.json())
+            .then(data => {
+                statsContainer.innerHTML = '';
+                
+                // Add query count stat
+                addStatCard(statsContainer, data.query_count || 0, 'Queries');
+                
+                // Add average response time
+                addStatCard(statsContainer, data.avg_response_time_ms ? data.avg_response_time_ms.toFixed(0) + ' ms' : 'N/A', 'Avg Response Time');
+                
+                // Add average token count
+                addStatCard(statsContainer, data.avg_token_count ? data.avg_token_count.toFixed(0) : 'N/A', 'Avg Token Count');
+                
+                // Add RAG usage percentage
+                addStatCard(statsContainer, data.rag_usage_percent ? data.rag_usage_percent.toFixed(1) + '%' : '0%', 'RAG Usage');
+                
+                // Populate most common queries table
+                commonQueriesTable.innerHTML = '';
+                if (data.most_common_queries && data.most_common_queries.length > 0) {
+                    data.most_common_queries.forEach(query => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${query.query}</td>
+                            <td>${query.count}</td>
+                        `;
+                        commonQueriesTable.appendChild(row);
+                    });
+                } else {
+                    commonQueriesTable.innerHTML = '<tr><td colspan="2">No queries found</td></tr>';
+                }
+                
+                // Populate recent queries table
+                recentQueriesTable.innerHTML = '';
+                if (data.recent_queries && data.recent_queries.length > 0) {
+                    data.recent_queries.forEach(query => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${query.query}</td>
+                            <td>${query.model}</td>
+                            <td>${query.use_rag ? 'Yes' : 'No'}</td>
+                            <td>${query.response_time_ms ? query.response_time_ms.toFixed(0) + ' ms' : 'N/A'}</td>
+                            <td>${formatTimestamp(query.timestamp)}</td>
+                        `;
+                        recentQueriesTable.appendChild(row);
+                    });
+                } else {
+                    recentQueriesTable.innerHTML = '<tr><td colspan="5">No queries found</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading query stats:', error);
+                statsContainer.innerHTML = '<div class="analytics-card">Error loading query stats</div>';
+                commonQueriesTable.innerHTML = '<tr><td colspan="2">Error loading data</td></tr>';
+                recentQueriesTable.innerHTML = '<tr><td colspan="5">Error loading data</td></tr>';
+            });
+    }
+    
+    function loadDocumentStats() {
+        const statsContainer = document.getElementById('document-stats');
+        const documentsTable = document.getElementById('most-used-documents').querySelector('tbody');
+        const timePeriod = document.getElementById('document-time-period').value;
+        
+        statsContainer.innerHTML = '<div class="loading"><div class="spinner"></div> Loading document stats...</div>';
+        documentsTable.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+        
+        fetch(`/api/analytics/document_usage?time_period=${timePeriod}`)
+            .then(response => response.json())
+            .then(data => {
+                statsContainer.innerHTML = '';
+                
+                // Add document count stat
+                addStatCard(statsContainer, data.document_count || 0, 'Documents Used');
+                
+                // Populate most used documents table
+                documentsTable.innerHTML = '';
+                if (data.most_used && data.most_used.length > 0) {
+                    data.most_used.forEach(doc => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${doc.id}</td>
+                            <td>${doc.usage_count}</td>
+                            <td>${formatTimestamp(doc.last_used)}</td>
+                        `;
+                        documentsTable.appendChild(row);
+                    });
+                } else {
+                    documentsTable.innerHTML = '<tr><td colspan="3">No document usage data found</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading document stats:', error);
+                statsContainer.innerHTML = '<div class="analytics-card">Error loading document stats</div>';
+                documentsTable.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
+            });
+    }
+    
+    function addStatCard(container, value, label) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <div class="stat-value">${value}</div>
+            <div class="stat-label">${label}</div>
+        `;
+        container.appendChild(card);
+    }
+    
+    function formatTimestamp(timestamp) {
+        if (!timestamp) return 'N/A';
+        
+        try {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        } catch (e) {
+            return timestamp;
+        }
+    }
+</script>
+{% endblock %}

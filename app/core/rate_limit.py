@@ -106,7 +106,8 @@ async def check_ip_ban(request: Request) -> bool:
     Check if an IP is banned
     Returns True if the IP is banned, False otherwise
     """
-    if not hasattr(FastAPILimiter, "redis"):
+    # If rate limiting is disabled or not initialized, skip the check
+    if not hasattr(FastAPILimiter, "redis") or FastAPILimiter.redis is None or not SETTINGS.rate_limiting_enabled:
         return False
         
     client_ip = request.client.host if request.client else "unknown"

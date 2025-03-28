@@ -1,0 +1,167 @@
+[
+  {
+    "query": "How does the system work?",
+    "type": "ambiguous",
+    "description": "Very general query without specific focus",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query \"How does the system work?\" is a moderate complexity question. It\u2019s not a simple factual question like \"What is the capital of France?\" but it doesn't require deep analytical reasoning. It necessitates understanding the overall architecture and functionality of the system, which likely involves multiple documents.  Therefore, retrieving a moderate number of chunks (k=8) is appropriate to capture a sufficient range of information. A relevance threshold of 0.6 suggests prioritizing documents that are strongly related to the system's operation, avoiding overly tangential results. Reranking is crucial here as initial retrieval might return documents discussing specific components without explicitly addressing the 'how it works' question. Reranking will help prioritize documents that provide a high-level explanation of the system's workflow."
+    },
+    "time": 7.263206243515015
+  },
+  {
+    "query": "Tell me about the API",
+    "type": "ambiguous",
+    "description": "Ambiguous query about the API without specifying which aspect",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query \"Tell me about the API\" is moderately complex. It\u2019s not a simple factual question like \"What is the capital of France?\" but it\u2019s also not a complex analytical question. It clearly requires retrieval of information related to an API \u2013 likely documentation, tutorials, or explanations of its features.  The query is ambiguous as \u2018the API\u2019 could refer to many different APIs.  Therefore, a moderate retrieval approach is needed.  I recommend retrieving 8 chunks (k=8) to provide a good balance between breadth and precision. A relevance threshold of 0.6 is suggested to filter out less relevant results, prioritizing documents that discuss the API's functionality and purpose. Reranking is crucial here to further refine the results based on semantic similarity to the query, as different documents might use slightly different phrasing to describe the same API.  Without reranking, the initial retrieval might return documents that mention the API but don't directly address the user's request for information *about* it."
+    },
+    "time": 8.537336111068726
+  },
+  {
+    "query": "How does the vektor store work?",
+    "type": "typo",
+    "description": "Typo in 'vector'",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query \"How does the vektor store work?\" represents a moderate complexity question. It\u2019s not a simple factual recall but requires understanding the underlying mechanisms of a vektor store.  It necessitates accessing documents that explain the concepts of vector embeddings, similarity search, and potentially the architecture of vektor stores.  Because of this, a moderate number of chunks (k=8) is recommended to capture a range of explanations. A relevance threshold of 0.6 is suggested \u2013 this allows for some relevant but potentially tangential information to be retrieved, as the concept of a vektor store can be explained from various angles.  Reranking (true) is crucial here. Without reranking, the initial retrieval might return documents focused on specific implementations or use cases, rather than the core principles. Reranking will help prioritize documents that directly address the question of how a vektor store functions."
+    },
+    "time": 7.581515073776245
+  },
+  {
+    "query": "What is the documnet procesing pipeline?",
+    "type": "typo",
+    "description": "Multiple typos in 'document processing'",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query \"What is the document processing pipeline?\" is moderately complex. It\u2019s not a simple factual question like \"What is the capital of France?\" but it doesn't require deep analytical reasoning. It clearly indicates a need for information about a specific process \u2013 a document processing pipeline.  Therefore, we need to retrieve a sufficient number of relevant chunks (k=8) to cover different aspects of the pipeline. A relevance threshold of 0.6 suggests prioritizing chunks with a strong connection to the query, but allowing for some related information. Reranking is recommended to further refine the results by considering semantic similarity beyond just keyword matching.  Without more context about the domain (e.g., NLP, data science), assuming a general document processing pipeline is reasonable.  A lower k value (5-7) might miss crucial details, while a higher value (10-15) could introduce noise."
+    },
+    "time": 7.884131193161011
+  },
+  {
+    "query": "How does the system handle context window optimization?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about LLM context windows",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query \"How does the system handle context window optimization?\" is moderately complex. It\u2019s not a simple factual question, as it asks about a system\u2019s *handling* of a specific technical concept (context window optimization). This implies a need for understanding the system's architecture and processes, requiring retrieval of documents that explain the system's design and how it manages context.  It\u2019s not purely a general knowledge question; it demands specific knowledge about the RAG system\u2019s implementation. The query contains a single, focused question, but the \u2018how\u2019 implies a need to understand the mechanisms involved.  Therefore, a retrieval approach of 5-15 chunks is appropriate to capture the breadth of information needed. A relevance threshold of 0.6 is recommended to filter out less relevant results, focusing on documents that directly address context window optimization. Finally, reranking is recommended to further refine the retrieved chunks based on semantic similarity to the query, as simply retrieving the top k chunks might not perfectly align with the user's intent.  This will help prioritize documents that truly explain the system's approach."
+    },
+    "time": 9.091415882110596
+  },
+  {
+    "query": "What embedding models are supported for semantic search?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about embedding models",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query \"What embedding models are supported for semantic search?\" is moderately complex. It\u2019s not a simple factual question like \"What is the capital of France?\" but it doesn't require deep analytical reasoning. It necessitates retrieving documents that discuss the various embedding models used in semantic search.  The intent is clear \u2013 the user wants a list of supported models.  Therefore, a moderate retrieval approach is appropriate.  I recommend k=8 because it balances retrieving enough relevant documents (to cover a reasonable range of models) without overwhelming the system with irrelevant results. A threshold of 0.6 is suggested to filter out documents with only a superficial connection to the query. Reranking is crucial here. Without it, the initial retrieval might return documents that mention embedding models in passing, rather than those specifically focused on their use in semantic search. Reranking will prioritize documents that directly address the query's focus."
+    },
+    "time": 7.895979881286621
+  },
+  {
+    "query": "What are the chunking strategies and how do they affect retrieval performance?",
+    "type": "multi-part",
+    "description": "Multi-part query about chunking strategies and their impact",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "This query is moderately complex as it combines a request for strategies (requiring specific knowledge) with an analytical component \u2013 how those strategies affect retrieval performance. It\u2019s not a simple factual question like \u2018What is chunking?\u2019 but it\u2019s also not a purely conceptual question.  The user wants to understand *how* chunking impacts retrieval, implying they're looking for evidence and comparisons.  Therefore, a moderate number of chunks (k=8) is appropriate to capture a range of relevant information. A relevance threshold of 0.6 suggests prioritizing results that are strongly related to both \u2018chunking strategies\u2019 and \u2018retrieval performance\u2019.  Finally, reranking is recommended (true) to further refine the results, as the initial retrieval might return documents that discuss chunking strategies but not necessarily their impact on retrieval.  The goal is to prioritize documents that directly address the query's analytical aspect."
+    },
+    "time": 7.855952024459839
+  },
+  {
+    "query": "How does the authentication work and what endpoints are available for document management?",
+    "type": "multi-part",
+    "description": "Multi-part query about authentication and document management endpoints",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query \"How does the authentication work and what endpoints are available for document management?\" is moderately complex. It contains two distinct sub-questions: authentication process and document management endpoints. This suggests a need for retrieving information from multiple document types and potentially different sections within those documents.  A retrieval of 8 chunks (k=8) provides a good balance between capturing relevant information and avoiding overwhelming the generation model with irrelevant results.  A threshold of 0.6 indicates a strong relevance requirement \u2013 we want to prioritize documents that are highly related to both authentication and document management. Reranking is recommended (reranking: true) to further refine the retrieved chunks, as the initial retrieval might produce a mix of documents with varying degrees of relevance to each sub-question.  Without reranking, the generation model might struggle to synthesize information effectively from a less-relevant set of chunks.  The query isn't purely factual; it requires understanding a process (authentication) and identifying specific resources (endpoints). Therefore, a more nuanced retrieval strategy is needed beyond simply finding documents containing the keywords."
+    },
+    "time": 8.831205129623413
+  },
+  {
+    "query": "RAG?",
+    "type": "short",
+    "description": "Very short query with just an acronym",
+    "analysis": {
+      "complexity": "simple",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query 'RAG?' is extremely simple and represents a user seeking a basic understanding of the RAG (Retrieval Augmented Generation) concept. It\u2019s not a complex analytical question requiring deep understanding or nuanced interpretation.  Therefore, a moderate number of chunks (k=8) should be retrieved to capture a broad range of relevant information. A relevance threshold of 0.6 is recommended to filter out less relevant results, ensuring the generated response focuses on the core concept. Reranking is beneficial here to prioritize documents that explicitly define or explain RAG, even if they don't perfectly match the query terms.  Without further context, a broad retrieval is appropriate, but a slight filtering is needed to avoid irrelevant noise."
+    },
+    "time": 6.665657043457031
+  },
+  {
+    "query": "Embeddings?",
+    "type": "short",
+    "description": "Very short query with just a technical term",
+    "analysis": {
+      "complexity": "moderate",
+      "parameters": {
+        "k": 8,
+        "threshold": 0.6,
+        "reranking": true
+      },
+      "justification": "The query 'Embeddings?' is moderately complex. It\u2019s not a simple factual question like 'What is an embedding?' but it\u2019s also not a complex analytical question. The user is likely seeking a general understanding of embeddings \u2013 their definition, purpose, and perhaps different types.  Therefore, a retrieval approach that balances breadth and relevance is needed.  \n\n* **k (8):**  I've recommended 8 chunks. This provides a reasonable number of potentially relevant documents without overwhelming the generation model with too much information.  A lower value (5-7) might miss key concepts, while a higher value (10-15) could dilute the focus. \n* **threshold (0.6):** A threshold of 0.6 suggests prioritizing documents with a high degree of relevance. This allows the generation model to focus on the most pertinent information.  A lower threshold (0.4) would broaden the search, while a higher value (0.8) might exclude some useful context. \n* **reranking (true):** Reranking is crucial here.  Initial retrieval might return documents that use the word 'embeddings' in a tangential way. Reranking, using a model trained to understand semantic similarity, will help prioritize documents where 'embeddings' are central to the meaning, ensuring the generation model receives the most relevant context.  Without reranking, the generation model could be misled by less relevant results."
+    },
+    "time": 11.224719285964966
+  },
+  {
+    "query": "I'm trying to understand how the Metis RAG system works in detail, particularly how the document processing pipeline handles different file formats, how the chunking strategies are implemented, how the vector store manages embeddings efficiently, and how the retrieval judge optimizes the retrieval process to improve the relevance of the results. Can you explain all of these aspects in detail?",
+    "type": "long",
+    "description": "Very long query with multiple questions",
+    "analysis": {
+      "complexity": "complex",
+      "parameters": {
+        "k": 10,
+        "threshold": 0.7,
+        "reranking": true
+      },
+      "justification": "This query represents a complex analytical query rather than a simple factual one. The user isn't just asking for a single answer; they're seeking a deep understanding of the Metis RAG system's internal workings. The query explicitly asks about multiple aspects of the system \u2013 document processing, chunking strategies, vector store efficiency, and retrieval judge optimization. This necessitates retrieving a significant number of relevant chunks to cover all these areas.  \n\n* **k (Number of chunks to retrieve):**  I recommend 10. Given the multi-faceted nature of the query, retrieving 5-15 chunks would likely be insufficient to fully address all the user's questions.  A larger number allows for a more thorough exploration of the system's components.\n* **threshold (Relevance threshold):** I've set the threshold to 0.7. This suggests a strong emphasis on relevance. The user wants detailed explanations, so a higher threshold will prioritize chunks that are highly relevant to the core aspects of the Metis RAG system.\n* **reranking:**  `true`.  The user's query indicates a desire for optimized retrieval. The retrieval judge component of Metis RAG is specifically mentioned, implying a focus on improving relevance. Reranking will further refine the results, ensuring the most pertinent chunks are presented first.  Without reranking, the initial retrieval might return a mix of relevant and irrelevant chunks, requiring the user to sift through them."
+    },
+    "time": 11.576659202575684
+  }
+]

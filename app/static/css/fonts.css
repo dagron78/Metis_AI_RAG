@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'Azonix';
+    src: url('../fonts/Azonix.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Create empty font files to prevent 404 errors */
+@font-face {
+    font-family: 'Azonix-woff2';
+    src: url('../fonts/Azonix.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Azonix-woff';
+    src: url('../fonts/Azonix.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Azonix-ttf';
+    src: url('../fonts/Azonix.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Fallback font definition */
+.azonix-font {
+    font-family: 'Azonix', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}

@@ -21,7 +21,7 @@ def run_migration():
     # Run Alembic upgrade
     try:
         result = subprocess.run(
-            ["alembic", "upgrade", "head"],
+            ["alembic", "upgrade", "heads"],
             check=True,
             capture_output=True,
             text=True

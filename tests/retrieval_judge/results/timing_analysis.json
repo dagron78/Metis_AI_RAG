@@ -1,0 +1,18 @@
+{
+  "avg_standard_time": 170.53859362602233,
+  "avg_judge_time": 32.041843795776366,
+  "time_difference_percent": -81.21138264688543,
+  "component_averages": {
+    "analyze_query": 11.809100103378295,
+    "evaluate_chunks": 5.912109613418579,
+    "enhanced_retrieval": 17.72743601799011
+  },
+  "first_run": {
+    "standard": 171.3785719871521,
+    "judge": 36.81675601005554
+  },
+  "subsequent_runs": {
+    "standard": 170.3285990357399,
+    "judge": 30.848115742206573
+  }
+}

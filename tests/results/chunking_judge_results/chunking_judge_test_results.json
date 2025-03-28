@@ -1,0 +1,29 @@
+[
+  {
+    "filename": "test_document.txt",
+    "strategy": "recursive",
+    "parameters": {
+      "chunk_size": 1000,
+      "chunk_overlap": 150
+    },
+    "justification": "This is a plain text document with paragraphs that benefits from recursive chunking."
+  },
+  {
+    "filename": "technical_documentation.md",
+    "strategy": "markdown",
+    "parameters": {
+      "chunk_size": 800,
+      "chunk_overlap": 100
+    },
+    "justification": "This is a structured markdown document with clear headers."
+  },
+  {
+    "filename": "test_data.csv",
+    "strategy": "token",
+    "parameters": {
+      "chunk_size": 600,
+      "chunk_overlap": 75
+    },
+    "justification": "This is a CSV file with tabular data that benefits from token-based chunking."
+  }
+]

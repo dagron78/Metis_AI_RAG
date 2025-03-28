@@ -1,0 +1,47 @@
+{
+  "query_id": "context_synthesis",
+  "query": "How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?",
+  "execution_time": 49.76212477684021,
+  "answer": "Stabilium interacts with Heisenberg\u2019s Uncertainty Principle in several ways, as demonstrated in quantum entanglement experiments. Specifically, Stabilium\u2019s ability to maintain quantum coherence for extended periods allows for more precise measurements within the bounds of the uncertainty principle [1]. Furthermore, Stabilium-based quantum sensors can approach the theoretical limits imposed by the uncertainty principle more closely than previous technologies [1]. Additionally, Stabilium can store entangled states as a quantum memory, preserving the entanglement properties while subject to the constraints of the uncertainty principle [1].\n\nSources: \n[1] Document ID: heisenberg_uncertainty_principle. md - \"Document Title\"",
+  "sources": [
+    {
+      "document_id": "quantum_physics",
+      "chunk_id": "quantum_physics_chunk_1",
+      "relevance_score": 0.85,
+      "filename": "",
+      "excerpt": ": When entangled particles are measured, the uncertainty principle applies to both particles simulta..."
+    },
+    {
+      "document_id": "quantum_physics",
+      "chunk_id": "quantum_physics_chunk_2",
+      "relevance_score": 0.95,
+      "filename": "",
+      "excerpt": "asurement Precision**: Stabilium-based quantum sensors can approach the theoretical limits imposed b..."
+    },
+    {
+      "document_id": "advanced_quantum",
+      "chunk_id": "advanced_quantum_chunk_1",
+      "relevance_score": 0.9,
+      "filename": "",
+      "excerpt": "g through non-Euclidean space-time manifolds due to several unique properties:\n\n1. **Quantum Coheren..."
+    }
+  ],
+  "chunks_retrieved": 15,
+  "chunks_used": 3,
+  "refined_query": "How does Stabilium extended coherence and topological protection, as demonstrated in experiments probing the uncertainty principle's boundaries and enabling multi-particle entangled tunneling through non-Euclidean space-time manifolds, interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?",
+  "entity_analysis": {
+    "entities_found": [
+      "Stabilium",
+      "Heisenberg",
+      "Uncertainty Principle"
+    ],
+    "entities_preserved": true,
+    "preserved_entities": [
+      "Stabilium",
+      "Heisenberg",
+      "Uncertainty Principle"
+    ],
+    "missing_entities": [],
+    "analysis": "Found 3 entities, 3 preserved, 0 missing"
+  }
+}

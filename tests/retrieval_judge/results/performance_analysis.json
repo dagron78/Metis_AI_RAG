@@ -1,0 +1,27 @@
+{
+  "avg_standard_time": 171.47047452926637,
+  "avg_judge_time": 18.409667682647704,
+  "time_difference_percent": -89.26365152182187,
+  "standard_component_averages": {
+    "vector_store_search": 0.8387497425079345,
+    "ollama_generate": 155.6586353778839,
+    "rag_engine_enhanced_retrieval": 156.51220655441284
+  },
+  "judge_component_averages": {
+    "vector_store_search": 0.0,
+    "ollama_generate": 33.303645849227905,
+    "judge_analyze_query": 12.28856053352356,
+    "judge_evaluate_chunks": 6.097623443603515,
+    "rag_engine_enhanced_retrieval": 18.39188199043274
+  },
+  "cache_statistics": {
+    "vector_store_cache_hits": 15,
+    "vector_store_cache_misses": 30,
+    "vector_store_cache_hit_rate": 33.33333333333333,
+    "ollama_cache_hits": 15,
+    "ollama_cache_misses": 75,
+    "ollama_cache_hit_rate": 16.666666666666664
+  },
+  "avg_standard_sources": 1.0,
+  "avg_judge_sources": 1.0
+}

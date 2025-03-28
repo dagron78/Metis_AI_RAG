@@ -21,6 +21,10 @@ from app.api.tasks import router as tasks_router
 from app.api.auth import router as auth_router
 from app.api.password_reset import router as password_reset_router
 from app.api.admin import router as admin_router
+from app.api.roles import router as roles_router
+from app.api.document_sharing import router as document_sharing_router
+from app.api.notifications import router as notifications_router
+from app.api.organizations import router as organizations_router
 from app.db.session import init_db, get_session
 
 # Setup logging
@@ -40,8 +44,9 @@ app = FastAPI(
 # Add security middleware to log suspicious requests
 app.middleware("http")(log_suspicious_requests)
 
-# Add IP ban middleware
-app.middleware("http")(ip_ban_middleware)
+# Add IP ban middleware only if rate limiting is enabled
+if SETTINGS.rate_limiting_enabled:
+    app.middleware("http")(ip_ban_middleware)
 
 # Setup security
 setup_security(app)
@@ -70,6 +75,10 @@ app.include_router(tasks_router, prefix=f"{API_V1_STR}/tasks", tags=["tasks"])
 app.include_router(auth_router, prefix=f"{API_V1_STR}/auth", tags=["auth"])
 app.include_router(password_reset_router, prefix=f"{API_V1_STR}/password-reset", tags=["password-reset"])
 app.include_router(admin_router, prefix=f"{API_V1_STR}/admin", tags=["admin"])
+app.include_router(roles_router, prefix=f"{API_V1_STR}/roles", tags=["roles"])
+app.include_router(document_sharing_router, prefix=f"{API_V1_STR}/sharing", tags=["sharing"])
+app.include_router(notifications_router, prefix=f"{API_V1_STR}/notifications", tags=["notifications"])
+app.include_router(organizations_router, prefix=f"{API_V1_STR}/organizations", tags=["organizations"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -200,6 +209,9 @@ async def startup_event():
     Actions to run on application startup
     """
     logger.info("Starting up Metis RAG application")
+    
+    # Print out the SECRET_KEY for debugging
+    logger.info(f"Using SECRET_KEY: {SETTINGS.secret_key[:5]}...")
     
     # Initialize database
     try:

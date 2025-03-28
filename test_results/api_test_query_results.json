@@ -1,0 +1,22 @@
+[
+  {
+    "query": "What are the specifications of the SmartHome Hub?",
+    "answer": "According to the provided documents [1], the specifications of the SmartHome Hub are: \n\n* Protocol: RF\n* Battery Life: 1 year\n* Price: $79. 99\n* Indoor Range: 75 ft\n* Outdoor Range: 50 ft\n* Water Resistant: No\n* Voice Control: Yes\n* Hub Required: Yes\n\nThese specifications can be found in the context under the device ID \"SH-RC100\" [10].",
+    "success": true
+  },
+  {
+    "query": "How do I troubleshoot when devices won't connect?",
+    "answer": "I've searched my knowledge base for information about those specific workarounds within the provided context. While I don't have comprehensive information on this topic, I did find some relevant documents that mention it.\n\nAccording to the sources I have access to:\n\n[1] if __name__ == '__main__':\n    app.run(port=5000)\n```\n\n## Troubleshooting\n\n### Common Issues\n\n1. **Authentication failures**\n   - Check that your client ID and secret are correct\n   - Verify that your... (Source: smart_home_developer_reference.md)\n\n[2] 2. Google Assistant\n   - Open the Google Home app\n   - Tap the \"+\" icon\n   - Select \"Set up device\"\n   - Choose \"Works with Google\"\n   - Find and select SmartHome\n   - Link your SmartHome account\n\n3. ... (Source: smart_home_user_guide.txt)\n\n[3] if __name__ == '__main__':\n    app.run(port=5000)\n```\n\n## Troubleshooting\n\n### Common Issues\n\n1. **Authentication failures**\n   - Check that your client ID and secret are correct\n   - Verify that your... (Source: smart_home_developer_reference.md)\n\nPlease note this information is limited to what's in my document database. For more comprehensive information, consider consulting specialized resources.",
+    "success": true
+  },
+  {
+    "query": "What is the battery life of the motion sensor?",
+    "answer": "Based on the provided documents, I found information about the motion sensor's battery life. \n\nAccording to [1], the Motion Sensor (Device ID: SH-MS100) has a Battery Life of 2 years. \n\nSources: \n[1] Source: smart_home_device_comparison. csv, Tags: , Folder: / - \"Device Information\"",
+    "success": true
+  },
+  {
+    "query": "Compare the Motion Sensor and Door Sensor specifications.",
+    "answer": "Based on the provided documents, I can compare the Motion Sensor and Door Sensor specifications. \n\n**Indoor Range**: The Motion Sensor has an indoor range of 40 ft [2], while the Door Sensor has an indoor range of 50 ft [1].\n\n**Outdoor Range**: The Motion Sensor has an outdoor range of 25 ft [2], whereas the Door Sensor has an outdoor range of 30 ft [1].\n\n**Price**: The Motion Sensor costs $24. 99 [2] compared to the Door Sensor, which is priced at $19. 99 [1].\n\n**Battery Life**: Both devices have a battery life of 2 years [1] and [2].\n\nThat's all the information I can provide based on the context. If you'd like more comprehensive information or comparisons with other devices, please note that this information is limited to what's in my document database. \n\nSources: \n\n[1] smart_home_device_comparison. csv - \"Device Comparison\"\n[2] smart_home_device_comparison. csv - \"Device Comparison\"",
+    "success": true
+  }
+]

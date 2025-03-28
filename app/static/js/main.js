@@ -333,6 +333,31 @@ function getToken() {
     return localStorage.getItem('access_token');
 }
 
+// Authenticated fetch function
+function authenticatedFetch(url, options = {}) {
+    // Clone the options to avoid modifying the original
+    const fetchOptions = { ...options };
+    
+    // Add headers if not present
+    if (!fetchOptions.headers) {
+        fetchOptions.headers = {};
+    }
+    
+    // Add authorization header if authenticated
+    if (isAuthenticated()) {
+        fetchOptions.headers['Authorization'] = `Bearer ${getToken()}`;
+    }
+    
+    // Return the fetch promise
+    return fetch(url, fetchOptions);
+}
+
+// Make authentication functions globally available
+window.isAuthenticated = isAuthenticated;
+window.getToken = getToken;
+window.authenticatedFetch = authenticatedFetch;
+console.log('Auth functions made global');
+
 function logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('token_type');

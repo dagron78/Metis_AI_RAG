@@ -1,0 +1,44 @@
+{
+  "query_id": "multi_entity",
+  "query": "Compare the properties of Stabilium and Quantum Resonance Modulation in cold fusion experiments.",
+  "execution_time": 31.57057499885559,
+  "answer": "I've searched for information on this topic. While my knowledge is limited, However, the combined approach of QRM systems and Stabilium increases fusion efficiency by approximately 300% compared to traditional methods [3].",
+  "sources": [
+    {
+      "document_id": "qrm_overview",
+      "chunk_id": "qrm_overview_chunk_1",
+      "relevance_score": 0.95,
+      "filename": "",
+      "excerpt": "istribution, preventing hotspots\n- **Reproducibility**: Significantly improves the reproducibility o..."
+    },
+    {
+      "document_id": "qrm_overview",
+      "chunk_id": "qrm_overview_chunk_0",
+      "relevance_score": 0.85,
+      "filename": "",
+      "excerpt": "# Quantum Resonance Modulation: Principles and Applications\n\n## Fundamental Principles\n\nQuantum Reso..."
+    },
+    {
+      "document_id": "qrm_overview",
+      "chunk_id": "qrm_overview_chunk_2",
+      "relevance_score": 0.8,
+      "filename": "",
+      "excerpt": "te\n2. QRM systems create the conditions for quantum tunneling\n3. The combined approach increases fus..."
+    },
+    {
+      "document_id": "stabilium_versions",
+      "chunk_id": "stabilium_versions_chunk_0",
+      "relevance_score": 0.75,
+      "filename": "",
+      "excerpt": "# Stabilium Versions: Comparative Analysis\n\n## Evolution of Stabilium Technology\n\nSince its initial ..."
+    }
+  ],
+  "chunks_retrieved": 15,
+  "chunks_used": 4,
+  "refined_query": "",
+  "entity_analysis": {
+    "entities_found": [],
+    "entities_preserved": true,
+    "analysis": "No query refinement was performed"
+  }
+}

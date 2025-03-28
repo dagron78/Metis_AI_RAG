@@ -1,0 +1,10 @@
+{
+  "name": "vector_search",
+  "size": 12,
+  "max_size": 1000,
+  "hits": 2,
+  "misses": 1,
+  "hit_ratio": 0.6666666666666666,
+  "ttl_seconds": 3600,
+  "persist": true
+}

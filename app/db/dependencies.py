@@ -7,6 +7,7 @@ from app.db.repositories.document_repository import DocumentRepository
 from app.db.repositories.conversation_repository import ConversationRepository
 from app.db.repositories.analytics_repository import AnalyticsRepository
 from app.db.repositories.user_repository import UserRepository
+from app.db.repositories.password_reset_repository import PasswordResetRepository
 from app.rag.document_processor import DocumentProcessor
 from app.core.config import UPLOAD_DIR, CHUNK_SIZE, CHUNK_OVERLAP
 
@@ -38,7 +39,6 @@ async def get_conversation_repository(db: AsyncSession = Depends(get_db)) -> Con
         Conversation repository
     """
     return ConversationRepository(db)
-    return ConversationRepository(db)
 
 async def get_analytics_repository(db: AsyncSession = Depends(get_db)) -> AnalyticsRepository:
     """
@@ -64,6 +64,19 @@ async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserReposit
         User repository
     """
     return UserRepository(db)
+
+
+async def get_password_reset_repository(db: AsyncSession = Depends(get_db)) -> PasswordResetRepository:
+    """
+    Get a password reset repository
+    
+    Args:
+        db: Database session
+        
+    Returns:
+        Password reset repository
+    """
+    return PasswordResetRepository(db)
 
 
 def get_document_processor(

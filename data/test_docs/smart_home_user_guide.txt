@@ -1,0 +1,118 @@
+SmartHome User Guide
+====================
+
+Getting Started
+--------------
+
+1. Unbox your SmartHome Hub (Model SH-100) and connect it to power using the provided adapter.
+2. Download the SmartHome mobile app from the App Store or Google Play.
+3. Launch the app and follow the on-screen instructions to create an account.
+4. Connect your hub to your home Wi-Fi network through the app.
+5. Once connected, the hub will automatically check for and install the latest firmware.
+
+Adding Devices
+-------------
+
+To add a new device to your SmartHome system:
+
+1. Press the "Add Device" button in the mobile app.
+2. Select the device type from the list or scan the QR code on the device.
+3. Put the device in pairing mode according to its instructions (usually by holding a button for 5 seconds).
+4. Follow the app instructions to complete the pairing process.
+
+Troubleshooting
+--------------
+
+Hub LED Status Indicators:
+- Solid Blue: Hub is powered and working normally
+- Blinking Blue: Hub is in pairing mode
+- Solid Red: Hub is starting up
+- Blinking Red: Hub has no internet connection
+- Alternating Red/Blue: Hub is updating firmware
+
+Common Issues:
+
+1. Devices won't connect:
+   - Ensure the device is within range of the hub (30-50 feet for most devices)
+   - Check that the device is in pairing mode
+   - Verify the device is compatible with SmartHome (see compatible devices list)
+
+2. Hub offline:
+   - Check your internet connection
+   - Restart your router
+   - Power cycle the hub by unplugging it for 10 seconds, then plugging it back in
+
+3. App can't find hub during setup:
+   - Make sure your phone is connected to the same Wi-Fi network
+   - Ensure the hub's power LED is solid blue
+   - Try moving your phone closer to the hub
+   - Reset the hub by pressing and holding the reset button for 10 seconds
+
+Voice Integration
+---------------
+
+The SmartHome system works with the following voice assistants:
+
+1. Amazon Alexa
+   - Open the Alexa app
+   - Go to Skills & Games
+   - Search for "SmartHome"
+   - Enable the SmartHome skill
+   - Link your SmartHome account
+
+2. Google Assistant
+   - Open the Google Home app
+   - Tap the "+" icon
+   - Select "Set up device"
+   - Choose "Works with Google"
+   - Find and select SmartHome
+   - Link your SmartHome account
+
+3. Apple HomeKit
+   - Open the Home app on your iOS device
+   - Tap the "+" icon
+   - Select "Add Accessory"
+   - Scan the HomeKit setup code found on the bottom of your SmartHome Hub
+   - Follow the prompts to complete setup
+
+Maintenance
+----------
+
+Firmware Updates:
+- The SmartHome Hub checks for updates automatically every 24 hours
+- Updates are installed between 2:00 AM and 4:00 AM local time to minimize disruption
+- You can manually check for updates in the SmartHome app by going to Settings > Hub > Check for Updates
+
+Battery-powered devices:
+- The SmartHome app will notify you when device batteries are running low
+- Most sensors use standard CR2032 or CR2450 coin cell batteries
+- The SmartHome Remote Control uses 2 AAA batteries
+- Average battery life is detailed in the product specifications (typically 1-2 years for sensors)
+
+Factory Reset:
+To reset your SmartHome Hub to factory settings:
+1. Locate the small reset button on the back of the hub
+2. Press and hold for 15 seconds until all LEDs flash
+3. The hub will restart and enter setup mode
+4. Follow the initial setup process in the app
+
+WARNING: Factory reset will delete all your devices, routines, and settings!
+
+Safety Information
+----------------
+
+- The SmartHome Hub and plug-in devices are designed for indoor use only
+- Keep all devices away from water and excessive moisture
+- Do not disassemble any SmartHome devices
+- If a device becomes damaged, discontinue use immediately
+- The SmartHub operates on 5V DC power and presents no electrical hazard
+- Some sensors contain small batteries which should be kept away from children
+
+Customer Support
+--------------
+
+For additional assistance:
+- Visit our support website: https://support.smarthome.example.com
+- Email us: support@smarthome.example.com
+- Call our support line: 1-800-SMART-HOME (1-800-762-7846)
+- Support hours: Monday-Friday 8AM-8PM, Saturday 9AM-5PM Eastern Time

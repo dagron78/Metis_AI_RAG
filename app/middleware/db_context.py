@@ -2,7 +2,9 @@ from fastapi import Request, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
+import asyncio
 from jose import jwt, JWTError
+from starlette.types import ASGIApp, Scope, Receive, Send
 
 from app.db.dependencies import get_db
 from app.core.config import SETTINGS
@@ -20,6 +22,11 @@ async def extract_user_id_from_request(request: Request) -> str:
     Returns:
         User ID if found, None otherwise
     """
+    # Skip token validation for certain paths
+    path = request.url.path.lower()
+    if path.startswith("/static") or path == "/login" or path == "/favicon.ico" or path == "/register" or path.startswith("/api/auth"):
+        return None
+    
     # Get authorization header
     auth_header = request.headers.get("Authorization")
     auth_cookie = request.cookies.get("auth_token")
@@ -54,7 +61,9 @@ async def extract_user_id_from_request(request: Request) -> str:
         
         return user_id
     except JWTError as e:
-        logger.warning(f"JWT validation error in DB context: {str(e)}")
+        # Only log warnings for non-public paths
+        if not (path.startswith("/static") or path == "/login" or path == "/favicon.ico" or path == "/register" or path.startswith("/api/auth")):
+            logger.warning(f"JWT validation error in DB context: {str(e)}")
         return None
 
 
@@ -74,13 +83,13 @@ async def set_db_context(db: AsyncSession, user_id: str = None):
             # Set the current_user_id for RLS policies
             await db.execute(text(f"SET app.current_user_id = '{user_id}'"))
         else:
-            # Set to NULL if no user
-            await db.execute(text("SET app.current_user_id = NULL"))
+            # Set to NULL if no user - use empty string instead of NULL
+            await db.execute(text("SET app.current_user_id = ''"))
     except Exception as e:
         # Log the error but continue
         logger.error(f"Error setting database context: {e}")
-        # Set to NULL if error
-        await db.execute(text("SET app.current_user_id = NULL"))
+        # Set to empty string if error
+        await db.execute(text("SET app.current_user_id = ''"))
     
     return db
 
@@ -90,38 +99,57 @@ class DBContextMiddleware:
     Middleware to set database context for Row Level Security
     """
     
-    async def __call__(self, request: Request, call_next):
+    def __init__(self, app):
+        """
+        Initialize the middleware
+        
+        Args:
+            app: The ASGI application
+        """
+        self.app = app
+    
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """
         Process the request and set the database context
         
         Args:
-            request: FastAPI request
-            call_next: Next middleware or endpoint
-        
+            scope: The ASGI scope
+            receive: The ASGI receive function
+            send: The ASGI send function
+            
         Returns:
-            Response
+            The response from the next middleware or route handler
         """
-        # Get database session
-        db = await get_db()
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+            
+        # Create a request object
+        request = Request(scope)
         
         try:
             # Try to get current user ID
             user_id = await extract_user_id_from_request(request)
-            if user_id:
-                # Set the current_user_id for RLS policies
-                await db.execute(text(f"SET app.current_user_id = '{user_id}'"))
-                logger.debug(f"Set database context for user_id: {user_id}")
-            else:
-                # Set to NULL if no user
-                await db.execute(text("SET app.current_user_id = NULL"))
-                logger.debug("Set database context to NULL (no user)")
+            
+            # Get database session using anext() since get_db() is an async generator
+            db_gen = get_db()
+            db = await anext(db_gen)
+            
+            try:
+                if user_id:
+                    # Set the current_user_id for RLS policies
+                    await db.execute(text(f"SET app.current_user_id = '{user_id}'"))
+                    logger.debug(f"Set database context for user_id: {user_id}")
+                else:
+                    # Set to empty string instead of NULL
+                    await db.execute(text("SET app.current_user_id = ''"))
+                    logger.debug("Set database context to empty string (no user)")
+            except Exception as e:
+                # Log the error but continue
+                logger.error(f"Error setting database context: {e}")
+                # Set to empty string if error
+                await db.execute(text("SET app.current_user_id = ''"))
         except Exception as e:
-            # Log the error but continue
-            logger.error(f"Error setting database context: {e}")
-            # Set to NULL if error
-            await db.execute(text("SET app.current_user_id = NULL"))
+            logger.error(f"Error in DB context middleware: {e}")
         
         # Process the request
-        response = await call_next(request)
-        
-        return response
+        return await self.app(scope, receive, send)

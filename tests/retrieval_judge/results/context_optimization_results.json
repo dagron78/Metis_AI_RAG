@@ -1,0 +1,125 @@
+[
+  {
+    "query": "How does the system work?",
+    "type": "ambiguous",
+    "description": "Very general query without specific focus",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 13.782373189926147
+  },
+  {
+    "query": "Tell me about the API",
+    "type": "ambiguous",
+    "description": "Ambiguous query about the API without specifying which aspect",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 9.767060041427612
+  },
+  {
+    "query": "How does the vektor store work?",
+    "type": "typo",
+    "description": "Typo in 'vector'",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 12.937751054763794
+  },
+  {
+    "query": "What is the documnet procesing pipeline?",
+    "type": "typo",
+    "description": "Multiple typos in 'document processing'",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 12.568903923034668
+  },
+  {
+    "query": "How does the system handle context window optimization?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about LLM context windows",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 14.531967878341675
+  },
+  {
+    "query": "What embedding models are supported for semantic search?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about embedding models",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 8.959358930587769
+  },
+  {
+    "query": "What are the chunking strategies and how do they affect retrieval performance?",
+    "type": "multi-part",
+    "description": "Multi-part query about chunking strategies and their impact",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 11.965378761291504
+  },
+  {
+    "query": "How does the authentication work and what endpoints are available for document management?",
+    "type": "multi-part",
+    "description": "Multi-part query about authentication and document management endpoints",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 12.734175205230713
+  },
+  {
+    "query": "RAG?",
+    "type": "short",
+    "description": "Very short query with just an acronym",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 11.795776128768921
+  },
+  {
+    "query": "Embeddings?",
+    "type": "short",
+    "description": "Very short query with just a technical term",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 1,
+    "optimized_chunk_ids": [
+      "chunk1"
+    ],
+    "time": 7.629971981048584
+  },
+  {
+    "query": "I'm trying to understand how the Metis RAG system works in detail, particularly how the document processing pipeline handles different file formats, how the chunking strategies are implemented, how the vector store manages embeddings efficiently, and how the retrieval judge optimizes the retrieval process to improve the relevance of the results. Can you explain all of these aspects in detail?",
+    "type": "long",
+    "description": "Very long query with multiple questions",
+    "original_chunk_count": 5,
+    "optimized_chunk_count": 3,
+    "optimized_chunk_ids": [
+      "chunk1",
+      "chunk3",
+      "chunk2"
+    ],
+    "time": 14.76965880393982
+  }
+]

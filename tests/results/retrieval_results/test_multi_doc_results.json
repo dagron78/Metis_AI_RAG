@@ -1,0 +1,42 @@
+[
+  {
+    "query": "Compare the MetisRAG Enterprise product with the RAG Engine architecture",
+    "answer": "I'll do my best to provide an accurate and informative response based on the provided context.\n\nTo compare the MetisRAG Enterprise product with the RAG Engine architecture, let's start by looking at the product specifications [2]. The MetisRAG Enterprise product is categorized as software, priced at $4999, and offers advanced RAG capabilities, multi-document retrieval, and enterprise security. This suggests that the product is a comprehensive solution that leverages the RAG Engine architecture.\n\nThe RAG Engine architecture [1] consists of several components, including the frontend layer, API layer, and RAG engine. The RAG engine itself includes document processing, vector store, and LLM integration. It appears that the RAG Engine architecture provides the underlying technology for the MetisRAG Enterprise product.\n\nOne key difference between the product and the architecture is the scope of features offered. The product specifications list advanced capabilities like multi-document retrieval and enterprise security, which are not explicitly mentioned in the RAG Engine architecture documentation. This suggests that the product may offer additional features beyond what's described in the architecture.\n\nHowever, it's important to note that the context doesn't provide direct information on how the MetisRAG Enterprise product specifically utilizes the RAG Engine architecture. For instance, we don't know which specific components of the architecture are used or how they contribute to the product's features and capabilities.\n\nTo better understand the relationship between the product and the architecture, I would recommend consulting additional resources or documentation that provides more detailed information on how the MetisRAG Enterprise product is built upon the RAG Engine architecture.",
+    "expected_facts": [
+      "MetisRAG Enterprise",
+      "$4999",
+      "Advanced RAG capabilities",
+      "RAG Engine",
+      "Document Processing",
+      "Vector Store"
+    ],
+    "facts_found": 6,
+    "fact_percentage": 100.0,
+    "multi_doc_retrieval": true,
+    "correct_sources": true,
+    "source_doc_ids": [
+      "technical_doc",
+      "product_specs",
+      "business_report"
+    ]
+  },
+  {
+    "query": "What is the relationship between the Q1 financial performance and the product offerings?",
+    "answer": "Based on the provided context, it appears that there is a relationship between the Q1 financial performance and the product offerings.\n\nAccording to [1], the company achieved $4.2M in revenue for Q1 2025, representing a 15% increase year-over-year. This strong financial performance can be attributed to the successful launch of three major features (Advanced Analytics Dashboard, Mobile Application Redesign, and API Integration Platform) by the product team.\n\nThe user engagement metrics show a 22% increase in daily active users following these releases, which likely contributed to the revenue growth. Additionally, the marketing team executed campaigns that generated 2,500 new leads, resulting in 300 new customers with a sales conversion rate of 12%. This suggests that the company's product offerings were effective in driving customer acquisition and revenue.\n\nFurthermore, the Customer Success section indicates that customer retention rate remained strong at 94%, which also likely had a positive impact on the financial performance. The overall improvement in key metrics, including revenue, customer acquisition, and product engagement, demonstrates a direct correlation between the Q1 financial performance and the company's product offerings.\n\nIn summary, based on the context, it can be inferred that the successful launch of new features and the resulting increase in user engagement and customer acquisition contributed to the strong financial performance in Q1 2025.",
+    "expected_facts": [
+      "$4.2M in revenue",
+      "MetisRAG Enterprise",
+      "MetisRAG Professional",
+      "MetisRAG Basic"
+    ],
+    "facts_found": 1,
+    "fact_percentage": 25.0,
+    "multi_doc_retrieval": true,
+    "correct_sources": true,
+    "source_doc_ids": [
+      "technical_doc",
+      "product_specs",
+      "business_report"
+    ]
+  }
+]

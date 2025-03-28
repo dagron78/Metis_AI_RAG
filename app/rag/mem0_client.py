@@ -5,8 +5,51 @@ import os
 import logging
 from typing import Optional, Dict, Any, List, Union
 
-from mem0.client import Mem0Client
+# Import Mem0Client only if USE_MEM0 is True
 from app.core.config import MEM0_ENDPOINT, MEM0_API_KEY, USE_MEM0
+
+# Define a dummy Mem0Client class to use when mem0 is not available
+class DummyMem0Client:
+    def __init__(self, *args, **kwargs):
+        pass
+    
+    def get_agent(self, *args, **kwargs):
+        return None
+    
+    def create_agent(self, *args, **kwargs):
+        return None
+    
+    def get_human(self, *args, **kwargs):
+        return None
+    
+    def create_human(self, *args, **kwargs):
+        return None
+    
+    def append_message(self, *args, **kwargs):
+        return None
+    
+    def get_recall_memory(self, *args, **kwargs):
+        return []
+    
+    def create_archival_memory(self, *args, **kwargs):
+        return None
+    
+    def get_archival_memory(self, *args, **kwargs):
+        return []
+    
+    def search_archival_memory(self, *args, **kwargs):
+        return []
+
+# Try to import Mem0Client, fall back to dummy if not available
+try:
+    if USE_MEM0:
+        from mem0.client import Mem0Client
+    else:
+        Mem0Client = DummyMem0Client
+except ImportError:
+    logger = logging.getLogger("app.rag.mem0_client")
+    logger.warning("mem0 module not found, using dummy implementation")
+    Mem0Client = DummyMem0Client
 
 logger = logging.getLogger("app.rag.mem0_client")
 

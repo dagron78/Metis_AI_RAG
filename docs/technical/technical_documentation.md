@@ -96,28 +96,6 @@ Our testing shows the Retrieval Judge significantly improves retrieval quality:
 - Reduces context size by 76.4% on average while maintaining relevance
 - Performs best with domain-specific and complex queries
 
-#### LangGraph RAG Agent
-
-The LangGraph RAG Agent is a state machine-based orchestration layer that coordinates the entire RAG process:
-
-- **State Machine Architecture**: Uses LangGraph to define a flexible, state-based workflow with clear transitions between stages
-- **Integrated Components**: Combines the Chunking Judge, Semantic Chunker, and Retrieval Judge into a cohesive system
-- **Multi-step Reasoning**: Enables complex, multi-step reasoning during the RAG process through a series of specialized nodes:
-  - Query Analysis: Analyzes the query to determine complexity and retrieval parameters
-  - Retrieval: Retrieves relevant chunks from the vector store
-  - Query Refinement: Refines the query if needed based on initial retrieval
-  - Context Optimization: Optimizes the context assembly for generation
-  - Generation: Generates the final response using the optimized context
-
-Key features include:
-- Conditional logic that adapts the workflow based on query characteristics
-- Support for both streaming and non-streaming responses
-- Comprehensive state management throughout the RAG process
-- Robust error handling and fallback mechanisms
-- Detailed logging for transparency and debugging
-
-The LangGraph integration represents a significant advancement in our RAG architecture, moving from a linear pipeline to a more flexible approach that can adapt to different query types and document characteristics.
-
 ## Deployment Options
 
 Metis RAG can be deployed in several ways:
@@ -142,28 +120,12 @@ Metis RAG is configured through environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | OLLAMA_BASE_URL | URL for Ollama API | http://localhost:11434 |
-| DEFAULT_MODEL | Default LLM model | gemma3:4b |
+| DEFAULT_MODEL | Default LLM model | llama3 |
 | DEFAULT_EMBEDDING_MODEL | Model for embeddings | nomic-embed-text |
 | UPLOAD_DIR | Directory for uploaded files | ./uploads |
 | CHROMA_DB_DIR | Directory for vector DB | ./chroma_db |
 | CHUNK_SIZE | Default chunk size | 500 |
 | CHUNK_OVERLAP | Default chunk overlap | 50 |
-| CHUNKING_JUDGE_MODEL | Model for Chunking Judge | gemma3:4b |
-| RETRIEVAL_JUDGE_MODEL | Model for Retrieval Judge | gemma3:4b |
-| USE_CHUNKING_JUDGE | Enable/disable Chunking Judge | True |
-| USE_RETRIEVAL_JUDGE | Enable/disable Retrieval Judge | True |
-| USE_LANGGRAPH_AGENT | Enable/disable LangGraph RAG Agent | True |
-
-### LangChain Integration
-
-Metis RAG uses LangChain for various components:
-
-- Document loaders from `langchain_community.document_loaders`
-- Text splitters from `langchain.text_splitter`
-- Embeddings from `langchain_community.embeddings`
-- Schema definitions from `langchain.schema.document`
-
-The application is compatible with LangChain v0.2+ which has moved many components to separate packages. When upgrading LangChain, be aware of these package changes to ensure imports are correctly updated.
 
 ## API Reference
 
@@ -180,7 +142,6 @@ The application is compatible with LangChain v0.2+ which has moved many componen
 - `POST /api/chat/message` - Send a chat message
 - `GET /api/chat/history` - Get chat history
 - `DELETE /api/chat/history` - Clear chat history
-- `POST /api/chat/langgraph` - Send a message using the LangGraph RAG Agent
 
 ## Performance Considerations
 
@@ -196,7 +157,6 @@ For optimal performance:
 - Enable the Retrieval Judge for complex queries requiring precision
 - Leverage caching for improved performance (33.33% vector store cache hit rate)
 - Consider using a smaller model for the Judges in latency-sensitive applications
-- For complex queries, use the LangGraph RAG Agent for more sophisticated processing
 
 ### Retrieval Judge Performance
 
@@ -215,14 +175,3 @@ The Semantic Chunker provides several advantages over traditional chunking metho
 - Improves retrieval precision by ensuring chunks contain complete concepts
 - Works particularly well with complex, technical, or narrative content
 - Caching mechanism minimizes the performance impact of LLM-based chunking
-
-### LangGraph RAG Agent Performance
-
-The LangGraph RAG Agent provides a more sophisticated approach to RAG:
-- Enables complex, multi-step reasoning through a state machine architecture
-- Adapts the workflow based on query characteristics and initial retrieval results
-- Provides more detailed logging and transparency throughout the RAG process
-- Supports both streaming and non-streaming responses
-- Integrates all LLM-based components (Chunking Judge, Semantic Chunker, Retrieval Judge) into a cohesive system
-
-While the LangGraph RAG Agent adds some overhead to the initial processing time, it provides significant benefits for complex queries that require multiple retrieval steps or query refinement. For simpler queries, the standard RAG engine may be more efficient.

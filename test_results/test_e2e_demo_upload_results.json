@@ -1,0 +1,38 @@
+[
+  {
+    "document_id": "simulated_technical_specs",
+    "document_type": "pdf",
+    "filename": "smart_home_technical_specs.pdf",
+    "success": true,
+    "file_size_bytes": 9036,
+    "processing_time_seconds": 0.09036,
+    "chunk_count": 4
+  },
+  {
+    "document_id": "simulated_user_guide",
+    "document_type": "txt",
+    "filename": "smart_home_user_guide.txt",
+    "success": true,
+    "file_size_bytes": 4177,
+    "processing_time_seconds": 0.04177,
+    "chunk_count": 2
+  },
+  {
+    "document_id": "simulated_device_comparison",
+    "document_type": "csv",
+    "filename": "smart_home_device_comparison.csv",
+    "success": true,
+    "file_size_bytes": 1648,
+    "processing_time_seconds": 0.01648,
+    "chunk_count": 1
+  },
+  {
+    "document_id": "simulated_developer_reference",
+    "document_type": "md",
+    "filename": "smart_home_developer_reference.md",
+    "success": true,
+    "file_size_bytes": 14247,
+    "processing_time_seconds": 0.14247,
+    "chunk_count": 7
+  }
+]

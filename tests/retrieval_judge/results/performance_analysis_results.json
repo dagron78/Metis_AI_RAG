@@ -1,0 +1,147 @@
+[
+  {
+    "query": "What is the architecture of Metis RAG?",
+    "standard": {
+      "total_time": 176.16782879829407,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0.814018726348877,
+        "ollama_generate": 154.82823419570923,
+        "rag_engine_enhanced_retrieval": 155.65416193008423
+      }
+    },
+    "judge": {
+      "total_time": 17.874395847320557,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0,
+        "ollama_generate": 38.319051027297974,
+        "judge_analyze_query": 11.228012084960938,
+        "judge_evaluate_chunks": 6.622217893600464,
+        "rag_engine_enhanced_retrieval": 17.857052087783813
+      }
+    },
+    "cache_stats": {
+      "vector_store_cache_hits": 1,
+      "vector_store_cache_misses": 2,
+      "ollama_cache_hits": 1,
+      "ollama_cache_misses": 5
+    }
+  },
+  {
+    "query": "What are the components of the RAG engine?",
+    "standard": {
+      "total_time": 160.53554272651672,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0.8336210250854492,
+        "ollama_generate": 147.0875780582428,
+        "rag_engine_enhanced_retrieval": 147.9596929550171
+      }
+    },
+    "judge": {
+      "total_time": 17.655393838882446,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0,
+        "ollama_generate": 30.1685574054718,
+        "judge_analyze_query": 11.909356117248535,
+        "judge_evaluate_chunks": 5.723083019256592,
+        "rag_engine_enhanced_retrieval": 17.63789200782776
+      }
+    },
+    "cache_stats": {
+      "vector_store_cache_hits": 2,
+      "vector_store_cache_misses": 4,
+      "ollama_cache_hits": 2,
+      "ollama_cache_misses": 10
+    }
+  },
+  {
+    "query": "How does the vector store work?",
+    "standard": {
+      "total_time": 175.53075098991394,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0.8636059761047363,
+        "ollama_generate": 160.59179711341858,
+        "rag_engine_enhanced_retrieval": 161.46342086791992
+      }
+    },
+    "judge": {
+      "total_time": 18.127063035964966,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0,
+        "ollama_generate": 32.13697576522827,
+        "judge_analyze_query": 11.290737867355347,
+        "judge_evaluate_chunks": 6.814745187759399,
+        "rag_engine_enhanced_retrieval": 18.110551118850708
+      }
+    },
+    "cache_stats": {
+      "vector_store_cache_hits": 3,
+      "vector_store_cache_misses": 6,
+      "ollama_cache_hits": 3,
+      "ollama_cache_misses": 15
+    }
+  },
+  {
+    "query": "What is the role of the LLM integration component?",
+    "standard": {
+      "total_time": 172.4841389656067,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0.8085780143737793,
+        "ollama_generate": 158.92998576164246,
+        "rag_engine_enhanced_retrieval": 159.7460000514984
+      }
+    },
+    "judge": {
+      "total_time": 17.969091653823853,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0,
+        "ollama_generate": 30.641315460205078,
+        "judge_analyze_query": 12.501478910446167,
+        "judge_evaluate_chunks": 5.444411993026733,
+        "rag_engine_enhanced_retrieval": 17.951611757278442
+      }
+    },
+    "cache_stats": {
+      "vector_store_cache_hits": 4,
+      "vector_store_cache_misses": 8,
+      "ollama_cache_hits": 4,
+      "ollama_cache_misses": 20
+    }
+  },
+  {
+    "query": "How does the document processing pipeline work?",
+    "standard": {
+      "total_time": 172.63411116600037,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0.873924970626831,
+        "ollama_generate": 156.8555817604065,
+        "rag_engine_enhanced_retrieval": 157.73775696754456
+      }
+    },
+    "judge": {
+      "total_time": 20.422394037246704,
+      "sources_count": 1,
+      "component_timings": {
+        "vector_store_search": 0,
+        "ollama_generate": 35.2523295879364,
+        "judge_analyze_query": 14.513217687606812,
+        "judge_evaluate_chunks": 5.88365912437439,
+        "rag_engine_enhanced_retrieval": 20.402302980422974
+      }
+    },
+    "cache_stats": {
+      "vector_store_cache_hits": 5,
+      "vector_store_cache_misses": 10,
+      "ollama_cache_hits": 5,
+      "ollama_cache_misses": 25
+    }
+  }
+]

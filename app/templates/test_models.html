@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Test Models - Metis RAG{% endblock %}
+
+{% block head %}
+<style>
+    .test-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .model-list {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .model-item {
+        padding: 5px;
+        margin: 5px 0;
+        background-color: #f5f5f5;
+        border-radius: 3px;
+    }
+    .test-dropdown {
+        width: 100%;
+        padding: 8px;
+        margin-top: 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    <h1>Test Models</h1>
+    
+    <div>
+        <h2>Model Selection Dropdown</h2>
+        <p>This dropdown should be populated with all available models:</p>
+        <select id="test-model-select" class="test-dropdown">
+            <option value="loading">Loading models...</option>
+        </select>
+    </div>
+    
+    <div>
+        <h2>Model List</h2>
+        <p>This list should show all available models:</p>
+        <div id="model-list" class="model-list">
+            <div>Loading models...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/test_models.js') }}"></script>
+{% endblock %}

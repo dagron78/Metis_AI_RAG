@@ -1,0 +1,724 @@
+2025-03-25 11:07:44,662 - test_rag_entity_preservation - INFO - Starting entity preservation and RAG quality tests...
+2025-03-25 11:07:44,662 - test_rag_entity_preservation - INFO - Starting Metis RAG test suite...
+2025-03-25 11:07:44,662 - test_rag_entity_preservation - INFO - Setting up test environment...
+2025-03-25 11:07:44,663 - app.cache.vector_search - INFO - Loaded 9 items from disk cache
+2025-03-25 11:07:44,776 - app.rag.vector_store - INFO - Vector store initialized with collection 'documents', caching enabled
+2025-03-25 11:07:44,776 - test_rag_entity_preservation - INFO - Adding test document: stabilium_overview.md
+2025-03-25 11:07:44,776 - app.rag.vector_store - INFO - Adding document stabilium_overview to vector store
+2025-03-25 11:07:45,251 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:07:45,252 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:07:45,252 - app.rag.vector_store - INFO - Added 3 chunks to vector store for document stabilium_overview
+2025-03-25 11:07:45,252 - test_rag_entity_preservation - INFO - Added document stabilium_overview with 3 chunks
+2025-03-25 11:07:45,252 - test_rag_entity_preservation - INFO - Adding test document: quantum_resonance_modulation.md
+2025-03-25 11:07:45,252 - app.rag.vector_store - INFO - Adding document qrm_overview to vector store
+2025-03-25 11:07:45,357 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:07:45,357 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:07:45,357 - app.rag.vector_store - INFO - Added 3 chunks to vector store for document qrm_overview
+2025-03-25 11:07:45,357 - test_rag_entity_preservation - INFO - Added document qrm_overview with 3 chunks
+2025-03-25 11:07:45,357 - test_rag_entity_preservation - INFO - Adding test document: stabilium_versions_comparison.md
+2025-03-25 11:07:45,357 - app.rag.vector_store - INFO - Adding document stabilium_versions to vector store
+2025-03-25 11:07:45,500 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:07:45,501 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:07:45,501 - app.rag.vector_store - INFO - Added 4 chunks to vector store for document stabilium_versions
+2025-03-25 11:07:45,501 - test_rag_entity_preservation - INFO - Added document stabilium_versions with 4 chunks
+2025-03-25 11:07:45,501 - test_rag_entity_preservation - INFO - Adding test document: heisenberg_uncertainty_principle.md
+2025-03-25 11:07:45,501 - app.rag.vector_store - INFO - Adding document quantum_physics to vector store
+2025-03-25 11:07:45,646 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:07:45,646 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:07:45,646 - app.rag.vector_store - INFO - Added 4 chunks to vector store for document quantum_physics
+2025-03-25 11:07:45,646 - test_rag_entity_preservation - INFO - Added document quantum_physics with 4 chunks
+2025-03-25 11:07:45,646 - test_rag_entity_preservation - INFO - Adding test document: quantum_tunneling_non_euclidean.md
+2025-03-25 11:07:45,646 - app.rag.vector_store - INFO - Adding document advanced_quantum to vector store
+2025-03-25 11:07:45,827 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:07:45,827 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:07:45,827 - app.rag.vector_store - INFO - Added 5 chunks to vector store for document advanced_quantum
+2025-03-25 11:07:45,827 - test_rag_entity_preservation - INFO - Added document advanced_quantum with 5 chunks
+2025-03-25 11:07:45,827 - test_rag_entity_preservation - INFO - Test environment setup complete with 5 documents
+2025-03-25 11:07:45,833 - app.rag.mem0_client - INFO - Mem0 integration is disabled or not available
+2025-03-25 11:07:45,833 - app.cache.manager - INFO - Using default cache configuration
+2025-03-25 11:07:45,833 - app.cache.vector_search - INFO - Loaded 0 items from disk cache
+2025-03-25 11:07:45,834 - app.cache.document - INFO - Loaded 0 items from disk cache
+2025-03-25 11:07:45,834 - app.cache.llm_response - INFO - Loaded 0 items from disk cache
+2025-03-25 11:07:45,834 - app.cache.manager - INFO - Cache manager initialized with caching enabled
+2025-03-25 11:07:45,834 - app.rag.rag_engine - INFO - Retrieval Judge is enabled
+2025-03-25 11:07:45,834 - app.rag.rag_engine - INFO - Mem0 integration is disabled
+2025-03-25 11:07:45,834 - app.rag.rag_engine - INFO - Caching is enabled
+2025-03-25 11:07:45,834 - test_rag_entity_preservation - INFO - Testing query basic_entity: Tell me about Stabilium and its applications in quantum computing.
+2025-03-25 11:07:45,834 - app.rag.rag_engine - INFO - RAG query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:07:45,834 - app.rag.rag_engine - INFO - Generated session user_id: session_63b70044
+2025-03-25 11:07:45,834 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:07:45,834 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:07:45,835 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:08:04,531 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:08:04,533 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:08:04,534 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:08:04,534 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:08:04,534 - app.rag.rag_engine - INFO - Searching with query: Tell me about Stabilium and its applications in quantum computing....
+2025-03-25 11:08:04,534 - app.rag.vector_store - INFO - Cache miss for query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:08:04,534 - app.rag.vector_store - INFO - Searching for documents similar to query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:08:04,577 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:08:04,594 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:08:04,594 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:08:04,594 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'quantum_physics', 'stabilium_versions', 'stabilium_overview', 'qrm_overview'}
+2025-03-25 11:08:04,595 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:08:04,595 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:08:15,474 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:08:15,475 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:08:15,475 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=True
+2025-03-25 11:08:15,475 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=True
+2025-03-25 11:08:15,475 - app.rag.rag_engine - INFO - Refining query based on initial retrieval
+2025-03-25 11:08:20,076 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:08:20,078 - app.rag.agents.retrieval_judge - INFO - Identified key entities in original query: ['Tell', 'Stabilium']
+2025-03-25 11:08:20,078 - app.rag.agents.retrieval_judge - WARNING - Fixed entity typo: 'Stabilium's' → 'Stabilium' (similarity: 0.82)
+2025-03-25 11:08:20,078 - app.rag.agents.retrieval_judge - INFO - Original query: 'Tell me about Stabilium and its applications in quantum computing.' → Refined query: 'Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds for quantum teleportation and quantum sensing.'
+2025-03-25 11:08:20,079 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge refined query from 'Tell me about Stabilium and its applications in quantum computing.' to 'Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds for quantum teleportation and quantum sensing.'
+2025-03-25 11:08:20,079 - app.rag.rag_engine - INFO - Refined query: Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds for quantum teleportation and quantum sensing.
+2025-03-25 11:08:20,079 - app.rag.vector_store - INFO - Cache miss for query: Tell me about Stabilium applications in quantum co...
+2025-03-25 11:08:20,079 - app.rag.vector_store - INFO - Searching for documents similar to query: Tell me about Stabilium applications in quantum co...
+2025-03-25 11:08:20,113 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:08:20,118 - app.rag.vector_store - INFO - Raw search results: 10 chunks found
+2025-03-25 11:08:20,119 - app.rag.vector_store - INFO - Found 10 similar documents
+2025-03-25 11:08:20,119 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'stabilium_overview', 'stabilium_versions', 'quantum_physics'}
+2025-03-25 11:08:20,119 - app.rag.rag_engine - INFO - Retrieved 10 additional chunks with refined query
+2025-03-25 11:08:20,120 - app.rag.rag_engine - INFO - Re-evaluating all chunks after query refinement
+2025-03-25 11:08:31,526 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:08:31,528 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:08:31,528 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:08:31,528 - app.rag.rag_engine - INFO - Initial filtering: 6 chunks passed relevance threshold 0.7
+2025-03-25 11:08:31,528 - app.rag.rag_engine - INFO - Total context length: 6000 characters
+2025-03-25 11:08:31,528 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:08:31,528 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:08:47,303 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:08:47,304 - app.rag.agents.retrieval_judge - ERROR - Error parsing context optimization: Expecting ',' delimiter: line 6 column 4 (char 1784)
+2025-03-25 11:08:47,304 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 6 to 6 chunks
+2025-03-25 11:08:47,304 - app.rag.rag_engine - INFO - Using 6 chunks after optimization
+2025-03-25 11:08:47,304 - app.rag.rag_engine - INFO - Using 6 chunks after Retrieval Judge optimization
+2025-03-25 11:08:47,304 - app.rag.rag_engine - INFO - Total context length: 6891 characters
+2025-03-25 11:08:47,307 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:08:47,307 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:08:47,308 - app.rag.rag_engine - INFO - Cache miss, generating new response
+2025-03-25 11:08:56,493 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:08:56,495 - app.rag.rag_engine - INFO - Response time: 70660.73ms
+2025-03-25 11:08:56,497 - app.rag.rag_engine - INFO - Response cached for future use
+2025-03-25 11:08:56,498 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:08:56,498 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:08:56,498 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:08:56,499 - app.rag.rag_engine - INFO - Response length: 713 characters
+2025-03-25 11:08:56,515 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:08:56,580 - app.rag.rag_engine - INFO - Memory optimization performed
+2025-03-25 11:08:56,581 - test_rag_entity_preservation - INFO - Query basic_entity completed in 70.75s
+2025-03-25 11:08:57,583 - test_rag_entity_preservation - INFO - Testing query multi_entity: Compare the properties of Stabilium and Quantum Resonance Modulation in cold fusion experiments.
+2025-03-25 11:08:57,584 - app.rag.rag_engine - INFO - RAG query: Compare the properties of Stabilium and Quantum Re...
+2025-03-25 11:08:57,584 - app.rag.rag_engine - INFO - Generated session user_id: session_59ffcb9f
+2025-03-25 11:08:57,584 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:08:57,584 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:08:57,586 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:09:11,347 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:09:11,348 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:09:11,348 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:09:11,348 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:09:11,349 - app.rag.rag_engine - INFO - Searching with query: Compare the properties of Stabilium and Quantum Resonance Modulation in cold fusion experiments....
+2025-03-25 11:09:11,349 - app.rag.vector_store - INFO - Cache miss for query: Compare the properties of Stabilium and Quantum Re...
+2025-03-25 11:09:11,349 - app.rag.vector_store - INFO - Searching for documents similar to query: Compare the properties of Stabilium and Quantum Re...
+2025-03-25 11:09:11,370 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:09:11,376 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:09:11,376 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:09:11,376 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'quantum_physics', 'stabilium_versions', 'stabilium_overview', 'qrm_overview'}
+2025-03-25 11:09:11,377 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:09:11,377 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:09:21,313 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:09:21,315 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:09:21,315 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:09:21,315 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=False
+2025-03-25 11:09:21,315 - app.rag.rag_engine - INFO - Initial filtering: 4 chunks passed relevance threshold 0.7
+2025-03-25 11:09:21,315 - app.rag.rag_engine - INFO - Total context length: 3727 characters
+2025-03-25 11:09:21,315 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:09:21,315 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:09:32,349 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:09:32,350 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 4 to 1 chunks
+2025-03-25 11:09:32,350 - app.rag.rag_engine - WARNING - Optimization reduced chunks below minimum (1 < 3), using original results
+2025-03-25 11:09:32,351 - app.rag.rag_engine - INFO - Using 4 chunks after Retrieval Judge optimization
+2025-03-25 11:09:32,351 - app.rag.rag_engine - INFO - Total context length: 4217 characters
+2025-03-25 11:09:32,351 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:09:32,352 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:09:32,352 - app.rag.rag_engine - INFO - Cache miss, generating new response
+2025-03-25 11:09:45,067 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:09:45,068 - app.rag.rag_engine - INFO - Response time: 47484.80ms
+2025-03-25 11:09:45,070 - app.rag.rag_engine - INFO - Response cached for future use
+2025-03-25 11:09:45,070 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:09:45,070 - app.rag.rag_engine - INFO - Fixed contradictions in response
+2025-03-25 11:09:45,071 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:09:45,071 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:09:45,071 - app.rag.rag_engine - INFO - Response length: 222 characters
+2025-03-25 11:09:45,086 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:09:45,087 - test_rag_entity_preservation - INFO - Query multi_entity completed in 47.50s
+2025-03-25 11:09:46,089 - test_rag_entity_preservation - INFO - Testing query potential_ambiguity: What are the differences between Stabilium QRM-12X and earlier versions?
+2025-03-25 11:09:46,089 - app.rag.rag_engine - INFO - RAG query: What are the differences between Stabilium QRM-12X...
+2025-03-25 11:09:46,089 - app.rag.rag_engine - INFO - Generated session user_id: session_8f743d99
+2025-03-25 11:09:46,089 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:09:46,089 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:09:46,091 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:09:55,172 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:09:55,173 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'moderate' with k=8
+2025-03-25 11:09:55,174 - app.rag.rag_engine - INFO - Query complexity: moderate
+2025-03-25 11:09:55,174 - app.rag.rag_engine - INFO - Recommended parameters: k=8, threshold=0.6, reranking=True
+2025-03-25 11:09:55,174 - app.rag.rag_engine - INFO - Searching with query: What are the differences between Stabilium QRM-12X and earlier versions?...
+2025-03-25 11:09:55,174 - app.rag.vector_store - INFO - Cache miss for query: What are the differences between Stabilium QRM-12X...
+2025-03-25 11:09:55,174 - app.rag.vector_store - INFO - Searching for documents similar to query: What are the differences between Stabilium QRM-12X...
+2025-03-25 11:09:55,194 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:09:55,199 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:09:55,199 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:09:55,199 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'quantum_physics', 'stabilium_versions', 'stabilium_overview', 'qrm_overview'}
+2025-03-25 11:09:55,201 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:09:55,201 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:10:05,939 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:10:05,940 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:10:05,940 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:10:05,940 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=False
+2025-03-25 11:10:05,940 - app.rag.rag_engine - INFO - Initial filtering: 5 chunks passed relevance threshold 0.6
+2025-03-25 11:10:05,940 - app.rag.rag_engine - INFO - Total context length: 4727 characters
+2025-03-25 11:10:05,940 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:10:05,940 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:10:24,947 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:10:24,948 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 5 to 5 chunks
+2025-03-25 11:10:24,948 - app.rag.rag_engine - INFO - Using 5 chunks after optimization
+2025-03-25 11:10:24,948 - app.rag.rag_engine - INFO - Using 5 chunks after Retrieval Judge optimization
+2025-03-25 11:10:24,948 - app.rag.rag_engine - INFO - Total context length: 5399 characters
+2025-03-25 11:10:24,948 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:10:24,949 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:10:24,949 - app.rag.rag_engine - INFO - Cache miss, generating new response
+2025-03-25 11:10:40,303 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:10:40,305 - app.rag.rag_engine - INFO - Response time: 54215.63ms
+2025-03-25 11:10:40,307 - app.rag.rag_engine - INFO - Response cached for future use
+2025-03-25 11:10:40,308 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:10:40,308 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:10:40,308 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:10:40,308 - app.rag.rag_engine - INFO - Response length: 1062 characters
+2025-03-25 11:10:40,324 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:10:40,324 - test_rag_entity_preservation - INFO - Query potential_ambiguity completed in 54.24s
+2025-03-25 11:10:41,326 - test_rag_entity_preservation - INFO - Testing query context_synthesis: How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?
+2025-03-25 11:10:41,326 - app.rag.rag_engine - INFO - RAG query: How does Stabilium interact with Heisenberg's Unce...
+2025-03-25 11:10:41,327 - app.rag.rag_engine - INFO - Generated session user_id: session_b17fc00c
+2025-03-25 11:10:41,327 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:10:41,327 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:10:41,328 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:10:51,555 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:10:51,556 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:10:51,556 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:10:51,556 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:10:51,556 - app.rag.rag_engine - INFO - Searching with query: How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglemen...
+2025-03-25 11:10:51,556 - app.rag.vector_store - INFO - Cache miss for query: How does Stabilium interact with Heisenberg's Unce...
+2025-03-25 11:10:51,556 - app.rag.vector_store - INFO - Searching for documents similar to query: How does Stabilium interact with Heisenberg's Unce...
+2025-03-25 11:10:51,577 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:10:51,582 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:10:51,582 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:10:51,582 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'quantum_physics', 'stabilium_versions', 'stabilium_overview', 'qrm_overview'}
+2025-03-25 11:10:51,584 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:10:51,584 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:11:02,466 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:11:02,467 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:11:02,467 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=True
+2025-03-25 11:11:02,468 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=True
+2025-03-25 11:11:02,468 - app.rag.rag_engine - INFO - Refining query based on initial retrieval
+2025-03-25 11:11:07,086 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:11:07,087 - app.rag.agents.retrieval_judge - INFO - Identified key entities in original query: ['How', 'Stabilium', "Heisenberg's", 'Uncertainty', 'Principle']
+2025-03-25 11:11:07,087 - app.rag.agents.retrieval_judge - WARNING - Fixed entity typo: 'Stabilium's' → 'Stabilium' (similarity: 0.82)
+2025-03-25 11:11:07,087 - app.rag.agents.retrieval_judge - INFO - Original query: 'How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?' → Refined query: 'How does Stabilium extended coherence and topological protection, as demonstrated in experiments probing the uncertainty principle's boundaries and enabling multi-particle entangled tunneling through non-Euclidean space-time manifolds, interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?'
+2025-03-25 11:11:07,087 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge refined query from 'How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?' to 'How does Stabilium extended coherence and topological protection, as demonstrated in experiments probing the uncertainty principle's boundaries and enabling multi-particle entangled tunneling through non-Euclidean space-time manifolds, interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?'
+2025-03-25 11:11:07,087 - app.rag.rag_engine - INFO - Refined query: How does Stabilium extended coherence and topological protection, as demonstrated in experiments probing the uncertainty principle's boundaries and enabling multi-particle entangled tunneling through non-Euclidean space-time manifolds, interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?
+2025-03-25 11:11:07,087 - app.rag.vector_store - INFO - Cache miss for query: How does Stabilium extended coherence and topologi...
+2025-03-25 11:11:07,088 - app.rag.vector_store - INFO - Searching for documents similar to query: How does Stabilium extended coherence and topologi...
+2025-03-25 11:11:07,115 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:11:07,121 - app.rag.vector_store - INFO - Raw search results: 10 chunks found
+2025-03-25 11:11:07,121 - app.rag.vector_store - INFO - Found 10 similar documents
+2025-03-25 11:11:07,121 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'stabilium_overview', 'quantum_physics'}
+2025-03-25 11:11:07,122 - app.rag.rag_engine - INFO - Retrieved 10 additional chunks with refined query
+2025-03-25 11:11:07,122 - app.rag.rag_engine - INFO - Re-evaluating all chunks after query refinement
+2025-03-25 11:11:17,093 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:11:17,094 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:11:17,095 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:11:17,095 - app.rag.rag_engine - INFO - Initial filtering: 5 chunks passed relevance threshold 0.7
+2025-03-25 11:11:17,095 - app.rag.rag_engine - INFO - Total context length: 5000 characters
+2025-03-25 11:11:17,095 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:11:17,095 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:11:30,338 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:11:30,340 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 5 to 3 chunks
+2025-03-25 11:11:30,340 - app.rag.rag_engine - INFO - Using 3 chunks after optimization
+2025-03-25 11:11:30,340 - app.rag.rag_engine - INFO - Using 3 chunks after Retrieval Judge optimization
+2025-03-25 11:11:30,340 - app.rag.rag_engine - INFO - Total context length: 3475 characters
+2025-03-25 11:11:30,340 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:11:30,341 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:11:30,341 - app.rag.rag_engine - INFO - Cache miss, generating new response
+2025-03-25 11:11:38,320 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:11:38,321 - app.rag.rag_engine - INFO - Response time: 56994.75ms
+2025-03-25 11:11:38,323 - app.rag.rag_engine - INFO - Response cached for future use
+2025-03-25 11:11:38,324 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:11:38,324 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:11:38,324 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:11:38,324 - app.rag.rag_engine - INFO - Response length: 728 characters
+2025-03-25 11:11:38,341 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:11:38,397 - app.rag.rag_engine - INFO - Memory optimization performed
+2025-03-25 11:11:38,397 - test_rag_entity_preservation - INFO - Query context_synthesis completed in 57.07s
+2025-03-25 11:11:39,400 - test_rag_entity_preservation - INFO - Testing query specialized_terminology: Explain the role of Stabilium in facilitating quantum tunneling through non-Euclidean space-time manifolds.
+2025-03-25 11:11:39,402 - app.rag.rag_engine - INFO - RAG query: Explain the role of Stabilium in facilitating quan...
+2025-03-25 11:11:39,402 - app.rag.rag_engine - INFO - Generated session user_id: session_917698f8
+2025-03-25 11:11:39,402 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:11:39,402 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:11:39,404 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:11:53,884 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:11:53,886 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:11:53,886 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:11:53,886 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:11:53,886 - app.rag.rag_engine - INFO - Searching with query: Explain the role of Stabilium in facilitating quantum tunneling through non-Euclidean space-time man...
+2025-03-25 11:11:53,887 - app.rag.vector_store - INFO - Cache miss for query: Explain the role of Stabilium in facilitating quan...
+2025-03-25 11:11:53,887 - app.rag.vector_store - INFO - Searching for documents similar to query: Explain the role of Stabilium in facilitating quan...
+2025-03-25 11:11:53,906 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:11:53,912 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:11:53,912 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:11:53,912 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'quantum_physics', 'stabilium_versions', 'stabilium_overview', 'qrm_overview'}
+2025-03-25 11:11:53,914 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:11:53,914 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:12:04,334 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:12:04,335 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:12:04,335 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:12:04,335 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=False
+2025-03-25 11:12:04,335 - app.rag.rag_engine - INFO - Initial filtering: 4 chunks passed relevance threshold 0.7
+2025-03-25 11:12:04,335 - app.rag.rag_engine - INFO - Total context length: 4000 characters
+2025-03-25 11:12:04,336 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:12:04,336 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:12:21,437 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:12:21,438 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 4 to 1 chunks
+2025-03-25 11:12:21,438 - app.rag.rag_engine - WARNING - Optimization reduced chunks below minimum (1 < 3), using original results
+2025-03-25 11:12:21,438 - app.rag.rag_engine - INFO - Using 4 chunks after Retrieval Judge optimization
+2025-03-25 11:12:21,438 - app.rag.rag_engine - INFO - Total context length: 4722 characters
+2025-03-25 11:12:21,439 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:12:21,439 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:12:21,439 - app.rag.rag_engine - INFO - Cache miss, generating new response
+2025-03-25 11:12:30,864 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:12:30,865 - app.rag.rag_engine - INFO - Response time: 51463.49ms
+2025-03-25 11:12:30,868 - app.rag.rag_engine - INFO - Response cached for future use
+2025-03-25 11:12:30,869 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:12:30,869 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:12:30,869 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:12:30,869 - app.rag.rag_engine - INFO - Response length: 829 characters
+2025-03-25 11:12:30,884 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:12:30,885 - test_rag_entity_preservation - INFO - Query specialized_terminology completed in 51.48s
+2025-03-25 11:12:31,888 - test_rag_entity_preservation - INFO - Test suite completed!
+2025-03-25 11:12:31,888 - test_rag_entity_preservation - INFO - All tests completed!
+2025-03-25 11:17:09,194 - test_rag_entity_preservation - INFO - Starting entity preservation and RAG quality tests...
+2025-03-25 11:17:09,194 - test_rag_entity_preservation - INFO - Starting Metis RAG test suite...
+2025-03-25 11:17:09,194 - test_rag_entity_preservation - INFO - Setting up test environment...
+2025-03-25 11:17:09,197 - app.cache.vector_search - INFO - Loaded 7 items from disk cache
+2025-03-25 11:17:09,342 - app.rag.vector_store - INFO - Vector store initialized with collection 'documents', caching enabled
+2025-03-25 11:17:09,342 - test_rag_entity_preservation - INFO - Adding test document: stabilium_overview.md
+2025-03-25 11:17:09,342 - app.rag.vector_store - INFO - Adding document stabilium_overview to vector store
+2025-03-25 11:17:09,928 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:17:09,928 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:17:09,928 - app.rag.vector_store - INFO - Added 3 chunks to vector store for document stabilium_overview
+2025-03-25 11:17:09,928 - test_rag_entity_preservation - INFO - Added document stabilium_overview with 3 chunks
+2025-03-25 11:17:09,928 - test_rag_entity_preservation - INFO - Adding test document: quantum_resonance_modulation.md
+2025-03-25 11:17:09,928 - app.rag.vector_store - INFO - Adding document qrm_overview to vector store
+2025-03-25 11:17:10,022 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:17:10,022 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:17:10,022 - app.rag.vector_store - INFO - Added 3 chunks to vector store for document qrm_overview
+2025-03-25 11:17:10,022 - test_rag_entity_preservation - INFO - Added document qrm_overview with 3 chunks
+2025-03-25 11:17:10,022 - test_rag_entity_preservation - INFO - Adding test document: stabilium_versions_comparison.md
+2025-03-25 11:17:10,022 - app.rag.vector_store - INFO - Adding document stabilium_versions to vector store
+2025-03-25 11:17:10,156 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:17:10,157 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:17:10,157 - app.rag.vector_store - INFO - Added 4 chunks to vector store for document stabilium_versions
+2025-03-25 11:17:10,157 - test_rag_entity_preservation - INFO - Added document stabilium_versions with 4 chunks
+2025-03-25 11:17:10,157 - test_rag_entity_preservation - INFO - Adding test document: heisenberg_uncertainty_principle.md
+2025-03-25 11:17:10,157 - app.rag.vector_store - INFO - Adding document quantum_physics to vector store
+2025-03-25 11:17:10,286 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:17:10,286 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:17:10,286 - app.rag.vector_store - INFO - Added 4 chunks to vector store for document quantum_physics
+2025-03-25 11:17:10,286 - test_rag_entity_preservation - INFO - Added document quantum_physics with 4 chunks
+2025-03-25 11:17:10,286 - test_rag_entity_preservation - INFO - Adding test document: quantum_tunneling_non_euclidean.md
+2025-03-25 11:17:10,286 - app.rag.vector_store - INFO - Adding document advanced_quantum to vector store
+2025-03-25 11:17:10,453 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:17:10,453 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:17:10,453 - app.rag.vector_store - INFO - Added 5 chunks to vector store for document advanced_quantum
+2025-03-25 11:17:10,453 - test_rag_entity_preservation - INFO - Added document advanced_quantum with 5 chunks
+2025-03-25 11:17:10,453 - test_rag_entity_preservation - INFO - Test environment setup complete with 5 documents
+2025-03-25 11:17:10,458 - app.rag.mem0_client - INFO - Mem0 integration is disabled or not available
+2025-03-25 11:17:10,458 - app.cache.manager - INFO - Using default cache configuration
+2025-03-25 11:17:10,458 - app.cache.vector_search - INFO - Loaded 0 items from disk cache
+2025-03-25 11:17:10,458 - app.cache.document - INFO - Loaded 0 items from disk cache
+2025-03-25 11:17:10,458 - app.cache.llm_response - INFO - Loaded 5 items from disk cache
+2025-03-25 11:17:10,458 - app.cache.manager - INFO - Cache manager initialized with caching enabled
+2025-03-25 11:17:10,458 - app.rag.rag_engine - INFO - Retrieval Judge is enabled
+2025-03-25 11:17:10,458 - app.rag.rag_engine - INFO - Mem0 integration is disabled
+2025-03-25 11:17:10,458 - app.rag.rag_engine - INFO - Caching is enabled
+2025-03-25 11:17:10,458 - test_rag_entity_preservation - INFO - Testing query basic_entity: Tell me about Stabilium and its applications in quantum computing.
+2025-03-25 11:17:10,458 - app.rag.rag_engine - INFO - RAG query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:17:10,458 - app.rag.rag_engine - INFO - Generated session user_id: session_6df4ee6e
+2025-03-25 11:17:10,458 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:17:10,459 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:17:10,459 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:17:25,354 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:17:25,355 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:17:25,356 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:17:25,356 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:17:25,356 - app.rag.rag_engine - INFO - Searching with query: Tell me about Stabilium and its applications in quantum computing....
+2025-03-25 11:17:25,356 - app.rag.vector_store - INFO - Cache miss for query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:17:25,356 - app.rag.vector_store - INFO - Searching for documents similar to query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:17:25,372 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:17:25,379 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:17:25,380 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:17:25,380 - app.rag.vector_store - INFO - Documents retrieved: {'qrm_overview', 'advanced_quantum', 'stabilium_overview', 'stabilium_versions', 'quantum_physics'}
+2025-03-25 11:17:25,381 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:17:25,381 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:17:36,978 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:17:36,980 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:17:36,980 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=True
+2025-03-25 11:17:36,980 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=True
+2025-03-25 11:17:36,980 - app.rag.rag_engine - INFO - Refining query based on initial retrieval
+2025-03-25 11:17:41,391 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:17:41,392 - app.rag.agents.retrieval_judge - INFO - Identified key entities in original query: ['Tell', 'Stabilium']
+2025-03-25 11:17:41,392 - app.rag.agents.retrieval_judge - WARNING - Fixed entity typo: 'Stabilium's' → 'Stabilium' (similarity: 0.82)
+2025-03-25 11:17:41,392 - app.rag.agents.retrieval_judge - INFO - Original query: 'Tell me about Stabilium and its applications in quantum computing.' → Refined query: 'Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds.'
+2025-03-25 11:17:41,392 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge refined query from 'Tell me about Stabilium and its applications in quantum computing.' to 'Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds.'
+2025-03-25 11:17:41,393 - app.rag.rag_engine - INFO - Refined query: Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds.
+2025-03-25 11:17:41,393 - app.rag.vector_store - INFO - Cache miss for query: Tell me about Stabilium applications in quantum co...
+2025-03-25 11:17:41,393 - app.rag.vector_store - INFO - Searching for documents similar to query: Tell me about Stabilium applications in quantum co...
+2025-03-25 11:17:41,414 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:17:41,419 - app.rag.vector_store - INFO - Raw search results: 10 chunks found
+2025-03-25 11:17:41,419 - app.rag.vector_store - INFO - Found 10 similar documents
+2025-03-25 11:17:41,419 - app.rag.vector_store - INFO - Documents retrieved: {'advanced_quantum', 'stabilium_versions', 'quantum_physics', 'stabilium_overview'}
+2025-03-25 11:17:41,421 - app.rag.rag_engine - INFO - Retrieved 10 additional chunks with refined query
+2025-03-25 11:17:41,421 - app.rag.rag_engine - INFO - Re-evaluating all chunks after query refinement
+2025-03-25 11:17:52,236 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:17:52,238 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:17:52,238 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 16 chunks, needs_refinement=False
+2025-03-25 11:17:52,238 - app.rag.rag_engine - INFO - Initial filtering: 6 chunks passed relevance threshold 0.7
+2025-03-25 11:17:52,238 - app.rag.rag_engine - INFO - Total context length: 6000 characters
+2025-03-25 11:17:52,238 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:17:52,238 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:18:10,163 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:18:10,165 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 6 to 5 chunks
+2025-03-25 11:18:10,165 - app.rag.rag_engine - INFO - Using 5 chunks after optimization
+2025-03-25 11:18:10,165 - app.rag.rag_engine - INFO - Using 5 chunks after Retrieval Judge optimization
+2025-03-25 11:18:10,165 - app.rag.rag_engine - INFO - Total context length: 5744 characters
+2025-03-25 11:18:10,168 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:18:10,168 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:18:10,168 - app.rag.rag_engine - INFO - Cache miss, generating new response
+2025-03-25 11:18:26,600 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:18:26,602 - app.rag.rag_engine - INFO - Response time: 76143.58ms
+2025-03-25 11:18:26,604 - app.rag.rag_engine - INFO - Response cached for future use
+2025-03-25 11:18:26,606 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:18:26,606 - app.rag.rag_engine - INFO - Fixed contradictions in response
+2025-03-25 11:18:26,606 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:18:26,606 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:18:26,606 - app.rag.rag_engine - INFO - Response length: 292 characters
+2025-03-25 11:18:26,623 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:18:26,624 - test_rag_entity_preservation - INFO - Query basic_entity completed in 76.17s
+2025-03-25 11:18:26,624 - test_rag_entity_preservation - ERROR - Error running test suite: name 're' is not defined
+Traceback (most recent call last):
+  File "/Users/charleshoward/Metis_RAG/tests/test_rag_entity_preservation.py", line 816, in main
+    await run_test_suite()
+  File "/Users/charleshoward/Metis_RAG/tests/test_rag_entity_preservation.py", line 730, in run_test_suite
+    result = await test_query(rag_engine, test["query"], test["id"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/charleshoward/Metis_RAG/tests/test_rag_entity_preservation.py", line 556, in test_query
+    chunks_info = extract_chunks_info_from_logs(logs)
+  File "/Users/charleshoward/Metis_RAG/tests/test_rag_entity_preservation.py", line 506, in extract_chunks_info_from_logs
+    retrieved_match = re.search(retrieved_pattern, message)
+                      ^^
+NameError: name 're' is not defined. Did you forget to import 're'?
+2025-03-25 11:18:26,625 - test_rag_entity_preservation - INFO - All tests completed!
+2025-03-25 11:33:32,382 - test_rag_entity_preservation - INFO - Starting entity preservation and RAG quality tests...
+2025-03-25 11:33:32,382 - test_rag_entity_preservation - INFO - Starting Metis RAG test suite...
+2025-03-25 11:33:32,382 - test_rag_entity_preservation - INFO - Setting up test environment...
+2025-03-25 11:33:32,383 - app.cache.vector_search - INFO - Loaded 2 items from disk cache
+2025-03-25 11:33:32,488 - app.rag.vector_store - INFO - Vector store initialized with collection 'documents', caching enabled
+2025-03-25 11:33:32,489 - test_rag_entity_preservation - INFO - Adding test document: stabilium_overview.md
+2025-03-25 11:33:32,489 - app.rag.vector_store - INFO - Adding document stabilium_overview to vector store
+2025-03-25 11:33:32,934 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:33:32,934 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:33:32,934 - app.rag.vector_store - INFO - Added 3 chunks to vector store for document stabilium_overview
+2025-03-25 11:33:32,934 - test_rag_entity_preservation - INFO - Added document stabilium_overview with 3 chunks
+2025-03-25 11:33:32,934 - test_rag_entity_preservation - INFO - Adding test document: quantum_resonance_modulation.md
+2025-03-25 11:33:32,934 - app.rag.vector_store - INFO - Adding document qrm_overview to vector store
+2025-03-25 11:33:33,039 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:33:33,039 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:33:33,039 - app.rag.vector_store - INFO - Added 3 chunks to vector store for document qrm_overview
+2025-03-25 11:33:33,039 - test_rag_entity_preservation - INFO - Added document qrm_overview with 3 chunks
+2025-03-25 11:33:33,039 - test_rag_entity_preservation - INFO - Adding test document: stabilium_versions_comparison.md
+2025-03-25 11:33:33,039 - app.rag.vector_store - INFO - Adding document stabilium_versions to vector store
+2025-03-25 11:33:33,188 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:33:33,188 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:33:33,188 - app.rag.vector_store - INFO - Added 4 chunks to vector store for document stabilium_versions
+2025-03-25 11:33:33,188 - test_rag_entity_preservation - INFO - Added document stabilium_versions with 4 chunks
+2025-03-25 11:33:33,188 - test_rag_entity_preservation - INFO - Adding test document: heisenberg_uncertainty_principle.md
+2025-03-25 11:33:33,188 - app.rag.vector_store - INFO - Adding document quantum_physics to vector store
+2025-03-25 11:33:33,336 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:33:33,336 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:33:33,336 - app.rag.vector_store - INFO - Added 4 chunks to vector store for document quantum_physics
+2025-03-25 11:33:33,336 - test_rag_entity_preservation - INFO - Added document quantum_physics with 4 chunks
+2025-03-25 11:33:33,336 - test_rag_entity_preservation - INFO - Adding test document: quantum_tunneling_non_euclidean.md
+2025-03-25 11:33:33,336 - app.rag.vector_store - INFO - Adding document advanced_quantum to vector store
+2025-03-25 11:33:33,519 - app.cache.vector_search - INFO - Cache 'vector_search' cleared
+2025-03-25 11:33:33,519 - app.rag.vector_store - INFO - Vector store cache cleared
+2025-03-25 11:33:33,519 - app.rag.vector_store - INFO - Added 5 chunks to vector store for document advanced_quantum
+2025-03-25 11:33:33,519 - test_rag_entity_preservation - INFO - Added document advanced_quantum with 5 chunks
+2025-03-25 11:33:33,519 - test_rag_entity_preservation - INFO - Test environment setup complete with 5 documents
+2025-03-25 11:33:33,526 - app.rag.mem0_client - INFO - Mem0 integration is disabled or not available
+2025-03-25 11:33:33,526 - app.cache.manager - INFO - Using default cache configuration
+2025-03-25 11:33:33,526 - app.cache.vector_search - INFO - Loaded 0 items from disk cache
+2025-03-25 11:33:33,526 - app.cache.document - INFO - Loaded 0 items from disk cache
+2025-03-25 11:33:33,527 - app.cache.llm_response - INFO - Loaded 6 items from disk cache
+2025-03-25 11:33:33,527 - app.cache.manager - INFO - Cache manager initialized with caching enabled
+2025-03-25 11:33:33,527 - app.rag.rag_engine - INFO - Retrieval Judge is enabled
+2025-03-25 11:33:33,527 - app.rag.rag_engine - INFO - Mem0 integration is disabled
+2025-03-25 11:33:33,527 - app.rag.rag_engine - INFO - Caching is enabled
+2025-03-25 11:33:33,527 - test_rag_entity_preservation - INFO - Testing query basic_entity: Tell me about Stabilium and its applications in quantum computing.
+2025-03-25 11:33:33,527 - app.rag.rag_engine - INFO - RAG query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:33:33,527 - app.rag.rag_engine - INFO - Generated session user_id: session_7d49ed44
+2025-03-25 11:33:33,527 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:33:33,527 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:33:33,528 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:33:51,672 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:33:51,675 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:33:51,675 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:33:51,675 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:33:51,675 - app.rag.rag_engine - INFO - Searching with query: Tell me about Stabilium and its applications in quantum computing....
+2025-03-25 11:33:51,675 - app.rag.vector_store - INFO - Cache miss for query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:33:51,675 - app.rag.vector_store - INFO - Searching for documents similar to query: Tell me about Stabilium and its applications in qu...
+2025-03-25 11:33:51,699 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:33:51,704 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:33:51,704 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:33:51,704 - app.rag.vector_store - INFO - Documents retrieved: {'stabilium_versions', 'advanced_quantum', 'qrm_overview', 'stabilium_overview', 'quantum_physics'}
+2025-03-25 11:33:51,705 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:33:51,705 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:34:03,066 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:34:03,067 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:34:03,067 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=True
+2025-03-25 11:34:03,067 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=True
+2025-03-25 11:34:03,067 - app.rag.rag_engine - INFO - Refining query based on initial retrieval
+2025-03-25 11:34:07,427 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:34:07,428 - app.rag.agents.retrieval_judge - INFO - Identified key entities in original query: ['Tell', 'Stabilium']
+2025-03-25 11:34:07,429 - app.rag.agents.retrieval_judge - WARNING - Fixed entity typo: 'Stabilium's' → 'Stabilium' (similarity: 0.82)
+2025-03-25 11:34:07,429 - app.rag.agents.retrieval_judge - INFO - Original query: 'Tell me about Stabilium and its applications in quantum computing.' → Refined query: 'Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds.'
+2025-03-25 11:34:07,429 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge refined query from 'Tell me about Stabilium and its applications in quantum computing.' to 'Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds.'
+2025-03-25 11:34:07,429 - app.rag.rag_engine - INFO - Refined query: Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds.
+2025-03-25 11:34:07,429 - app.rag.vector_store - INFO - Cache miss for query: Tell me about Stabilium applications in quantum co...
+2025-03-25 11:34:07,429 - app.rag.vector_store - INFO - Searching for documents similar to query: Tell me about Stabilium applications in quantum co...
+2025-03-25 11:34:07,453 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:34:07,457 - app.rag.vector_store - INFO - Raw search results: 10 chunks found
+2025-03-25 11:34:07,457 - app.rag.vector_store - INFO - Found 10 similar documents
+2025-03-25 11:34:07,457 - app.rag.vector_store - INFO - Documents retrieved: {'stabilium_overview', 'stabilium_versions', 'quantum_physics', 'advanced_quantum'}
+2025-03-25 11:34:07,458 - app.rag.rag_engine - INFO - Retrieved 10 additional chunks with refined query
+2025-03-25 11:34:07,458 - app.rag.rag_engine - INFO - Re-evaluating all chunks after query refinement
+2025-03-25 11:34:18,668 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:34:18,669 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:34:18,669 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 16 chunks, needs_refinement=False
+2025-03-25 11:34:18,669 - app.rag.rag_engine - INFO - Initial filtering: 6 chunks passed relevance threshold 0.7
+2025-03-25 11:34:18,669 - app.rag.rag_engine - INFO - Total context length: 6000 characters
+2025-03-25 11:34:18,669 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:34:18,669 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:34:34,341 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:34:34,343 - app.rag.agents.retrieval_judge - ERROR - Error parsing context optimization: Expecting ',' delimiter: line 6 column 4 (char 1677)
+2025-03-25 11:34:34,343 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 6 to 6 chunks
+2025-03-25 11:34:34,343 - app.rag.rag_engine - INFO - Using 6 chunks after optimization
+2025-03-25 11:34:34,343 - app.rag.rag_engine - INFO - Using 6 chunks after Retrieval Judge optimization
+2025-03-25 11:34:34,344 - app.rag.rag_engine - INFO - Total context length: 6891 characters
+2025-03-25 11:34:34,346 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:34:34,346 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:34:34,347 - app.rag.rag_engine - INFO - Using cached response
+2025-03-25 11:34:34,347 - app.rag.rag_engine - INFO - Cache hit! Response time: 60819.82ms
+2025-03-25 11:34:34,348 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:34:34,348 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:34:34,348 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:34:34,348 - app.rag.rag_engine - INFO - Response length: 713 characters
+2025-03-25 11:34:34,365 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:34:34,365 - test_rag_entity_preservation - INFO - Query basic_entity completed in 60.84s
+2025-03-25 11:34:35,367 - test_rag_entity_preservation - INFO - Testing query multi_entity: Compare the properties of Stabilium and Quantum Resonance Modulation in cold fusion experiments.
+2025-03-25 11:34:35,368 - app.rag.rag_engine - INFO - RAG query: Compare the properties of Stabilium and Quantum Re...
+2025-03-25 11:34:35,368 - app.rag.rag_engine - INFO - Generated session user_id: session_42d5544f
+2025-03-25 11:34:35,368 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:34:35,368 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:34:35,370 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:34:44,948 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:34:44,949 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:34:44,950 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:34:44,950 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:34:44,950 - app.rag.rag_engine - INFO - Searching with query: Compare the properties of Stabilium and Quantum Resonance Modulation in cold fusion experiments....
+2025-03-25 11:34:44,950 - app.rag.vector_store - INFO - Cache miss for query: Compare the properties of Stabilium and Quantum Re...
+2025-03-25 11:34:44,950 - app.rag.vector_store - INFO - Searching for documents similar to query: Compare the properties of Stabilium and Quantum Re...
+2025-03-25 11:34:44,971 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:34:44,976 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:34:44,976 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:34:44,976 - app.rag.vector_store - INFO - Documents retrieved: {'stabilium_versions', 'advanced_quantum', 'qrm_overview', 'stabilium_overview', 'quantum_physics'}
+2025-03-25 11:34:44,978 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:34:44,978 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:34:54,858 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:34:54,860 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:34:54,860 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:34:54,860 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=False
+2025-03-25 11:34:54,860 - app.rag.rag_engine - INFO - Initial filtering: 4 chunks passed relevance threshold 0.7
+2025-03-25 11:34:54,860 - app.rag.rag_engine - INFO - Total context length: 3727 characters
+2025-03-25 11:34:54,860 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:34:54,860 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:35:06,919 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:35:06,920 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 4 to 1 chunks
+2025-03-25 11:35:06,920 - app.rag.rag_engine - WARNING - Optimization reduced chunks below minimum (1 < 3), using original results
+2025-03-25 11:35:06,921 - app.rag.rag_engine - INFO - Using 4 chunks after Retrieval Judge optimization
+2025-03-25 11:35:06,921 - app.rag.rag_engine - INFO - Total context length: 4217 characters
+2025-03-25 11:35:06,921 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:35:06,921 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:35:06,921 - app.rag.rag_engine - INFO - Using cached response
+2025-03-25 11:35:06,922 - app.rag.rag_engine - INFO - Cache hit! Response time: 31553.96ms
+2025-03-25 11:35:06,922 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:35:06,922 - app.rag.rag_engine - INFO - Fixed contradictions in response
+2025-03-25 11:35:06,922 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:35:06,923 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:35:06,923 - app.rag.rag_engine - INFO - Response length: 222 characters
+2025-03-25 11:35:06,937 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:35:06,938 - test_rag_entity_preservation - INFO - Query multi_entity completed in 31.57s
+2025-03-25 11:35:07,940 - test_rag_entity_preservation - INFO - Testing query potential_ambiguity: What are the differences between Stabilium QRM-12X and earlier versions?
+2025-03-25 11:35:07,940 - app.rag.rag_engine - INFO - RAG query: What are the differences between Stabilium QRM-12X...
+2025-03-25 11:35:07,940 - app.rag.rag_engine - INFO - Generated session user_id: session_1bd43573
+2025-03-25 11:35:07,940 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:35:07,941 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:35:07,943 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:35:16,718 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:35:16,718 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'moderate' with k=8
+2025-03-25 11:35:16,719 - app.rag.rag_engine - INFO - Query complexity: moderate
+2025-03-25 11:35:16,719 - app.rag.rag_engine - INFO - Recommended parameters: k=8, threshold=0.6, reranking=True
+2025-03-25 11:35:16,719 - app.rag.rag_engine - INFO - Searching with query: What are the differences between Stabilium QRM-12X and earlier versions?...
+2025-03-25 11:35:16,719 - app.rag.vector_store - INFO - Cache miss for query: What are the differences between Stabilium QRM-12X...
+2025-03-25 11:35:16,719 - app.rag.vector_store - INFO - Searching for documents similar to query: What are the differences between Stabilium QRM-12X...
+2025-03-25 11:35:16,756 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:35:16,760 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:35:16,760 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:35:16,760 - app.rag.vector_store - INFO - Documents retrieved: {'stabilium_versions', 'advanced_quantum', 'qrm_overview', 'stabilium_overview', 'quantum_physics'}
+2025-03-25 11:35:16,762 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:35:16,762 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:35:27,488 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:35:27,489 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:35:27,489 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:35:27,490 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=False
+2025-03-25 11:35:27,490 - app.rag.rag_engine - INFO - Initial filtering: 5 chunks passed relevance threshold 0.6
+2025-03-25 11:35:27,490 - app.rag.rag_engine - INFO - Total context length: 4727 characters
+2025-03-25 11:35:27,490 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:35:27,490 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:35:45,940 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:35:45,942 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 5 to 5 chunks
+2025-03-25 11:35:45,942 - app.rag.rag_engine - INFO - Using 5 chunks after optimization
+2025-03-25 11:35:45,942 - app.rag.rag_engine - INFO - Using 5 chunks after Retrieval Judge optimization
+2025-03-25 11:35:45,942 - app.rag.rag_engine - INFO - Total context length: 5399 characters
+2025-03-25 11:35:45,943 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:35:45,943 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:35:45,943 - app.rag.rag_engine - INFO - Using cached response
+2025-03-25 11:35:45,943 - app.rag.rag_engine - INFO - Cache hit! Response time: 38003.17ms
+2025-03-25 11:35:45,944 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:35:45,944 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:35:45,944 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:35:45,944 - app.rag.rag_engine - INFO - Response length: 1062 characters
+2025-03-25 11:35:45,959 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:35:45,960 - test_rag_entity_preservation - INFO - Query potential_ambiguity completed in 38.02s
+2025-03-25 11:35:46,962 - test_rag_entity_preservation - INFO - Testing query context_synthesis: How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?
+2025-03-25 11:35:46,963 - app.rag.rag_engine - INFO - RAG query: How does Stabilium interact with Heisenberg's Unce...
+2025-03-25 11:35:46,963 - app.rag.rag_engine - INFO - Generated session user_id: session_51a6674d
+2025-03-25 11:35:46,963 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:35:46,963 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:35:46,965 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:35:56,945 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:35:56,946 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:35:56,947 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:35:56,947 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:35:56,947 - app.rag.rag_engine - INFO - Searching with query: How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglemen...
+2025-03-25 11:35:56,947 - app.rag.vector_store - INFO - Cache miss for query: How does Stabilium interact with Heisenberg's Unce...
+2025-03-25 11:35:56,947 - app.rag.vector_store - INFO - Searching for documents similar to query: How does Stabilium interact with Heisenberg's Unce...
+2025-03-25 11:35:56,968 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:35:56,978 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:35:56,978 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:35:56,978 - app.rag.vector_store - INFO - Documents retrieved: {'stabilium_versions', 'advanced_quantum', 'qrm_overview', 'stabilium_overview', 'quantum_physics'}
+2025-03-25 11:35:56,980 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:35:56,980 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:36:07,844 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:36:07,846 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:36:07,846 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=True
+2025-03-25 11:36:07,846 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=True
+2025-03-25 11:36:07,846 - app.rag.rag_engine - INFO - Refining query based on initial retrieval
+2025-03-25 11:36:12,454 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:36:12,454 - app.rag.agents.retrieval_judge - INFO - Identified key entities in original query: ['How', 'Stabilium', "Heisenberg's", 'Uncertainty', 'Principle']
+2025-03-25 11:36:12,455 - app.rag.agents.retrieval_judge - WARNING - Fixed entity typo: 'Stabilium's' → 'Stabilium' (similarity: 0.82)
+2025-03-25 11:36:12,455 - app.rag.agents.retrieval_judge - INFO - Original query: 'How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?' → Refined query: 'How does Stabilium extended coherence and topological protection, as demonstrated in experiments probing the uncertainty principle's boundaries and enabling multi-particle entangled tunneling through non-Euclidean space-time manifolds, interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?'
+2025-03-25 11:36:12,455 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge refined query from 'How does Stabilium interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?' to 'How does Stabilium extended coherence and topological protection, as demonstrated in experiments probing the uncertainty principle's boundaries and enabling multi-particle entangled tunneling through non-Euclidean space-time manifolds, interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?'
+2025-03-25 11:36:12,455 - app.rag.rag_engine - INFO - Refined query: How does Stabilium extended coherence and topological protection, as demonstrated in experiments probing the uncertainty principle's boundaries and enabling multi-particle entangled tunneling through non-Euclidean space-time manifolds, interact with Heisenberg's Uncertainty Principle when used in quantum entanglement experiments?
+2025-03-25 11:36:12,455 - app.rag.vector_store - INFO - Cache miss for query: How does Stabilium extended coherence and topologi...
+2025-03-25 11:36:12,455 - app.rag.vector_store - INFO - Searching for documents similar to query: How does Stabilium extended coherence and topologi...
+2025-03-25 11:36:12,475 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:36:12,481 - app.rag.vector_store - INFO - Raw search results: 10 chunks found
+2025-03-25 11:36:12,481 - app.rag.vector_store - INFO - Found 10 similar documents
+2025-03-25 11:36:12,481 - app.rag.vector_store - INFO - Documents retrieved: {'stabilium_overview', 'quantum_physics', 'advanced_quantum'}
+2025-03-25 11:36:12,483 - app.rag.rag_engine - INFO - Retrieved 10 additional chunks with refined query
+2025-03-25 11:36:12,483 - app.rag.rag_engine - INFO - Re-evaluating all chunks after query refinement
+2025-03-25 11:36:22,484 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:36:22,485 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:36:22,485 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:36:22,485 - app.rag.rag_engine - INFO - Initial filtering: 5 chunks passed relevance threshold 0.7
+2025-03-25 11:36:22,485 - app.rag.rag_engine - INFO - Total context length: 5000 characters
+2025-03-25 11:36:22,486 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:36:22,486 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:36:36,677 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:36:36,680 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 5 to 3 chunks
+2025-03-25 11:36:36,680 - app.rag.rag_engine - INFO - Using 3 chunks after optimization
+2025-03-25 11:36:36,680 - app.rag.rag_engine - INFO - Using 3 chunks after Retrieval Judge optimization
+2025-03-25 11:36:36,680 - app.rag.rag_engine - INFO - Total context length: 3475 characters
+2025-03-25 11:36:36,681 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:36:36,681 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:36:36,681 - app.rag.rag_engine - INFO - Using cached response
+2025-03-25 11:36:36,681 - app.rag.rag_engine - INFO - Cache hit! Response time: 49718.68ms
+2025-03-25 11:36:36,682 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:36:36,682 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:36:36,682 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:36:36,682 - app.rag.rag_engine - INFO - Response length: 728 characters
+2025-03-25 11:36:36,722 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:36:36,725 - test_rag_entity_preservation - INFO - Query context_synthesis completed in 49.76s
+2025-03-25 11:36:37,733 - test_rag_entity_preservation - INFO - Testing query specialized_terminology: Explain the role of Stabilium in facilitating quantum tunneling through non-Euclidean space-time manifolds.
+2025-03-25 11:36:37,734 - app.rag.rag_engine - INFO - RAG query: Explain the role of Stabilium in facilitating quan...
+2025-03-25 11:36:37,734 - app.rag.rag_engine - INFO - Generated session user_id: session_c0c88072
+2025-03-25 11:36:37,734 - app.rag.rag_engine - INFO - No previous conversation history to include
+2025-03-25 11:36:37,734 - app.rag.rag_engine - INFO - Using enhanced retrieval with Retrieval Judge
+2025-03-25 11:36:37,738 - app.rag.rag_engine - INFO - Analyzing query with Retrieval Judge
+2025-03-25 11:36:47,126 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:36:47,127 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge analyzed query complexity as 'complex' with k=10
+2025-03-25 11:36:47,128 - app.rag.rag_engine - INFO - Query complexity: complex
+2025-03-25 11:36:47,128 - app.rag.rag_engine - INFO - Recommended parameters: k=10, threshold=0.7, reranking=True
+2025-03-25 11:36:47,128 - app.rag.rag_engine - INFO - Searching with query: Explain the role of Stabilium in facilitating quantum tunneling through non-Euclidean space-time man...
+2025-03-25 11:36:47,128 - app.rag.vector_store - INFO - Cache miss for query: Explain the role of Stabilium in facilitating quan...
+2025-03-25 11:36:47,128 - app.rag.vector_store - INFO - Searching for documents similar to query: Explain the role of Stabilium in facilitating quan...
+2025-03-25 11:36:47,167 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/embeddings "HTTP/1.1 200 OK"
+2025-03-25 11:36:47,180 - app.rag.vector_store - INFO - Raw search results: 15 chunks found
+2025-03-25 11:36:47,181 - app.rag.vector_store - INFO - Found 15 similar documents
+2025-03-25 11:36:47,181 - app.rag.vector_store - INFO - Documents retrieved: {'stabilium_versions', 'advanced_quantum', 'qrm_overview', 'stabilium_overview', 'quantum_physics'}
+2025-03-25 11:36:47,183 - app.rag.rag_engine - INFO - Retrieved 15 chunks from vector store
+2025-03-25 11:36:47,183 - app.rag.rag_engine - INFO - Evaluating chunks with Retrieval Judge
+2025-03-25 11:36:57,736 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:36:57,738 - app.rag.agents.retrieval_judge - INFO - Evaluation mapped 5 valid chunks, 0 invalid references
+2025-03-25 11:36:57,738 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge evaluated 15 chunks, needs_refinement=False
+2025-03-25 11:36:57,738 - app.rag.rag_engine - INFO - Chunk evaluation complete, needs_refinement=False
+2025-03-25 11:36:57,738 - app.rag.rag_engine - INFO - Initial filtering: 4 chunks passed relevance threshold 0.7
+2025-03-25 11:36:57,738 - app.rag.rag_engine - INFO - Total context length: 4000 characters
+2025-03-25 11:36:57,738 - app.rag.rag_engine - INFO - Sorted chunks by relevance score
+2025-03-25 11:36:57,738 - app.rag.rag_engine - INFO - Optimizing context assembly with Retrieval Judge
+2025-03-25 11:37:15,231 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-03-25 11:37:15,232 - app.rag.agents.retrieval_judge - INFO - Retrieval Judge optimized context from 4 to 1 chunks
+2025-03-25 11:37:15,233 - app.rag.rag_engine - WARNING - Optimization reduced chunks below minimum (1 < 3), using original results
+2025-03-25 11:37:15,233 - app.rag.rag_engine - INFO - Using 4 chunks after Retrieval Judge optimization
+2025-03-25 11:37:15,233 - app.rag.rag_engine - INFO - Total context length: 4722 characters
+2025-03-25 11:37:15,233 - app.rag.rag_engine - INFO - Using RAG system prompt for non-code query
+2025-03-25 11:37:15,233 - app.rag.rag_engine - INFO - Generating non-streaming response with model: gemma3:4b
+2025-03-25 11:37:15,234 - app.rag.rag_engine - INFO - Using cached response
+2025-03-25 11:37:15,234 - app.rag.rag_engine - INFO - Cache hit! Response time: 37500.17ms
+2025-03-25 11:37:15,235 - app.rag.rag_engine - INFO - Checking for contradictions in response
+2025-03-25 11:37:15,235 - app.rag.rag_engine - INFO - Post-processing response and sources
+2025-03-25 11:37:15,235 - app.rag.rag_engine - INFO - Post-processing complete
+2025-03-25 11:37:15,235 - app.rag.rag_engine - INFO - Response length: 829 characters
+2025-03-25 11:37:15,251 - httpx - INFO - HTTP Request: POST http://localhost:8000/api/analytics/record_query "HTTP/1.1 401 Unauthorized"
+2025-03-25 11:37:15,251 - test_rag_entity_preservation - INFO - Query specialized_terminology completed in 37.52s
+2025-03-25 11:37:16,254 - test_rag_entity_preservation - INFO - Test suite completed!
+2025-03-25 11:37:16,255 - test_rag_entity_preservation - INFO - All tests completed!

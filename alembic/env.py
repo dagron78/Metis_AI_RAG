@@ -1,9 +1,11 @@
 import os
 import sys
+import asyncio
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 
@@ -17,8 +19,10 @@ import app.db.models  # Import models to register them with Base
 # Get database URL from environment or use default
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/metis_rag"
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/metis_rag"
 )
+
+print(f"DATABASE_URL from environment: {DATABASE_URL}")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -53,9 +57,9 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    # Use the DATABASE_URL directly
     context.configure(
-        url=url,
+        url=DATABASE_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -72,19 +76,26 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    # Create an async engine
+    connectable = create_async_engine(DATABASE_URL)
 
-    with connectable.connect() as connection:
+    # Create a function that will run in a new event loop
+    async def run_async_migrations():
+        async with connectable.connect() as connection:
+            await connection.run_sync(do_run_migrations)
+
+    # Function to run migrations with a synchronous connection
+    def do_run_migrations(connection):
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata
         )
 
         with context.begin_transaction():
             context.run_migrations()
+
+    # Run the async function
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

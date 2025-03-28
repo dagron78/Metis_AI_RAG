@@ -1,0 +1,10 @@
+{
+  "name": "perf_cache",
+  "size": 10,
+  "max_size": 1000,
+  "hits": 0,
+  "misses": 10,
+  "hit_ratio": 0.0,
+  "ttl_seconds": 60,
+  "persist": true
+}

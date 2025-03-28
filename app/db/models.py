@@ -35,6 +35,7 @@ class Document(Base):
     last_accessed = Column(DateTime, default=datetime.utcnow)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
     is_public = Column(Boolean, default=False)  # Whether the document is publicly accessible
+    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'), nullable=True)
 
     # Relationships
     chunks = relationship("Chunk", back_populates="document", cascade="all, delete-orphan")
@@ -43,6 +44,7 @@ class Document(Base):
     citations = relationship("Citation", back_populates="document")
     user = relationship("User", back_populates="documents")
     shared_with = relationship("DocumentPermission", back_populates="document", cascade="all, delete-orphan")
+    organization = relationship("Organization", back_populates="documents")
 
     # Indexes
     __table_args__ = (
@@ -50,6 +52,7 @@ class Document(Base):
         Index('ix_documents_folder', folder),
         Index('ix_documents_processing_status', processing_status),
         Index('ix_documents_is_public', is_public),
+        Index('ix_documents_organization_id', organization_id),
     )
 
     def __repr__(self):
@@ -283,6 +286,52 @@ class AnalyticsQuery(Base):
         return f"<AnalyticsQuery(id={self.id}, query_type='{self.query_type}', response_time={self.response_time_ms}ms)>"
 
 
+class Organization(Base):
+    """Organization model for database"""
+    __tablename__ = "organizations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    settings = Column(JSONB, default={})
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    members = relationship("OrganizationMember", back_populates="organization", cascade="all, delete-orphan")
+    documents = relationship("Document", back_populates="organization")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_organizations_name', name),
+    )
+
+    def __repr__(self):
+        return f"<Organization(id={self.id}, name='{self.name}')>"
+
+
+class OrganizationMember(Base):
+    """Organization member model for database"""
+    __tablename__ = "organization_members"
+
+    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    role = Column(String, nullable=False)  # 'owner', 'admin', 'member'
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    organization = relationship("Organization", back_populates="members")
+    user = relationship("User", back_populates="organizations")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_organization_members_organization_id', organization_id),
+        Index('ix_organization_members_user_id', user_id),
+    )
+
+    def __repr__(self):
+        return f"<OrganizationMember(organization_id={self.organization_id}, user_id={self.user_id}, role='{self.role}')>"
+
+
 class User(Base):
     """User model for database"""
     __tablename__ = "users"
@@ -303,6 +352,9 @@ class User(Base):
     conversations = relationship("Conversation", back_populates="user")
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
     document_permissions = relationship("DocumentPermission", back_populates="user", cascade="all, delete-orphan")
+    roles = relationship("UserRole", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    organizations = relationship("OrganizationMember", back_populates="user", cascade="all, delete-orphan")
 
     # Indexes
     __table_args__ = (
@@ -312,6 +364,50 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"
+
+
+class Role(Base):
+    """Role model for database"""
+    __tablename__ = "roles"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+    permissions = Column(JSONB, default={})
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    users = relationship("UserRole", back_populates="role", cascade="all, delete-orphan")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_roles_name', name),
+    )
+
+    def __repr__(self):
+        return f"<Role(id={self.id}, name='{self.name}')>"
+
+
+class UserRole(Base):
+    """User-role association model for database"""
+    __tablename__ = "user_roles"
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    role_id = Column(UUID(as_uuid=True), ForeignKey('roles.id', ondelete='CASCADE'), primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="roles")
+    role = relationship("Role", back_populates="users")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_user_roles_user_id', user_id),
+        Index('ix_user_roles_role_id', role_id),
+    )
+
+    def __repr__(self):
+        return f"<UserRole(user_id={self.user_id}, role_id={self.role_id})>"
 
 
 class PasswordResetToken(Base):
@@ -337,6 +433,34 @@ class PasswordResetToken(Base):
 
     def __repr__(self):
         return f"<PasswordResetToken(id={self.id}, user_id={self.user_id}, is_used={self.is_used})>"
+
+
+class Notification(Base):
+    """Notification model for database"""
+    __tablename__ = "notifications"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    type = Column(String, nullable=False)  # e.g., 'document_shared', 'mention', 'system'
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    data = Column(JSONB, default={})
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    read_at = Column(DateTime, nullable=True)
+
+    # Relationships
+    user = relationship("User", back_populates="notifications")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_notifications_user_id', user_id),
+        Index('ix_notifications_created_at', created_at),
+        Index('ix_notifications_is_read', is_read),
+    )
+
+    def __repr__(self):
+        return f"<Notification(id={self.id}, user_id={self.user_id}, type='{self.type}')>"
 
 
 class BackgroundTask(Base):

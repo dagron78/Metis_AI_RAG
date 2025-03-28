@@ -1,0 +1,189 @@
+[
+  {
+    "query": "How does the system work?",
+    "type": "ambiguous",
+    "description": "Very general query without specific focus",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.8,
+        "chunk2": 0.5,
+        "chunk3": 0.1,
+        "chunk4": 0.1,
+        "chunk5": 0.9
+      },
+      "needs_refinement": true,
+      "justification": "The query 'How does the system work?' is quite broad. While chunk 1 (technical_documentation.md) discusses the core components of the system \u2013 vector store, document processing pipeline, and API layer \u2013 it doesn't provide a high-level explanation of the system's overall functionality. Chunk 2 is tangentially related, focusing on document processing. Chunk 3 is irrelevant. Chunk 4 is irrelevant. Chunk 5, however, directly addresses the question by describing the Retrieval Judge's role in enhancing the RAG retrieval process, which is a key aspect of how the system works.  Because the initial chunks are too detailed and don't answer the question at a high level, and because chunk 5 provides a more relevant explanation, the query needs refinement to focus on the overall architecture and operation of the RAG system."
+    },
+    "time": 9.267931938171387
+  },
+  {
+    "query": "Tell me about the API",
+    "type": "ambiguous",
+    "description": "Ambiguous query about the API without specifying which aspect",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.95,
+        "chunk2": 0.3,
+        "chunk3": 0.98,
+        "chunk4": 0.1,
+        "chunk5": 0.2
+      },
+      "needs_refinement": true,
+      "justification": "The query asks 'Tell me about the API'. Chunk 1 and 3 directly address this, describing the API layer's implementation and endpoints. Chunk 5 discusses the Retrieval Judge, which is related to improving retrieval but doesn't directly answer the question. Chunk 2 is about the document processing pipeline, which is a component *related* to the API but not the API itself. Chunk 4 discusses LLM integration, which is also tangential.  Because chunks 1 and 3 are highly relevant and chunks 2, 4, and 5 are not directly addressing the user's request, the query likely needs refinement to focus on the API layer specifically.  A more targeted query, such as 'Describe the API endpoints' would likely yield better results."
+    },
+    "time": 8.807852029800415
+  },
+  {
+    "query": "How does the vektor store work?",
+    "type": "typo",
+    "description": "Typo in 'vector'",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.8,
+        "chunk2": 0.5,
+        "chunk3": 0.1,
+        "chunk4": 0.1,
+        "chunk5": 0.9
+      },
+      "needs_refinement": false,
+      "justification": "Chunk 1 directly addresses the query by explaining the core functionality of a vector store \u2013 embeddings, similarity search, and metadata filtering. This is the most relevant chunk. Chunk 2 discusses the document processing pipeline, which is related but doesn't directly answer the question about how a vector store works. Chunk 3 is entirely irrelevant. Chunk 4 is also irrelevant. Chunk 5, while discussing a Retrieval Judge, provides a mechanism *for* improving retrieval, which is relevant to understanding how a vector store is used in a RAG system, and therefore deserves a high relevance score.  Because the most relevant chunk provides a solid explanation, and the other chunks are either irrelevant or provide supporting details, no query refinement is immediately needed."
+    },
+    "time": 8.454214334487915
+  },
+  {
+    "query": "What is the documnet procesing pipeline?",
+    "type": "typo",
+    "description": "Multiple typos in 'document processing'",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.9,
+        "chunk2": 0.8,
+        "chunk3": 0.1,
+        "chunk4": 0.1,
+        "chunk5": 0.4
+      },
+      "needs_refinement": true,
+      "justification": "Chunks 1 and 2 directly address the query about the document processing pipeline, detailing its stages (validation, parsing, chunking, metadata extraction). Chunk 3 is entirely irrelevant. Chunk 4 is also irrelevant. Chunk 5 discusses the Retrieval Judge, which is a component *related* to the pipeline but doesn't describe the pipeline itself.  The retrieved chunks are somewhat broad and don't provide a concise overview of the document processing pipeline.  Therefore, the query needs refinement to focus on obtaining a specific definition or explanation of the pipeline stages."
+    },
+    "time": 7.412783145904541
+  },
+  {
+    "query": "How does the system handle context window optimization?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about LLM context windows",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.95,
+        "chunk2": 0.3,
+        "chunk3": 0.1,
+        "chunk4": 0.9,
+        "chunk5": 0.95
+      },
+      "needs_refinement": false,
+      "justification": "Chunks 1, 4, and 5 directly address the query about context window optimization. Chunk 1 describes the LLM integration component's role in managing context window optimization. Chunk 4 specifically mentions the LLM integration component and its support for context window optimization. Chunk 5 details the Retrieval Judge's function of optimizing context assembly, which is a key aspect of context window management. Chunk 2 is only tangentially related as it discusses the document processing pipeline, which is a broader component of the system. Therefore, no query refinement is needed based on these retrieved chunks."
+    },
+    "time": 7.632442951202393
+  },
+  {
+    "query": "What embedding models are supported for semantic search?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about embedding models",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.8,
+        "chunk2": 0.5,
+        "chunk3": 0.1,
+        "chunk4": 0.9,
+        "chunk5": 0.7
+      },
+      "needs_refinement": false,
+      "justification": "Chunk 1 and 4 directly address the query by mentioning supported embedding models (Llama 3, Gemma, Mistral). Chunk 4 is the most relevant as it explicitly lists the models. Chunk 1 provides context about the vector store and HNSW index, which is related but not a direct answer. Chunk 2 discusses document processing, which is a prerequisite but doesn't answer the question. Chunk 3 is irrelevant. Chunk 5 discusses the Retrieval Judge, which is related to improving retrieval but doesn't list the supported embedding models.  The retrieved chunks provide sufficient information to answer the query, so refinement is not immediately needed."
+    },
+    "time": 7.953837871551514
+  },
+  {
+    "query": "What are the chunking strategies and how do they affect retrieval performance?",
+    "type": "multi-part",
+    "description": "Multi-part query about chunking strategies and their impact",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.9,
+        "chunk2": 0.6,
+        "chunk3": 0.1,
+        "chunk4": 0.0,
+        "chunk5": 0.8
+      },
+      "needs_refinement": true,
+      "justification": "Chunks 1 and 5 directly address the query's focus on 'chunking strategies' and their impact on retrieval performance. Chunk 1 specifically discusses configurable strategies within the document processing pipeline. Chunk 5 describes the Retrieval Judge, which is a system designed to evaluate and refine retrieval based on chunk relevance \u2013 indicating a need to understand the strategies themselves. Chunk 2 is tangentially related as it discusses the document processing pipeline, but doesn't directly address the strategies. Chunk 3 and 4 are completely irrelevant to the query.  Because chunks 1 and 5 provide some information, but the overall discussion is still quite broad and doesn't fully explain the different chunking strategies, a refinement of the query is needed to narrow the focus and obtain more specific answers."
+    },
+    "time": 8.762250185012817
+  },
+  {
+    "query": "How does the authentication work and what endpoints are available for document management?",
+    "type": "multi-part",
+    "description": "Multi-part query about authentication and document management endpoints",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.9,
+        "chunk2": 0.4,
+        "chunk3": 0.9,
+        "chunk4": 0.1,
+        "chunk5": 0.6
+      },
+      "needs_refinement": true,
+      "justification": "Several chunks directly address aspects of the query. Chunk 1 and 3 both discuss authentication and document management endpoints (specifically the API layer). Chunk 5 discusses the Retrieval Judge which is relevant to improving the retrieval process, but doesn't directly answer the user's question. Chunk 2 is only tangentially related as it discusses the document processing pipeline, which is a component *involved* in document management but doesn't detail the authentication or endpoints.  The retrieved chunks are somewhat broad and don't provide a consolidated answer.  To improve the response, the query could be refined to focus on specific authentication methods and the available API endpoints for document management."
+    },
+    "time": 8.091121912002563
+  },
+  {
+    "query": "RAG?",
+    "type": "short",
+    "description": "Very short query with just an acronym",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.9,
+        "chunk2": 0.4,
+        "chunk3": 0.1,
+        "chunk4": 0.2,
+        "chunk5": 0.95
+      },
+      "needs_refinement": true,
+      "justification": "The query 'RAG?' refers to Retrieval Augmented Generation. Chunk 1 ('vector store', 'HNSW index') and Chunk 5 ('Retrieval Judge') directly address the core concept of RAG, specifically the retrieval component. Chunk 5 is the most relevant as it explicitly defines the Retrieval Judge, which is a key element in RAG systems. Chunk 2 is tangentially related as it describes the document processing pipeline, but doesn't directly answer the question. Chunk 3 is irrelevant. Chunk 4 is also irrelevant.  Because several chunks are low relevance and the query is broad, it suggests the user may need a more specific question, such as 'How does a Retrieval Judge work in RAG?' or 'What are the components of a RAG system?'"
+    },
+    "time": 8.8508939743042
+  },
+  {
+    "query": "Embeddings?",
+    "type": "short",
+    "description": "Very short query with just a technical term",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.9,
+        "chunk2": 0.3,
+        "chunk3": 0.1,
+        "chunk4": 0.1,
+        "chunk5": 0.8
+      },
+      "needs_refinement": true,
+      "justification": "The query 'Embeddings?' directly relates to the concept of vector embeddings, which are explicitly mentioned in chunk 1 and chunk 5. Chunk 1 provides a detailed explanation of the vector store's role in storing and utilizing embeddings. Chunk 5 discusses the Retrieval Judge's role in evaluating relevance, suggesting a need for more specific information about embeddings themselves. Chunks 2, 3, and 4 are tangentially related to document processing and API management, respectively, and do not directly address the user's question about embeddings.  Because chunks 2, 3, and 4 are low relevance and chunk 5 discusses evaluation of relevance, it suggests the query might need refinement to focus on the specific technical aspects of embeddings."
+    },
+    "time": 8.577693939208984
+  },
+  {
+    "query": "I'm trying to understand how the Metis RAG system works in detail, particularly how the document processing pipeline handles different file formats, how the chunking strategies are implemented, how the vector store manages embeddings efficiently, and how the retrieval judge optimizes the retrieval process to improve the relevance of the results. Can you explain all of these aspects in detail?",
+    "type": "long",
+    "description": "Very long query with multiple questions",
+    "evaluation": {
+      "relevance_scores": {
+        "chunk1": 0.9,
+        "chunk2": 0.8,
+        "chunk3": 0.1,
+        "chunk4": 0.2,
+        "chunk5": 0.95
+      },
+      "needs_refinement": false,
+      "justification": "The retrieved chunks largely address the user's detailed query about the Metis RAG system. Chunk 1 and 2 directly address the document processing pipeline, chunking strategies, and vector store management \u2013 key aspects of the user's question. Chunk 5 provides a detailed explanation of the Retrieval Judge, which is also a crucial component of the system. Chunk 3 is tangentially related as it discusses the API layer, and Chunk 4 discusses LLM integration, which is not directly relevant to the core aspects of the user's question.  The relevance scores reflect this.  Because the chunks cover all the requested aspects in detail, no query refinement is needed."
+    },
+    "time": 8.356603860855103
+  }
+]
