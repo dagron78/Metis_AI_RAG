@@ -25,7 +25,9 @@ from app.api.roles import router as roles_router
 from app.api.document_sharing import router as document_sharing_router
 from app.api.notifications import router as notifications_router
 from app.api.organizations import router as organizations_router
+from app.api.schema import router as schema_router
 from app.db.session import init_db, get_session
+from app.rag.tool_initializer import initialize_tools
 
 # Setup logging
 setup_logging()
@@ -79,6 +81,7 @@ app.include_router(roles_router, prefix=f"{API_V1_STR}/roles", tags=["roles"])
 app.include_router(document_sharing_router, prefix=f"{API_V1_STR}/sharing", tags=["sharing"])
 app.include_router(notifications_router, prefix=f"{API_V1_STR}/notifications", tags=["notifications"])
 app.include_router(organizations_router, prefix=f"{API_V1_STR}/organizations", tags=["organizations"])
+app.include_router(schema_router, tags=["schema"])  # Schema router has its own prefix
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -121,6 +124,13 @@ async def admin_page(request: Request):
     Admin page
     """
     return templates.TemplateResponse("admin.html", {"request": request})
+
+@app.get("/schema", response_class=HTMLResponse)
+async def schema_page(request: Request):
+    """
+    Database schema viewer page
+    """
+    return templates.TemplateResponse("schema.html", {"request": request})
 
 @app.get("/test-models", response_class=HTMLResponse)
 async def test_models_page(request: Request):
@@ -233,6 +243,14 @@ async def startup_event():
                 logger.warning("Rate limiting initialization failed, continuing without rate limiting")
         except Exception as e:
             logger.error(f"Error initializing rate limiting: {str(e)}")
+    
+    # Initialize tools
+    try:
+        logger.info("Initializing tools")
+        initialize_tools()
+        logger.info("Tools initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing tools: {str(e)}")
 
 @app.on_event("shutdown")
 async def shutdown_event():

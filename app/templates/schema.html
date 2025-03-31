@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema Viewer - Metis RAG</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/schema.css">
+    <script src="/static/js/auth.js" defer></script>
+    <script src="/static/js/schema.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/static/img/logo.svg" alt="Metis RAG Logo">
+            <h1>Metis RAG</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/">Chat</a></li>
+                <li><a href="/documents">Documents</a></li>
+                <li><a href="/system">System</a></li>
+                <li><a href="/analytics">Analytics</a></li>
+                <li><a href="/schema" class="active">Schema</a></li>
+                <li><a href="/admin">Admin</a></li>
+                <li><a href="#" id="logout-link">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Database Schema Viewer</h1>
+            <p>Explore and analyze your PostgreSQL database schema.</p>
+
+            <div class="schema-controls">
+                <div class="connection-selector">
+                    <label for="connection-select">Database Connection:</label>
+                    <select id="connection-select">
+                        <option value="">Select a connection...</option>
+                    </select>
+                    <button id="refresh-connections">Refresh</button>
+                </div>
+
+                <div class="schema-selector">
+                    <label for="schema-select">Schema:</label>
+                    <select id="schema-select" disabled>
+                        <option value="">Select a schema...</option>
+                    </select>
+                </div>
+
+                <div class="table-selector">
+                    <label for="table-select">Table:</label>
+                    <select id="table-select" disabled>
+                        <option value="">Select a table...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-button active" data-tab="structure">Structure</button>
+                <button class="tab-button" data-tab="columns">Columns</button>
+                <button class="tab-button" data-tab="indexes">Indexes</button>
+                <button class="tab-button" data-tab="constraints">Constraints</button>
+                <button class="tab-button" data-tab="foreign-keys">Foreign Keys</button>
+                <button class="tab-button" data-tab="explain">Query Explain</button>
+            </div>
+
+            <div class="tab-content">
+                <div id="structure" class="tab-pane active">
+                    <h2>Table Structure</h2>
+                    <div class="table-info">
+                        <div class="info-item">
+                            <span class="label">Table Name:</span>
+                            <span class="value" id="table-name"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Description:</span>
+                            <span class="value" id="table-description"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Owner:</span>
+                            <span class="value" id="table-owner"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Row Count:</span>
+                            <span class="value" id="table-row-count"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Size:</span>
+                            <span class="value" id="table-size"></span>
+                        </div>
+                    </div>
+                    <div id="structure-content" class="content-area"></div>
+                </div>
+
+                <div id="columns" class="tab-pane">
+                    <h2>Columns</h2>
+                    <div id="columns-content" class="content-area"></div>
+                </div>
+
+                <div id="indexes" class="tab-pane">
+                    <h2>Indexes</h2>
+                    <div id="indexes-content" class="content-area"></div>
+                </div>
+
+                <div id="constraints" class="tab-pane">
+                    <h2>Constraints</h2>
+                    <div id="constraints-content" class="content-area"></div>
+                </div>
+
+                <div id="foreign-keys" class="tab-pane">
+                    <h2>Foreign Keys</h2>
+                    <div id="foreign-keys-content" class="content-area"></div>
+                </div>
+
+                <div id="explain" class="tab-pane">
+                    <h2>Query Explain</h2>
+                    <div class="explain-controls">
+                        <textarea id="query-input" placeholder="Enter SQL query to explain..."></textarea>
+                        <div class="explain-options">
+                            <label>
+                                <input type="radio" name="explain-type" value="simple" checked> Simple
+                            </label>
+                            <label>
+                                <input type="radio" name="explain-type" value="analyze"> Analyze
+                            </label>
+                            <label>
+                                <input type="radio" name="explain-type" value="verbose"> Verbose
+                            </label>
+                            <label>
+                                <input type="radio" name="explain-type" value="analyze_verbose"> Analyze + Verbose
+                            </label>
+                            <label>
+                                <input type="radio" name="explain-type" value="json"> JSON
+                            </label>
+                        </div>
+                        <button id="explain-button">Explain Query</button>
+                    </div>
+                    <div id="explain-content" class="content-area"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Metis RAG. All rights reserved.</p>
+    </footer>
+
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <div id="error-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Error</h2>
+            <p id="error-message"></p>
+        </div>
+    </div>
+</body>
+</html>

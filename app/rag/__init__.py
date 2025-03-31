@@ -6,4 +6,5 @@ from app.rag.document_analysis_service import DocumentAnalysisService
 from app.rag.processing_job import ProcessingJob, WorkerPool, DocumentProcessingService
 from app.rag.query_analyzer import QueryAnalyzer
 from app.rag.process_logger import ProcessLogger
-from app.rag.tools import Tool, ToolRegistry, RAGTool
+from app.rag.tools import Tool, ToolRegistry, RAGTool, DatabaseTool, PostgreSQLTool
+from app.rag.tool_initializer import initialize_tools, get_tool_registry
