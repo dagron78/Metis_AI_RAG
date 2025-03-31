@@ -13,6 +13,11 @@ chromadb>=0.4.13,<0.4.15
 # Document processing dependencies
 pypdf>=3.15.1
 unstructured>=0.10.16
+# Database dependencies
+sqlalchemy[asyncio]>=2.0.0
+aiosqlite>=0.19.0
+asyncpg>=0.28.0
+aiofiles>=23.2.1
 # Other dependencies
 python-dotenv>=1.0.0
 jinja2>=3.1.2
