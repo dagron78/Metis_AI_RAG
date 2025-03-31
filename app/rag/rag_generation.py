@@ -11,13 +11,11 @@ from app.core.config import DEFAULT_MODEL
 from app.models.chat import Citation, Message
 from app.rag.mem0_client import store_message
 from app.utils.text_processor import normalize_text, format_code_blocks
+from app.rag.prompt_manager import PromptManager
 from app.rag.system_prompts import (
-    RAG_SYSTEM_PROMPT,
     CODE_GENERATION_SYSTEM_PROMPT,
     PYTHON_CODE_GENERATION_PROMPT,
-    JAVASCRIPT_CODE_GENERATION_PROMPT,
-    CONVERSATION_WITH_CONTEXT_PROMPT,
-    NEW_QUERY_WITH_CONTEXT_PROMPT
+    JAVASCRIPT_CODE_GENERATION_PROMPT
 )
 
 logger = logging.getLogger("app.rag.rag_generation")
@@ -26,6 +24,12 @@ class GenerationMixin:
     """
     Mixin class for RAG generation functionality
     """
+    
+    def __init__(self):
+        """Initialize the GenerationMixin."""
+        super().__init__()
+        self.prompt_manager = PromptManager()
+        logger.info("GenerationMixin initialized with PromptManager")
     
     async def _record_analytics(self,
                                query: str,
@@ -144,53 +148,59 @@ class GenerationMixin:
                 system_prompt += "\n\n" + PYTHON_CODE_GENERATION_PROMPT
             elif re.search(r'\bjavascript\b|\bjs\b', query.lower()):
                 system_prompt += "\n\n" + JAVASCRIPT_CODE_GENERATION_PROMPT
-        else:
-            system_prompt = RAG_SYSTEM_PROMPT
+            
+            return system_prompt
         
-        return system_prompt
+        # For non-code queries, we'll use the PromptManager later
+        # This is just a placeholder that will be replaced
+        return "PLACEHOLDER_SYSTEM_PROMPT"
     
-    def _create_full_prompt(self, 
-                           query: str, 
-                           context: str = "", 
-                           conversation_context: str = "") -> str:
+    def _create_full_prompt(self,
+                           query: str,
+                           context: str = "",
+                           conversation_context: str = "",
+                           retrieval_state: str = "success") -> tuple[str, str]:
         """
-        Create a full prompt with context and conversation history
+        Create a full prompt with context and conversation history using the PromptManager
         
         Args:
             query: User query
             context: Retrieved context
             conversation_context: Conversation history
+            retrieval_state: State of the retrieval process
             
         Returns:
-            Full prompt
+            Tuple of (system_prompt, user_prompt)
         """
-        # Create full prompt with context and conversation history
-        if not context:
-            # No context, just use the query and conversation history
-            if conversation_context:
-                full_prompt = f"""Previous conversation:
-{conversation_context}
-
-User's new question: {query}"""
-            else:
-                # No conversation history, just use the query directly
-                full_prompt = f"""User Question: {query}"""
-        else:
-            # We have context from RAG
-            # Construct the prompt differently based on whether we have conversation history
-            if conversation_context:
-                full_prompt = CONVERSATION_WITH_CONTEXT_PROMPT.format(
-                    context=context,
-                    conversation_context=conversation_context,
-                    query=query
-                )
-            else:
-                full_prompt = NEW_QUERY_WITH_CONTEXT_PROMPT.format(
-                    context=context,
-                    query=query
-                )
+        # Convert conversation_context string to list of dicts if provided
+        conversation_history = None
+        if conversation_context:
+            # Parse the conversation context string into a list of messages
+            conversation_history = []
+            lines = conversation_context.strip().split('\n')
+            for line in lines:
+                if line.startswith("User: "):
+                    conversation_history.append({
+                        "role": "user",
+                        "content": line[6:]  # Remove "User: " prefix
+                    })
+                elif line.startswith("Assistant: "):
+                    conversation_history.append({
+                        "role": "assistant",
+                        "content": line[11:]  # Remove "Assistant: " prefix
+                    })
         
-        return full_prompt
+        # Use the PromptManager to create the prompt
+        system_prompt, user_prompt = self.prompt_manager.create_prompt(
+            query=query,
+            retrieval_state=retrieval_state,
+            context=context,
+            conversation_history=conversation_history
+        )
+        
+        logger.info(f"Created prompt with retrieval_state: {retrieval_state}")
+        
+        return system_prompt, user_prompt
     
     async def _get_cached_or_generate_response(self,
                                               prompt: str,

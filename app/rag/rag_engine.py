@@ -143,8 +143,8 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     stats = self.vector_store.get_stats()
                     if stats["count"] == 0:
                         logger.warning("RAG is enabled but no documents are available in the vector store")
-                        # Add a note to the context that no documents are available
-                        context = "Note: No documents are available for retrieval. Please upload documents to use RAG effectively."
+                        # Leave context empty to indicate no documents
+                        context = ""
                     else:
                         # Combine the current query with conversation context for better retrieval
                         search_query = query
@@ -242,20 +242,53 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                             # Check if we have enough relevant context
                             if len(relevant_results) == 0:
                                 logger.warning("No sufficiently relevant documents found for the query")
-                                context = "Note: No sufficiently relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents."
+                                context = ""
                             elif len(context.strip()) < 50:  # Very short context might not be useful
                                 logger.warning("Context is too short to be useful")
-                                context = "Note: The retrieved context is too limited to provide a comprehensive answer to your query. The system cannot provide a specific answer based on the available documents."
+                                context = ""
                         else:
                             logger.warning("No relevant documents found for the query")
-                            context = "Note: No relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents."
+                            context = ""
             
-            # Create system prompt if not provided
+            # Determine retrieval state based on the context
+            retrieval_state = "success"
+            if not use_rag:
+                retrieval_state = "no_documents"
+            elif not context or context.startswith("Note:"):
+                # If context is empty or starts with a note, it means no relevant documents were found
+                retrieval_state = "no_documents"
+                # Reset context to empty string if it was a note
+                if context and context.startswith("Note:"):
+                    context = ""
+            elif len(sources) == 0:
+                # If no sources were found but context exists, it's low relevance
+                retrieval_state = "low_relevance"
+            
+            logger.info(f"Determined retrieval state: {retrieval_state}")
+            
+            # Create system prompt and user prompt if not provided
             if not system_prompt:
-                system_prompt = self._create_system_prompt(query)
-            
-            # Create full prompt with context and conversation history
-            full_prompt = self._create_full_prompt(query, context, conversation_context)
+                if self._is_code_related_query(query):
+                    # For code queries, use the existing system prompt
+                    system_prompt = self._create_system_prompt(query)
+                    # Create a simple user prompt for code queries
+                    full_prompt = f"User Question: {query}"
+                else:
+                    # For non-code queries, use the PromptManager
+                    system_prompt, full_prompt = self._create_full_prompt(
+                        query,
+                        context,
+                        conversation_context,
+                        retrieval_state
+                    )
+            else:
+                # If system prompt is provided, still use PromptManager for user prompt
+                _, full_prompt = self._create_full_prompt(
+                    query,
+                    context,
+                    conversation_context,
+                    retrieval_state
+                )
             
             # Log the prompt and system prompt for debugging
             logger.debug(f"System prompt: {system_prompt[:200]}...")

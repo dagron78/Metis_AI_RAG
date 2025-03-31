@@ -83,7 +83,7 @@ class RetrievalMixin:
             stats = self.vector_store.get_stats()
             if stats["count"] == 0:
                 logger.warning("RAG is enabled but no documents are available in the vector store")
-                return "Note: No documents are available for retrieval. Please upload documents to use RAG effectively.", [], []
+                return "", [], []
             
             # Step 1: Analyze the query using the Retrieval Judge
             logger.info("Analyzing query with Retrieval Judge")
@@ -117,7 +117,7 @@ class RetrievalMixin:
             
             if not search_results:
                 logger.warning("No relevant documents found for the query")
-                return "Note: No relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents.", [], []
+                return "", [], []
             
             # Log the number of results
             logger.info(f"Retrieved {len(search_results)} chunks from vector store")
@@ -247,14 +247,14 @@ class RetrievalMixin:
             # Check if we have enough relevant context
             if len(relevant_results) == 0:
                 logger.warning("No sufficiently relevant documents found for the query")
-                context = "Note: No sufficiently relevant documents found in the knowledge base for your query. The system cannot provide a specific answer based on the available documents."
+                context = ""
             elif len(context.strip()) < 50:  # Very short context might not be useful
                 logger.warning("Context is too short to be useful")
-                context = "Note: The retrieved context is too limited to provide a comprehensive answer to your query. The system cannot provide a specific answer based on the available documents."
+                context = ""
             
             return context, sources, document_ids
             
         except Exception as e:
             logger.error(f"Error in enhanced retrieval: {str(e)}")
             # Return empty context in case of error
-            return "Note: An error occurred during retrieval. The system cannot provide a specific answer based on the available documents.", [], []
+            return "", [], []
