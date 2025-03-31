@@ -73,7 +73,7 @@ class GenerationMixin:
                                           system_prompt: str,
                                           model_parameters: Dict[str, Any]) -> AsyncGenerator[str, None]:
         """
-        Generate a streaming response
+        Generate a streaming response with minimal processing
         
         Args:
             prompt: Full prompt
@@ -82,10 +82,10 @@ class GenerationMixin:
             model_parameters: Model parameters
             
         Returns:
-            Async generator of response chunks
+            Async generator of response tokens
         """
-        # Create a wrapper for the stream that applies text normalization
-        original_stream = await self.ollama_client.generate(
+        # Get the raw stream from the LLM
+        stream = await self.ollama_client.generate(
             prompt=prompt,
             model=model,
             system_prompt=system_prompt,
@@ -93,38 +93,16 @@ class GenerationMixin:
             parameters=model_parameters or {}
         )
         
-        # Create a normalized stream wrapper
-        buffer = ""
-        async for chunk in original_stream:
-            # Handle string chunks (from OllamaClient)
+        # Stream tokens directly with minimal processing
+        async for chunk in stream:
+            # Handle string chunks
             if isinstance(chunk, str):
-                buffer += chunk
-                # Apply normalization to the buffer periodically
-                # Only normalize when we have complete sentences or paragraphs
-                if any(buffer.endswith(c) for c in ['.', '!', '?', '\n']):
-                    normalized_chunk = normalize_text(buffer)
-                    buffer = ""
-                    yield normalized_chunk
-                else:
-                    yield chunk
+                yield chunk
             # Handle dictionary chunks (for backward compatibility)
             elif isinstance(chunk, dict) and "response" in chunk:
-                buffer += chunk["response"]
-                # Apply normalization to the buffer periodically
-                # Only normalize when we have complete sentences or paragraphs
-                if any(buffer.endswith(c) for c in ['.', '!', '?', '\n']):
-                    normalized_chunk = normalize_text(buffer)
-                    buffer = ""
-                    yield normalized_chunk
-                else:
-                    yield chunk["response"]
+                yield chunk["response"]
             else:
                 yield chunk
-        
-        # Process any remaining text in the buffer
-        if buffer:
-            normalized_chunk = normalize_text(buffer)
-            yield normalized_chunk
     
     def _create_system_prompt(self, query: str) -> str:
         """
@@ -201,6 +179,33 @@ class GenerationMixin:
         logger.info(f"Created prompt with retrieval_state: {retrieval_state}")
         
         return system_prompt, user_prompt
+    
+    async def generate_complete_response(self,
+                                        prompt: str,
+                                        model: str,
+                                        system_prompt: str,
+                                        model_parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generate a complete response without streaming
+        
+        Args:
+            prompt: Full prompt
+            model: Model to use
+            system_prompt: System prompt
+            model_parameters: Model parameters
+            
+        Returns:
+            Response dictionary
+        """
+        # Get cached or generate new response
+        response = await self._get_cached_or_generate_response(
+            prompt=prompt,
+            model=model,
+            system_prompt=system_prompt,
+            model_parameters=model_parameters
+        )
+        
+        return response
     
     async def _get_cached_or_generate_response(self,
                                               prompt: str,
@@ -285,7 +290,28 @@ class GenerationMixin:
         response_text = response.get("response", "")
         
         # Apply text normalization to improve formatting
-        response_text = normalize_text(response_text)
-        response_text = format_code_blocks(response_text)
+        response_text = self.process_complete_response(response_text)
         
+        return response_text
+    def process_complete_response(self, response_text: str, apply_normalization: bool = True) -> str:
+        """
+        Process a complete response with optional normalization
+        
+        Args:
+            response_text: The complete response text
+            apply_normalization: Whether to apply text normalization
+            
+        Returns:
+            Processed response text
+        """
+        if not apply_normalization:
+            return response_text
+        
+        # Apply text normalization
+        normalized_text = normalize_text(response_text)
+        
+        # Format code blocks
+        formatted_text = format_code_blocks(normalized_text)
+        
+        return formatted_text
         return response_text

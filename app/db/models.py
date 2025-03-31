@@ -170,6 +170,7 @@ class Conversation(Base):
     # Relationships
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
     user = relationship("User", back_populates="conversations")
+    memories = relationship("Memory", back_populates="conversation", cascade="all, delete-orphan")
 
     # Indexes
     __table_args__ = (

@@ -14,6 +14,7 @@ from app.rag.rag_engine_base import BaseRAGEngine
 from app.rag.rag_retrieval import RetrievalMixin
 from app.rag.rag_generation import GenerationMixin
 from app.rag.mem0_client import store_message, get_conversation_history, store_document_interaction, get_user_preferences
+from app.rag.memory_buffer import process_query, get_conversation_context
 
 logger = logging.getLogger("app.rag.rag_engine")
 
@@ -109,6 +110,35 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
                 except ValueError:
                     logger.warning(f"Invalid user_id format: {user_id}, using as string")
+            
+            # Process memory commands if user_id is provided
+            processed_query = query
+            memory_response = None
+            memory_operation = None
+            
+            # Extract conversation_id from conversation_history if available
+            conversation_id = None
+            if conversation_history and len(conversation_history) > 0:
+                # Assuming the first message has the conversation_id
+                conversation_id = getattr(conversation_history[0], 'conversation_id', None)
+            
+            if user_id and conversation_id:
+                processed_query, memory_response, memory_operation = await process_query(
+                    query=query,
+                    user_id=user_id,
+                    conversation_id=conversation_id
+                )
+                
+                # If it's a recall operation with a response, return immediately
+                if memory_operation == "recall" and memory_response:
+                    return {
+                        "query": query,
+                        "answer": memory_response,
+                        "sources": []
+                    }
+            
+            # Use the processed query for RAG
+            query = processed_query
             
             # Integrate with Mem0 if available
             if self.mem0_client and user_id:
@@ -329,10 +359,19 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             
             # Generate response
             if stream:
-                # For streaming, just return the stream response
+                # For streaming, return the stream generator directly
                 logger.info(f"Generating streaming response with model: {model}")
                 
-                # Create a wrapper for the stream that applies text normalization
+                # Handle memory operations for streaming responses
+                if memory_operation == "recall" and memory_response:
+                    # For recall operations, we've already returned early
+                    # This code should not be reached
+                    pass
+                elif memory_operation == "store" and memory_response:
+                    # For store operations, we need to modify the prompt to include the memory confirmation
+                    full_prompt = f"{full_prompt}\n\nAlso, include this confirmation in your response: {memory_response}"
+                
+                # Use the simplified streaming response method
                 stream_response = self._generate_streaming_response(
                     prompt=full_prompt,
                     model=model,
@@ -360,11 +399,11 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     "sources": [Citation(**source) for source in sources] if sources else []
                 }
             else:
-                # For non-streaming, check cache first
+                # For non-streaming, generate the complete response
                 logger.info(f"Generating non-streaming response with model: {model}")
                 
-                # Get cached or generate new response
-                response = await self._get_cached_or_generate_response(
+                # Use the simplified complete response method
+                response = await self.generate_complete_response(
                     prompt=full_prompt,
                     model=model,
                     system_prompt=system_prompt,
@@ -375,7 +414,7 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 response_time_ms = (time.time() - start_time) * 1000
                 logger.info(f"Response time: {response_time_ms:.2f}ms")
                 
-                # Process response text
+                # Process response text with optional normalization
                 response_text = self._process_response_text(response)
                 
                 logger.info(f"Response length: {len(response_text)} characters")
@@ -383,6 +422,11 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 # Log a preview of the response
                 if response_text:
                     logger.debug(f"Response preview: {response_text[:100]}...")
+                
+                # Handle memory operations in the response
+                if memory_operation == "store" and memory_response:
+                    # If we stored a memory, append the confirmation to the response
+                    response_text = f"{response_text}\n\n{memory_response}"
                 
                 # Store assistant response in Mem0 if available
                 if self.mem0_client and user_id:
