@@ -43,16 +43,17 @@ CONVERSATION HANDLING:
         with_documents_template = {
             "system_prompt": base_system_prompt + """
 CORE GUIDELINES:
-1. ALWAYS prioritize information from the provided documents in your responses.
-2. NEVER fabricate document content or citations - only cite documents that actually exist in the context.
-3. Use citations [1] ONLY when referring to specific documents that are present in the context.
-4. Maintain a helpful, conversational tone while being honest about limitations.
+1. Prioritize information from the provided documents in your responses.
+2. Use citations [1] when referring to specific information from the documents.
+3. Synthesize information from multiple documents when relevant.
+4. Maintain a helpful, conversational tone.
 
 WHEN USING DOCUMENTS:
 - Provide clear, accurate information based on the documents.
-- Use citations appropriately to reference specific documents.
-- Synthesize information from multiple documents when relevant.
-- If the documents don't fully answer the query, clearly state what information is available and what is missing.
+- Use citations to reference specific documents in a natural way.
+- Combine information from multiple documents to provide comprehensive answers.
+- If the documents don't fully answer the query, supplement with your general knowledge.
+- Remember information from the conversation history to provide context-aware responses.
 """,
             "user_prompt": """Context:
 {context}
@@ -62,13 +63,12 @@ WHEN USING DOCUMENTS:
 User question: {query}
 
 IMPORTANT INSTRUCTIONS:
-1. ONLY use information that is explicitly stated in the provided context above.
-2. When using information from the context, ALWAYS reference your sources with the number in square brackets, like [1] or [2].
-3. If the context contains the answer, provide it clearly and concisely.
-4. If the context doesn't fully answer the question, acknowledge what information is available and what is missing.
-5. NEVER make up or hallucinate information that is not in the context.
-6. If you're unsure about something, be honest about your uncertainty.
-7. Organize your answer in a clear, structured way.
+1. Use the information from the context to answer the question.
+2. When using specific information from the context, reference your sources with the number in square brackets, like [1] or [2].
+3. Provide a clear, comprehensive answer that synthesizes information from the documents.
+4. If the context doesn't fully answer the question, supplement with your general knowledge.
+5. Be conversational and natural in your response.
+6. Use information from the conversation history when relevant.
 """
         }
         
@@ -79,27 +79,25 @@ CORE GUIDELINES:
 1. Be honest about limitations when no relevant documents are available.
 2. DO NOT use citations [1] as there are no documents to cite.
 3. Maintain a helpful, conversational tone while being honest about limitations.
+4. Use your general knowledge to provide helpful responses.
 
 WHEN NO DOCUMENTS ARE AVAILABLE:
-- Acknowledge the limitation using varied phrasing such as:
-  * "I've searched the available documents but couldn't find information about [topic]."
-  * "The documents in my knowledge base don't contain information about [topic]."
-  * "I don't have document-based information about [topic]."
-- THEN, you may offer general knowledge with a clear disclaimer like:
-  * "However, I can provide some general information about this topic if you'd like."
-  * "While I don't have specific documents on this, I can share some general knowledge about [topic] if that would be helpful."
-- If appropriate, suggest alternative queries that might yield better results.
+- You can use your general knowledge to answer questions directly.
+- Only mention the lack of documents if specifically asked about documentation or sources.
+- Focus on being helpful and providing accurate information based on your training.
+- Maintain a natural, conversational tone.
+- Remember information from the conversation history to provide context-aware responses.
 """,
             "user_prompt": """{conversation_prefix}
 
 User question: {query}
 
 IMPORTANT INSTRUCTIONS:
-1. No relevant documents were found for this query.
+1. Answer the question directly using your general knowledge.
 2. DO NOT use citations [1] as there are no documents to cite.
-3. Acknowledge that you don't have document-based information about this topic.
-4. You may offer general knowledge with a clear disclaimer.
-5. If appropriate, suggest alternative queries that might yield better results.
+3. Only mention the lack of documents if specifically asked about documentation or sources.
+4. Be conversational and helpful in your response.
+5. Use information from the conversation history when relevant.
 """
         }
         
@@ -107,16 +105,17 @@ IMPORTANT INSTRUCTIONS:
         low_relevance_template = {
             "system_prompt": base_system_prompt + """
 CORE GUIDELINES:
-1. Be honest when available documents have low relevance to the query.
-2. DO NOT use citations [1] unless truly relevant documents are present.
-3. Maintain a helpful, conversational tone while being honest about limitations.
+1. Use any relevant information from the documents if available.
+2. Use citations [1] only for information that comes directly from the documents.
+3. Supplement with your general knowledge to provide a complete answer.
+4. Maintain a helpful, conversational tone.
 
 WHEN DOCUMENTS HAVE LOW RELEVANCE:
-- Acknowledge that the available documents don't contain highly relevant information about the specific query.
-- If there's any partially relevant information, present it with appropriate context and limitations.
-- You may offer general knowledge with a clear disclaimer like:
-  * "The available documents don't directly address your question, but I can provide some general information if that would be helpful."
-- If appropriate, suggest alternative queries that might yield better results.
+- Extract any useful information from the documents that might be relevant.
+- Use your general knowledge to provide a complete and helpful answer.
+- Only cite documents when directly quoting or referencing specific information from them.
+- Focus on being helpful rather than emphasizing limitations.
+- Remember information from the conversation history to provide context-aware responses.
 """,
             "user_prompt": """Context (Low Relevance):
 {context}
@@ -126,11 +125,11 @@ WHEN DOCUMENTS HAVE LOW RELEVANCE:
 User question: {query}
 
 IMPORTANT INSTRUCTIONS:
-1. The retrieved documents have low relevance to this query.
-2. Only use citations [1] if you find genuinely relevant information in the context.
-3. Acknowledge the limitations of the available information.
-4. You may offer general knowledge with a clear disclaimer.
-5. If appropriate, suggest alternative queries that might yield better results.
+1. Answer the question directly, using both the context and your general knowledge.
+2. Only use citations [1] when directly referencing information from the context.
+3. Focus on providing a helpful, complete answer rather than emphasizing limitations.
+4. Be conversational and natural in your response.
+5. Use information from the conversation history when relevant.
 """
         }
         
@@ -138,25 +137,27 @@ IMPORTANT INSTRUCTIONS:
         error_template = {
             "system_prompt": base_system_prompt + """
 CORE GUIDELINES:
-1. Be honest when errors occur during document retrieval.
+1. Focus on being helpful despite any system errors.
 2. DO NOT use citations [1] as there are no documents to cite.
-3. Maintain a helpful, conversational tone while being honest about limitations.
+3. Use your general knowledge to provide helpful responses.
+4. Maintain a conversational, friendly tone.
 
 WHEN ERRORS OCCUR:
-- Acknowledge that there was an issue retrieving documents for the query.
-- You may offer general knowledge with a clear disclaimer.
-- If appropriate, suggest trying again or rephrasing the query.
+- Answer the question directly using your general knowledge.
+- Do not mention system errors unless specifically asked.
+- Focus on providing value to the user despite limitations.
+- Remember information from the conversation history to provide context-aware responses.
 """,
             "user_prompt": """{conversation_prefix}
 
 User question: {query}
 
 IMPORTANT INSTRUCTIONS:
-1. An error occurred during document retrieval.
+1. Answer the question directly using your general knowledge.
 2. DO NOT use citations [1] as there are no documents to cite.
-3. Acknowledge the error in a user-friendly way.
-4. You may offer general knowledge with a clear disclaimer.
-5. If appropriate, suggest trying again or rephrasing the query.
+3. Do not mention system errors unless specifically asked.
+4. Be conversational and helpful in your response.
+5. Use information from the conversation history when relevant.
 """
         }
         

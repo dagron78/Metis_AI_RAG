@@ -25,6 +25,39 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
     to provide a complete RAG solution with security features.
     """
     
+    def __init__(
+        self,
+        vector_store=None,
+        ollama_client=None,
+        retrieval_judge=None,
+        cache_manager=None,
+        user_id=None
+    ):
+        """
+        Initialize the RAG engine
+        
+        Args:
+            vector_store: Vector store instance
+            ollama_client: Ollama client instance
+            retrieval_judge: Retrieval judge instance
+            cache_manager: Cache manager instance
+            user_id: User ID for permission filtering
+        """
+        # Initialize BaseRAGEngine
+        BaseRAGEngine.__init__(
+            self,
+            vector_store=vector_store,
+            ollama_client=ollama_client,
+            retrieval_judge=retrieval_judge,
+            cache_manager=cache_manager,
+            user_id=user_id
+        )
+        
+        # Initialize GenerationMixin
+        GenerationMixin.__init__(self)
+        
+        logger.info("RAGEngine initialized with PromptManager")
+    
     async def query(self,
                    query: str,
                    model: str = DEFAULT_MODEL,
