@@ -1,0 +1,44 @@
+[
+  {
+    "query": "What is the architecture of Metis RAG?",
+    "has_citation_markers": true,
+    "citation_count": 1,
+    "source_count": 3,
+    "reasonable_citation_count": true
+  },
+  {
+    "query": "What was the revenue reported in Q1 2025?",
+    "has_citation_markers": true,
+    "citation_count": 1,
+    "source_count": 3,
+    "reasonable_citation_count": true
+  },
+  {
+    "query": "What are the components of the RAG engine?",
+    "has_citation_markers": true,
+    "citation_count": 1,
+    "source_count": 3,
+    "reasonable_citation_count": true
+  },
+  {
+    "query": "What are the strategic initiatives for Q2?",
+    "has_citation_markers": true,
+    "citation_count": 1,
+    "source_count": 3,
+    "reasonable_citation_count": true
+  },
+  {
+    "query": "What products are available and at what price points?",
+    "has_citation_markers": true,
+    "citation_count": 2,
+    "source_count": 3,
+    "reasonable_citation_count": true
+  },
+  {
+    "query": "What was the customer retention rate and NPS score?",
+    "has_citation_markers": true,
+    "citation_count": 1,
+    "source_count": 3,
+    "reasonable_citation_count": true
+  }
+]

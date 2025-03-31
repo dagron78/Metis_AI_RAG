@@ -1,0 +1,1055 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Database Performance Comparison: SQLite vs PostgreSQL</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1, h2, h3 { color: #333; }
+            table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .chart-container { width: 100%; height: 400px; margin-bottom: 30px; }
+            .winner { font-weight: bold; color: green; }
+            .loser { color: #d9534f; }
+            .summary { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <h1>Database Performance Comparison: SQLite vs PostgreSQL</h1>
+        <p>Generated on: 2025-03-20 11:03:08</p>
+        
+        <div class="summary">
+            <h2>Executive Summary</h2>
+            <p>This report compares the performance of SQLite and PostgreSQL for the Metis RAG system across various operations:</p>
+            <ul>
+                <li>Document CRUD operations</li>
+                <li>Chunk storage and retrieval</li>
+                <li>Query performance</li>
+                <li>Batch processing</li>
+            </ul>
+        </div>
+        
+        <h2>1. Document Operations</h2>
+        <div class="chart-container">
+            <canvas id="documentChart"></canvas>
+        </div>
+        
+        <h3>Document Operations Comparison</h3>
+        <table>
+            <tr>
+                <th>File Size</th>
+                <th>Operation</th>
+                <th>SQLite (s)</th>
+                <th>PostgreSQL (s)</th>
+                <th>Difference</th>
+                <th>Faster DB</th>
+            </tr>
+    
+                <tr>
+                    <td>small (5 KB)</td>
+                    <td>Create</td>
+                    <td class="loser">0.0039</td>
+                    <td class="winner">0.0032</td>
+                    <td>18.53%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>small (5 KB)</td>
+                    <td>Retrieve</td>
+                    <td class="loser">0.0011</td>
+                    <td class="winner">0.0007</td>
+                    <td>36.91%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>small (5 KB)</td>
+                    <td>Update</td>
+                    <td class="loser">0.0021</td>
+                    <td class="winner">0.0019</td>
+                    <td>7.06%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>small (5 KB)</td>
+                    <td>Delete</td>
+                    <td class="winner">0.0008</td>
+                    <td class="loser">0.0008</td>
+                    <td>3.05%</td>
+                    <td>SQLite</td>
+                </tr>
+                
+                <tr>
+                    <td>small (5 KB)</td>
+                    <td>Total</td>
+                    <td class="loser">0.0078</td>
+                    <td class="winner">0.0066</td>
+                    <td>15.86%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>medium (50 KB)</td>
+                    <td>Create</td>
+                    <td class="loser">0.0026</td>
+                    <td class="winner">0.0019</td>
+                    <td>24.13%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>medium (50 KB)</td>
+                    <td>Retrieve</td>
+                    <td class="winner">0.0006</td>
+                    <td class="loser">0.0007</td>
+                    <td>17.33%</td>
+                    <td>SQLite</td>
+                </tr>
+                
+                <tr>
+                    <td>medium (50 KB)</td>
+                    <td>Update</td>
+                    <td class="loser">0.0027</td>
+                    <td class="winner">0.0019</td>
+                    <td>30.60%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>medium (50 KB)</td>
+                    <td>Delete</td>
+                    <td class="loser">0.0006</td>
+                    <td class="winner">0.0006</td>
+                    <td>5.30%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>medium (50 KB)</td>
+                    <td>Total</td>
+                    <td class="loser">0.0065</td>
+                    <td class="winner">0.0051</td>
+                    <td>21.17%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>large (500 KB)</td>
+                    <td>Create</td>
+                    <td class="loser">0.0062</td>
+                    <td class="winner">0.0052</td>
+                    <td>16.19%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>large (500 KB)</td>
+                    <td>Retrieve</td>
+                    <td class="loser">0.0012</td>
+                    <td class="winner">0.0008</td>
+                    <td>33.10%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>large (500 KB)</td>
+                    <td>Update</td>
+                    <td class="loser">0.0032</td>
+                    <td class="winner">0.0027</td>
+                    <td>17.39%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>large (500 KB)</td>
+                    <td>Delete</td>
+                    <td class="loser">0.0006</td>
+                    <td class="winner">0.0005</td>
+                    <td>18.01%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>large (500 KB)</td>
+                    <td>Total</td>
+                    <td class="loser">0.0112</td>
+                    <td class="winner">0.0092</td>
+                    <td>18.46%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>xlarge (2000 KB)</td>
+                    <td>Create</td>
+                    <td class="loser">0.0337</td>
+                    <td class="winner">0.0151</td>
+                    <td>55.28%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>xlarge (2000 KB)</td>
+                    <td>Retrieve</td>
+                    <td class="loser">0.0026</td>
+                    <td class="winner">0.0019</td>
+                    <td>23.95%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>xlarge (2000 KB)</td>
+                    <td>Update</td>
+                    <td class="loser">0.0072</td>
+                    <td class="winner">0.0068</td>
+                    <td>4.50%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>xlarge (2000 KB)</td>
+                    <td>Delete</td>
+                    <td class="winner">0.0006</td>
+                    <td class="loser">0.0008</td>
+                    <td>38.47%</td>
+                    <td>SQLite</td>
+                </tr>
+                
+                <tr>
+                    <td>xlarge (2000 KB)</td>
+                    <td>Total</td>
+                    <td class="loser">0.0440</td>
+                    <td class="winner">0.0247</td>
+                    <td>43.89%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+        </table>
+        
+        <h2>2. Chunk Operations</h2>
+        <div class="chart-container">
+            <canvas id="chunkChart"></canvas>
+        </div>
+        
+        <h3>Chunk Operations Comparison</h3>
+        <table>
+            <tr>
+                <th>File Size</th>
+                <th>Strategy</th>
+                <th>Operation</th>
+                <th>SQLite (s)</th>
+                <th>PostgreSQL (s)</th>
+                <th>Difference</th>
+                <th>Faster DB</th>
+            </tr>
+    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>recursive</td>
+                        <td>Insert</td>
+                        <td class="winner">0.0053</td>
+                        <td class="loser">0.0198</td>
+                        <td>272.60%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>recursive</td>
+                        <td>Retrieve</td>
+                        <td class="winner">0.0007</td>
+                        <td class="loser">0.0034</td>
+                        <td>357.46%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>recursive</td>
+                        <td>Update</td>
+                        <td class="winner">0.0099</td>
+                        <td class="loser">0.0118</td>
+                        <td>19.68%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="winner">0.0013</td>
+                        <td class="loser">0.0049</td>
+                        <td>272.60%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="winner">0.0002</td>
+                        <td class="loser">0.0009</td>
+                        <td>357.46%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="winner">0.0025</td>
+                        <td class="loser">0.0030</td>
+                        <td>19.68%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>token</td>
+                        <td>Insert</td>
+                        <td class="loser">0.0068</td>
+                        <td class="winner">0.0025</td>
+                        <td>62.68%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>token</td>
+                        <td>Retrieve</td>
+                        <td class="loser">0.0008</td>
+                        <td class="winner">0.0006</td>
+                        <td>24.55%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>token</td>
+                        <td>Update</td>
+                        <td class="loser">0.0037</td>
+                        <td class="winner">0.0034</td>
+                        <td>8.20%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="loser">0.0017</td>
+                        <td class="winner">0.0006</td>
+                        <td>62.68%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="loser">0.0002</td>
+                        <td class="winner">0.0002</td>
+                        <td>24.55%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>small (5 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="loser">0.0009</td>
+                        <td class="winner">0.0008</td>
+                        <td>8.20%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>recursive</td>
+                        <td>Insert</td>
+                        <td class="loser">0.0074</td>
+                        <td class="winner">0.0053</td>
+                        <td>27.98%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>recursive</td>
+                        <td>Retrieve</td>
+                        <td class="winner">0.0011</td>
+                        <td class="loser">0.0011</td>
+                        <td>0.83%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>recursive</td>
+                        <td>Update</td>
+                        <td class="loser">0.0327</td>
+                        <td class="winner">0.0294</td>
+                        <td>10.08%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="loser">0.0002</td>
+                        <td class="winner">0.0001</td>
+                        <td>27.98%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="winner">0.0000</td>
+                        <td class="loser">0.0000</td>
+                        <td>0.83%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="loser">0.0009</td>
+                        <td class="winner">0.0008</td>
+                        <td>10.08%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>token</td>
+                        <td>Insert</td>
+                        <td class="loser">0.0054</td>
+                        <td class="winner">0.0049</td>
+                        <td>8.12%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>token</td>
+                        <td>Retrieve</td>
+                        <td class="loser">0.0010</td>
+                        <td class="winner">0.0009</td>
+                        <td>7.71%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>token</td>
+                        <td>Update</td>
+                        <td class="loser">0.0311</td>
+                        <td class="winner">0.0254</td>
+                        <td>18.27%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="loser">0.0001</td>
+                        <td class="winner">0.0001</td>
+                        <td>8.12%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="loser">0.0000</td>
+                        <td class="winner">0.0000</td>
+                        <td>7.71%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>medium (50 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="loser">0.0008</td>
+                        <td class="winner">0.0007</td>
+                        <td>18.27%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>recursive</td>
+                        <td>Insert</td>
+                        <td class="loser">0.0484</td>
+                        <td class="winner">0.0413</td>
+                        <td>14.72%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>recursive</td>
+                        <td>Retrieve</td>
+                        <td class="loser">0.0060</td>
+                        <td class="winner">0.0044</td>
+                        <td>26.67%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>recursive</td>
+                        <td>Update</td>
+                        <td class="loser">0.3961</td>
+                        <td class="winner">0.2313</td>
+                        <td>41.59%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="loser">0.0001</td>
+                        <td class="winner">0.0001</td>
+                        <td>14.72%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="loser">0.0000</td>
+                        <td class="winner">0.0000</td>
+                        <td>26.67%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="loser">0.0010</td>
+                        <td class="winner">0.0006</td>
+                        <td>41.59%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>token</td>
+                        <td>Insert</td>
+                        <td class="loser">0.0611</td>
+                        <td class="winner">0.0305</td>
+                        <td>50.15%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>token</td>
+                        <td>Retrieve</td>
+                        <td class="loser">0.0182</td>
+                        <td class="winner">0.0050</td>
+                        <td>72.39%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>token</td>
+                        <td>Update</td>
+                        <td class="loser">0.2917</td>
+                        <td class="winner">0.2580</td>
+                        <td>11.53%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="loser">0.0002</td>
+                        <td class="winner">0.0001</td>
+                        <td>50.15%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="loser">0.0000</td>
+                        <td class="winner">0.0000</td>
+                        <td>72.39%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>large (500 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="loser">0.0008</td>
+                        <td class="winner">0.0007</td>
+                        <td>11.53%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>recursive</td>
+                        <td>Insert</td>
+                        <td class="loser">0.2026</td>
+                        <td class="winner">0.1307</td>
+                        <td>35.47%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>recursive</td>
+                        <td>Retrieve</td>
+                        <td class="loser">0.0184</td>
+                        <td class="winner">0.0161</td>
+                        <td>12.45%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>recursive</td>
+                        <td>Update</td>
+                        <td class="loser">1.2033</td>
+                        <td class="winner">0.8459</td>
+                        <td>29.70%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="loser">0.0001</td>
+                        <td class="winner">0.0001</td>
+                        <td>35.47%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="loser">0.0000</td>
+                        <td class="winner">0.0000</td>
+                        <td>12.45%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>recursive</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="loser">0.0008</td>
+                        <td class="winner">0.0006</td>
+                        <td>29.70%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>token</td>
+                        <td>Insert</td>
+                        <td class="winner">0.1597</td>
+                        <td class="loser">0.1691</td>
+                        <td>5.88%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>token</td>
+                        <td>Retrieve</td>
+                        <td class="loser">0.0185</td>
+                        <td class="winner">0.0160</td>
+                        <td>13.40%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>token</td>
+                        <td>Update</td>
+                        <td class="loser">1.1612</td>
+                        <td class="winner">0.8438</td>
+                        <td>27.33%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Insert</td>
+                        <td class="winner">0.0001</td>
+                        <td class="loser">0.0001</td>
+                        <td>5.88%</td>
+                        <td>SQLite</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Retrieve</td>
+                        <td class="loser">0.0000</td>
+                        <td class="winner">0.0000</td>
+                        <td>13.40%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>xlarge (2000 KB)</td>
+                        <td>token</td>
+                        <td>Per-Chunk Update</td>
+                        <td class="loser">0.0008</td>
+                        <td class="winner">0.0006</td>
+                        <td>27.33%</td>
+                        <td>PostgreSQL</td>
+                    </tr>
+                    
+        </table>
+        
+        <h2>3. Query Performance</h2>
+        <div class="chart-container">
+            <canvas id="queryChart"></canvas>
+        </div>
+        
+        <h3>Query Performance Comparison</h3>
+        <table>
+            <tr>
+                <th>Query</th>
+                <th>SQLite (s)</th>
+                <th>PostgreSQL (s)</th>
+                <th>Difference</th>
+                <th>Faster DB</th>
+            </tr>
+    
+            <tr>
+                <td>What is the main purpose of the RAG system?</td>
+                <td class="loser">0.0012</td>
+                <td class="winner">0.0004</td>
+                <td>63.22%</td>
+                <td>PostgreSQL</td>
+            </tr>
+            
+            <tr>
+                <td>How does the document analysis service work?</td>
+                <td class="loser">0.0004</td>
+                <td class="winner">0.0003</td>
+                <td>12.64%</td>
+                <td>PostgreSQL</td>
+            </tr>
+            
+            <tr>
+                <td>What are the key components of the LangGraph integ...</td>
+                <td class="loser">0.0003</td>
+                <td class="winner">0.0003</td>
+                <td>3.13%</td>
+                <td>PostgreSQL</td>
+            </tr>
+            
+            <tr>
+                <td>Explain the database schema for documents and chun...</td>
+                <td class="loser">0.0003</td>
+                <td class="winner">0.0003</td>
+                <td>8.89%</td>
+                <td>PostgreSQL</td>
+            </tr>
+            
+            <tr>
+                <td>How does the memory integration enhance the system...</td>
+                <td class="loser">0.0003</td>
+                <td class="winner">0.0003</td>
+                <td>5.27%</td>
+                <td>PostgreSQL</td>
+            </tr>
+            
+        </table>
+        
+        <h2>4. Batch Processing</h2>
+        <div class="chart-container">
+            <canvas id="batchChart"></canvas>
+        </div>
+        
+        <h3>Batch Processing Comparison</h3>
+        <table>
+            <tr>
+                <th>Batch Size</th>
+                <th>Metric</th>
+                <th>SQLite (s)</th>
+                <th>PostgreSQL (s)</th>
+                <th>Difference</th>
+                <th>Faster DB</th>
+            </tr>
+    
+                <tr>
+                    <td>1</td>
+                    <td>Total Time</td>
+                    <td class="loser">0.0074</td>
+                    <td class="winner">0.0057</td>
+                    <td>22.76%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>1</td>
+                    <td>Per-Document Time</td>
+                    <td class="loser">0.0074</td>
+                    <td class="winner">0.0057</td>
+                    <td>22.76%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>5</td>
+                    <td>Total Time</td>
+                    <td class="loser">0.0296</td>
+                    <td class="winner">0.0266</td>
+                    <td>10.06%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>5</td>
+                    <td>Per-Document Time</td>
+                    <td class="loser">0.0059</td>
+                    <td class="winner">0.0053</td>
+                    <td>10.06%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>10</td>
+                    <td>Total Time</td>
+                    <td class="loser">0.1694</td>
+                    <td class="winner">0.0518</td>
+                    <td>69.41%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>10</td>
+                    <td>Per-Document Time</td>
+                    <td class="loser">0.0169</td>
+                    <td class="winner">0.0052</td>
+                    <td>69.41%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>20</td>
+                    <td>Total Time</td>
+                    <td class="loser">0.1466</td>
+                    <td class="winner">0.1133</td>
+                    <td>22.70%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+                <tr>
+                    <td>20</td>
+                    <td>Per-Document Time</td>
+                    <td class="loser">0.0073</td>
+                    <td class="winner">0.0057</td>
+                    <td>22.70%</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                
+        </table>
+        
+        <h2>5. Recommendations</h2>
+        <div class="summary">
+            <p>Based on the benchmark results, here are some recommendations:</p>
+            <ul>
+                <li><strong>Document Operations:</strong> PostgreSQL performs better for basic document operations.</li>
+                <li><strong>Chunk Operations:</strong> PostgreSQL is more efficient for chunk storage and retrieval.</li>
+                <li><strong>Query Performance:</strong> PostgreSQL provides faster query response times.</li>
+                <li><strong>Batch Processing:</strong> PostgreSQL handles batch processing more efficiently.</li>
+            </ul>
+            <p><strong>Overall Recommendation:</strong> PostgreSQL appears to be the better choice for this workload based on overall performance.</p>
+        </div>
+        
+        <script>
+            // Document operations chart
+            const docCtx = document.getElementById('documentChart').getContext('2d');
+            const docChart = new Chart(docCtx, {
+                type: 'bar',
+                data: {
+                    labels: ["small", "medium", "large", "xlarge"],
+                    datasets: [
+                        {
+                            label: 'SQLite - Create',
+                            data: [0.003882249196370443, 0.00255433718363444, 0.006193637847900391, 0.033665736516316734],
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'PostgreSQL - Create',
+                            data: [0.003162940343221029, 0.0019379456837972004, 0.00519100824991862, 0.015054543813069662],
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'SQLite - Retrieve',
+                            data: [0.0010714530944824219, 0.000606695810953776, 0.0012172857920328777, 0.002557039260864258],
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'PostgreSQL - Retrieve',
+                            data: [0.0006759961446126302, 0.0007118384043375651, 0.0008143583933512369, 0.0019447008768717449],
+                            backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Document Operation Times by File Size'
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'File Size'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Query performance chart
+            const queryCtx = document.getElementById('queryChart').getContext('2d');
+            const queryChart = new Chart(queryCtx, {
+                type: 'bar',
+                data: {
+                    labels: ["Query 1", "Query 2", "Query 3", "Query 4", "Query 5"],
+                    datasets: [
+                        {
+                            label: 'SQLite',
+                            data: [0.0011973381042480469, 0.0003578662872314453, 0.0003227392832438151, 0.00031566619873046875, 0.0002849896748860677],
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'PostgreSQL',
+                            data: [0.00044043858846028644, 0.00031264623006184894, 0.00031264623006184894, 0.0002876122792561849, 0.00026996930440266925],
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Query Response Times'
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Query'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Batch processing chart
+            const batchCtx = document.getElementById('batchChart').getContext('2d');
+            const batchChart = new Chart(batchCtx, {
+                type: 'bar',
+                data: {
+                    labels: [1, 5, 10, 20],
+                    datasets: [
+                        {
+                            label: 'SQLite',
+                            data: [0.007443904876708984, 0.029572010040283203, 0.16942405700683594, 0.14658093452453613],
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'PostgreSQL',
+                            data: [0.005749940872192383, 0.0265960693359375, 0.051831960678100586, 0.11331009864807129],
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Batch Processing Times'
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Batch Size'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    </body>
+    </html>
+    

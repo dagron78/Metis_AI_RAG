@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metis RAG Document Upload UI Mockup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --error-color: #e74c3c;
+            --text-color: #333;
+            --muted-color: #7f8c8d;
+            --border-color: #ddd;
+            --card-bg: #fff;
+            --input-bg: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: var(--muted-color);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Collapsible Section Styles */
+        .collapsible-section {
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background-color: var(--card-bg);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .section-content {
+            padding: 15px;
+            background-color: var(--card-bg);
+        }
+
+        .collapsed .section-content {
+            display: none;
+        }
+
+        /* Drop Zone Styles */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background-color: var(--input-bg);
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            color: var(--muted-color);
+            margin-bottom: 15px;
+        }
+
+        .select-files-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* File Preview Styles */
+        .file-list {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .file-preview {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background-color: white;
+        }
+
+        .file-thumbnail {
+            height: 120px;
+            background-color: var(--input-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--muted-color);
+        }
+
+        .file-info {
+            padding: 10px;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--muted-color);
+        }
+
+        .file-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Progress Indicators */
+        .progress-bar {
+            height: 10px;
+            background-color: var(--input-bg);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 5px;
+            width: 65%;
+        }
+
+        .file-progress-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .file-progress-status {
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Batch Actions Toolbar */
+        .batch-actions-toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .batch-btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .batch-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .batch-btn.danger {
+            background-color: var(--error-color);
+            color: white;
+            border-color: var(--error-color);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            cursor: pointer;
+        }
+
+        .btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Metis RAG Document Upload UI Mockup</h1>
+            <p class="description">This mockup demonstrates the UI design concepts for the Phase 2 document upload improvements, focusing on a clean interface with progressive disclosure of functionality.</p>
+        </header>
+
+        <!-- Upload Section -->
+        <div class="collapsible-section">
+            <div class="section-header">
+                <h3>Upload Documents</h3>
+                <button class="toggle-btn"><i class="fas fa-chevron-down"></i></button>
+            </div>
+            <div class="section-content">
+                <div class="drop-zone">
+                    <div class="drop-zone-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <p>Drag and drop files here or click to select</p>
+                    <p>Supported formats: PDF, Word, Text, CSV, Markdown, HTML, JSON, XML</p>
+                    <button class="select-files-btn">Select Files</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Files Section -->
+        <div class="collapsible-section">
+            <div class="section-header">
+                <h3>Selected Files (3)</h3>
+                <button class="toggle-btn"><i class="fas fa-chevron-down"></i></button>
+            </div>
+            <div class="section-content">
+                <div class="file-list">
+                    <!-- File Preview 1 -->
+                    <div class="file-preview">
+                        <div class="file-thumbnail">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">quarterly_report.pdf</div>
+                            <div class="file-meta">
+                                <span>2.4 MB</span>
+                                <span>PDF</span>
+                            </div>
+                        </div>
+                        <button class="file-remove">&times;</button>
+                    </div>
+
+                    <!-- File Preview 2 -->
+                    <div class="file-preview">
+                        <div class="file-thumbnail">
+                            <i class="fas fa-file-word"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">project_proposal.docx</div>
+                            <div class="file-meta">
+                                <span>1.8 MB</span>
+                                <span>DOCX</span>
+                            </div>
+                        </div>
+                        <button class="file-remove">&times;</button>
+                    </div>
+
+                    <!-- File Preview 3 -->
+                    <div class="file-preview">
+                        <div class="file-thumbnail">
+                            <i class="fas fa-file-csv"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">sales_data.csv</div>
+                            <div class="file-meta">
+                                <span>856 KB</span>
+                                <span>CSV</span>
+                            </div>
+                        </div>
+                        <button class="file-remove">&times;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="collapsible-section">
+            <div class="section-header">
+                <h3>Upload Progress</h3>
+                <button class="toggle-btn"><i class="fas fa-chevron-down"></i></button>
+            </div>
+            <div class="section-content">
+                <div>
+                    <h4>Overall Progress (65%)</h4>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill"></div>
+                    </div>
+                    <p>2/3 files complete • Estimated time remaining: 45s</p>
+                    
+                    <div class="file-progress-list">
+                        <!-- File Progress Item 1 -->
+                        <div class="file-progress-item">
+                            <i class="fas fa-file-pdf"></i>
+                            <div style="flex-grow: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>quarterly_report.pdf</span>
+                                    <span class="file-progress-status">Complete</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Progress Item 2 -->
+                        <div class="file-progress-item">
+                            <i class="fas fa-file-word"></i>
+                            <div style="flex-grow: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>project_proposal.docx</span>
+                                    <span class="file-progress-status">Complete</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Progress Item 3 -->
+                        <div class="file-progress-item">
+                            <i class="fas fa-file-csv"></i>
+                            <div style="flex-grow: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>sales_data.csv</span>
+                                    <span class="file-progress-status" style="background-color: var(--accent-color);">Uploading</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" style="width: 45%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Actions Toolbar -->
+        <div class="batch-actions-toolbar">
+            <div>
+                <span>3</span> files selected
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="batch-btn">
+                    <i class="fas fa-tags"></i> Tag
+                </button>
+                <button class="batch-btn">
+                    <i class="fas fa-folder"></i> Move
+                </button>
+                <button class="batch-btn danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <button class="batch-btn primary">
+                    <i class="fas fa-cogs"></i> Process
+                </button>
+            </div>
+        </div>
+
+        <!-- Batch Tag Modal (shown for demonstration) -->
+        <div class="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Add Tags to 3 Files</h3>
+                    <button>&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" placeholder="Add a tag..." style="width: 100%; padding: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px;">
+                        <div style="background-color: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px;">
+                            quarterly <span>&times;</span>
+                        </div>
+                        <div style="background-color: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px;">
+                            finance <span>&times;</span>
+                        </div>
+                    </div>
+                    
+                    <label>
+                        <input type="checkbox" checked>
+                        Merge with existing tags
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn">Cancel</button>
+                    <button class="btn primary">Apply Tags</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

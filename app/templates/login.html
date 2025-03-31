@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metis RAG - Login</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #0069d9;
+        }
+        .error-message {
+            color: red;
+            margin-bottom: 15px;
+        }
+        .success-message {
+            color: green;
+            margin-bottom: 15px;
+        }
+        .register-link, .forgot-password-link {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .forgot-password-link a {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .forgot-password-link a:hover {
+            text-decoration: underline;
+        }
+        #debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #6c757d;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login to Metis RAG</h2>
+        <div id="success-message" class="success-message" style="display: none;"></div>
+        <div id="error-message" class="error-message"></div>
+        
+        <!-- Security notice -->
+        <div class="security-notice" style="margin-bottom: 15px; padding: 8px; background-color: #fff8e6; border-left: 4px solid #ffe066; font-size: 0.9em;">
+            <strong>Security Notice:</strong> Never include your credentials in URLs or bookmarks. Always use this secure login form.
+        </div>
+        <!-- Specify the correct API endpoint for the form action -->
+        <form id="login-form" method="post" action="/api/auth/token">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="forgot-password-link">
+                <a href="/forgot-password">Forgot your password?</a>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <div class="register-link">
+            <p>Don't have an account? <a href="/register">Register</a></p>
+        </div>
+        <div id="debug-info"></div>
+    </div>
+<!-- Include the external JavaScript file instead of inline script -->
+<script src="/static/js/login_handler.js"></script>
+</body>
+</html>

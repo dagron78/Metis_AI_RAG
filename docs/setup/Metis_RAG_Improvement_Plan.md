@@ -60,6 +60,61 @@ This document outlines the plan to integrate the best features of Metis_Chat and
    - Implemented test cases for different query types
    - Added analysis of retrieval success rate
 
+## Current Issues and Improvements (March 2025)
+
+Based on recent testing, we've identified several issues that need to be addressed:
+
+### 1. Streaming Text Formatting Issues
+- [ ] Fix token-by-token streaming that causes incorrect word breaks (e.g., "St abil ization")
+- [ ] Modify token processing to accumulate tokens until complete words are formed
+- [ ] Update frontend JavaScript to properly handle streamed tokens
+- [ ] Implement buffer that only renders complete words
+- [ ] Add specific tests for streaming functionality
+
+### 2. Multi-Document Synthesis
+- [ ] Improve synthesis of information across multiple documents
+- [ ] Update prompt templates in `app/rag/rag_engine.py` with better synthesis instructions
+- [ ] Implement cross-document reference analysis
+- [ ] Create metadata that links related concepts across documents
+- [ ] Refine relevance scoring algorithm
+
+### 3. File Handling Problems
+- [ ] Fix directory permissions in `app/utils/file_utils.py`
+- [ ] Implement robust path handling with absolute paths
+- [ ] Add path validation and normalization
+- [ ] Improve error handling for file operations
+- [ ] Update test fixtures to properly set up and tear down test directories
+
+### 4. Edge Case Handling
+- [ ] Implement comprehensive input sanitization
+- [ ] Add global error handlers for different exception types
+- [ ] Create standardized error responses
+- [ ] Expand test suite with more edge cases
+
+### 5. Response Time Optimization
+- [ ] Reduce average response time (currently ~9.8s)
+- [ ] Implement caching layer for frequently accessed documents and queries
+- [ ] Optimize vector store implementation
+- [ ] Process multiple chunks in parallel where possible
+- [ ] Review prompt design for efficiency
+
+## Implementation Timeline
+
+### Phase 1 (Immediate - 1 week)
+- [ ] Fix streaming text formatting issues
+- [ ] Address file handling problems
+- [ ] Implement basic input sanitization
+
+### Phase 2 (2-3 weeks)
+- [ ] Enhance prompt engineering for better multi-document synthesis
+- [ ] Implement caching for performance improvement
+- [ ] Expand edge case testing
+
+### Phase 3 (4-6 weeks)
+- [ ] Implement cross-document reference analysis
+- [ ] Optimize vector search algorithms
+- [ ] Add parallel processing capabilities
+
 ## Future Enhancements
 
 1. **Multi-modal RAG Support**
@@ -103,12 +158,29 @@ This document outlines the plan to integrate the best features of Metis_Chat and
 - Performance benchmarking
 - Continuous integration
 
+### Monitoring and Evaluation
+- [ ] Implement comprehensive logging throughout the application
+- [ ] Track performance metrics and error rates
+- [ ] Develop monitoring dashboard for system performance
+- [ ] Include metrics for response time, accuracy, and error rates
+- [ ] Schedule automated test runs
+- [ ] Compare results over time to track improvements
+
 ## Success Metrics
 
-- Response time under 2 seconds for RAG queries
+### Current Metrics
+- Response time under 2 seconds for RAG queries (currently ~9.8s)
 - Support for up to 10,000 documents
 - Intuitive document management
 - Seamless switching between modes
 - 100% success rate in RAG retrieval tests
 - Proper source citations in responses
 - Support for all document types (PDF, TXT, CSV, MD)
+
+### New Metrics to Track
+- [ ] Zero instances of word-breaking in streaming responses
+- [ ] 90%+ factual accuracy in multi-document synthesis
+- [ ] Zero file handling errors in test suite
+- [ ] 100% success rate in edge case tests
+- [ ] Reduced average response time to under 3 seconds
+- [ ] Comprehensive logging coverage across all components

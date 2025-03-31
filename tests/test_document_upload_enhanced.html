@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Enhanced Document Upload</title>
+    <link rel="stylesheet" href="app/static/css/styles.css">
+    <link rel="stylesheet" href="app/static/css/document-manager.css">
+    <link rel="stylesheet" href="app/static/css/document-upload-enhanced.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .documents-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="documents-container">
+        <div class="document-section">
+            <div class="section-header">
+                <h2>Document Management (Test)</h2>
+            </div>
+            
+            <div class="upload-form">
+                <h3>Upload Documents</h3>
+                <div id="drop-zone" class="drop-zone">
+                    <p>Drag and drop files here or click to select</p>
+                    <p class="supported-formats">Supported formats: PDF, Word, Text, CSV, Markdown, HTML, JSON, XML</p>
+                    <form id="upload-form">
+                        <div class="upload-input">
+                            <input type="file" id="document-file" accept=".pdf,.txt,.csv,.md,.docx,.doc,.rtf,.html,.json,.xml" multiple required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="doc-tags">Tags (comma separated)</label>
+                                <input type="text" id="doc-tags" placeholder="e.g. important, reference, work">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="doc-folder">Folder</label>
+                                <select id="doc-folder">
+                                    <option value="/">Root</option>
+                                    <!-- Folders will be loaded dynamically -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit">Upload Documents</button>
+                    </form>
+                </div>
+                
+                <div id="file-list" class="file-list">
+                    <!-- Selected files will be displayed here -->
+                </div>
+                
+                <div class="progress-container">
+                    <div class="overall-progress">
+                        <label>Overall Progress:</label>
+                        <div class="progress-bar" id="overall-progress">
+                            <div class="progress-bar-fill" id="overall-progress-fill"></div>
+                        </div>
+                    </div>
+                    <div id="file-progress-list">
+                        <!-- Individual file progress bars will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-title">
+                    <h3>Filter Documents</h3>
+                    <button id="filter-toggle" class="filter-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                
+                <div id="filter-content" class="filter-content">
+                    <div class="filter-section">
+                        <div class="filter-section-title">Tags</div>
+                        <div id="filter-tags" class="filter-tags">
+                            <!-- Tags will be loaded dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <div class="filter-section-title">Folders</div>
+                        <div id="filter-folders" class="filter-folders">
+                            <!-- Folders will be loaded dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button id="apply-filters">Apply Filters</button>
+                        <button id="clear-filters">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="document-section">
+                <h3>Document Processing Options</h3>
+                <div class="processing-options">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="chunking-strategy">Chunking Strategy</label>
+                            <select id="chunking-strategy">
+                                <option value="recursive">Recursive (Default)</option>
+                                <option value="token">Token-based</option>
+                                <option value="markdown">Markdown Headers</option>
+                            </select>
+                            <div class="param-description">Choose how documents are split into chunks</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="chunk-size">Chunk Size</label>
+                            <input type="number" id="chunk-size" placeholder="Default: 1000" min="100" max="4000">
+                            <div class="param-description">Size of each chunk in characters</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="chunk-overlap">Chunk Overlap</label>
+                            <input type="number" id="chunk-overlap" placeholder="Default: 200" min="0" max="1000">
+                            <div class="param-description">Overlap between chunks in characters</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="document-list" class="document-grid">
+                <!-- Documents will be loaded dynamically -->
+                <div class="document-loading">No documents loaded in test mode</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    
+    <!-- Load the enhanced document upload script -->
+    <script src="app/static/js/document-upload-enhanced.js"></script>
+    
+    <!-- Test script to show notifications -->
+    <script>
+        // Define showNotification function for testing
+        window.showNotification = function(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.backgroundColor = type === 'warning' ? '#ff9800' : '#2e8b57';
+            notification.style.color = 'white';
+            notification.style.padding = '10px 15px';
+            notification.style.borderRadius = '4px';
+            notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            notification.style.zIndex = '1000';
+            notification.style.maxWidth = '300px';
+            notification.textContent = message;
+            
+            // Add close button
+            const closeBtn = document.createElement('span');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.marginLeft = '10px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.fontWeight = 'bold';
+            closeBtn.onclick = function() {
+                document.body.removeChild(notification);
+            };
+            notification.appendChild(closeBtn);
+            
+            // Add to body
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 5000);
+        };
+    </script>
+</body>
+</html>

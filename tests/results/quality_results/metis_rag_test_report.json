@@ -1,0 +1,275 @@
+{
+  "timestamp": "2025-03-07T10:58:40.732785",
+  "test_suites": [
+    {
+      "name": "RAG Quality Tests",
+      "description": "Tests for factual accuracy, relevance, and citation quality",
+      "result": {
+        "name": "RAG Quality Tests",
+        "success": false,
+        "duration_seconds": 0.18236899375915527,
+        "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- /Users/charleshoward/Metis_RAG/venv_py310/bin/python\ncachedir: .pytest_cache\nrootdir: /Users/charleshoward/Metis_RAG\nconfigfile: pyproject.toml\nplugins: asyncio-0.25.3, anyio-3.7.1\nasyncio: mode=strict, asyncio_default_fixture_loop_scope=None\ncollecting ... collected 0 items\n\n============================ no tests ran in 0.00s =============================\n",
+        "stderr": "/Users/charleshoward/Metis_RAG/venv_py310/lib/python3.10/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option \"asyncio_default_fixture_loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"\n\n  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))\nERROR: file or directory not found: tests.test_rag_quality\n\n",
+        "return_code": 4
+      },
+      "reports": {
+        "test_quality_results.json": [
+          {
+            "query": "What is the architecture of Metis RAG?",
+            "answer": "Based on the provided context, I can provide a detailed overview of the architecture of Metis RAG.\n\nAccording to [1] Source: technical_documentation.md, Metis RAG follows a modular architecture with three main components:\n\n* Frontend Layer: Built with HTML, CSS, and JavaScript, this layer provides an intuitive interface for document management, chat interactions, system configuration, and analytics and monitoring.\n* API Layer: Implemented using FastAPI, this layer provides endpoints for document upload and management, chat interactions, system configuration, and analytics data retrieval.\n* RAG Engine: The core engine consists of three sub-components:\n\t+ Document Processing: Handles file validation and parsing, text extraction, chunking with configurable strategies, and metadata extraction.\n\t+ Vector Store: Responsible for storing document embeddings, efficient similarity search, and metadata filtering.\n\t+ LLM Integration: Connects to Ollama for local LLM inference, manages prompt templates, and handles context window optimization.\n\nThese components work together to provide advanced RAG capabilities, such as multi-document retrieval, enterprise security, and other features mentioned in the product specifications (Source: [2] product_specifications.csv).\n\nPlease note that this answer is based primarily on the provided context, specifically [1] technical_documentation.md. If you have any further questions or concerns, feel free to ask!",
+            "expected_facts": [
+              "modular architecture",
+              "Frontend Layer",
+              "API Layer",
+              "RAG Engine",
+              "HTML, CSS, and JavaScript",
+              "FastAPI"
+            ],
+            "facts_found": 6,
+            "fact_percentage": 100.0,
+            "correct_sources": true,
+            "sources": [
+              {
+                "document_id": "technical_doc",
+                "relevance_score": 0.6709409430541496
+              },
+              {
+                "document_id": "product_specs",
+                "relevance_score": 0.4804580121776464
+              },
+              {
+                "document_id": "business_report",
+                "relevance_score": 0.2760642660368716
+              }
+            ]
+          },
+          {
+            "query": "What was the revenue reported in Q1 2025?",
+            "answer": "Based on the provided context, specifically [1] Source: quarterly_report.txt, I can find the answer to your question.\n\nAccording to the \"Financial Performance\" section of the report, the company achieved $4.2M in revenue for Q1 2025, representing a 15% increase year-over-year.\n\nSource: [1]\n\nTherefore, the reported revenue for Q1 2025 was $4.2 million.",
+            "expected_facts": [
+              "$4.2M",
+              "15% increase",
+              "year-over-year",
+              "net profit of $1.4M"
+            ],
+            "facts_found": 3,
+            "fact_percentage": 75.0,
+            "correct_sources": true,
+            "sources": [
+              {
+                "document_id": "business_report",
+                "relevance_score": 0.6630528548563427
+              },
+              {
+                "document_id": "product_specs",
+                "relevance_score": 0.4826635659687333
+              },
+              {
+                "document_id": "technical_doc",
+                "relevance_score": 0.418785820604604
+              }
+            ]
+          },
+          {
+            "query": "What are the components of the RAG engine?",
+            "answer": "Based on the provided context, I found the relevant information about the RAG engine's components.\n\nAccording to [1] Source: technical_documentation.md, Tags: technical,documentation,architecture, Folder: /test:\n\n\"The core RAG engine consists of:\n\n#### Document Processing\n\nThe document processing pipeline handles:\n- File validation and parsing\n- Text extraction\n- Chunking with configurable strategies\n- Metadata extraction\n\n#### Vector Store\n\nThe vector store is responsible for:\n- Storing document embeddings\n- Efficient similarity search\n- Metadata filtering\n\n#### LLM Integration\n\nThe LLM integration component:\n- Connects to Ollama for local LLM inference\n- Manages prompt templates\n- Handles context window optimization\"\n\nFrom this, we can conclude that the RAG engine has three main components: Document Processing, Vector Store, and LLM Integration.\n\nI did not find any additional information about the RAG engine's components in the other provided contexts ([2] Source: product_specifications.csv, Tags: product,specifications,pricing, Folder: /test) or [3] Source: quarterly_report.txt, Tags: business,report,quarterly, Folder: /test).\n\nTherefore, my answer is based primarily on the information found in [1].",
+            "expected_facts": [
+              "Document Processing",
+              "Vector Store",
+              "LLM Integration",
+              "chunking",
+              "embeddings",
+              "Ollama"
+            ],
+            "facts_found": 6,
+            "fact_percentage": 100.0,
+            "correct_sources": true,
+            "sources": [
+              {
+                "document_id": "technical_doc",
+                "relevance_score": 0.6109136250495526
+              },
+              {
+                "document_id": "product_specs",
+                "relevance_score": 0.4640470886109769
+              },
+              {
+                "document_id": "business_report",
+                "relevance_score": 0.3472817564888965
+              }
+            ]
+          },
+          {
+            "query": "What are the strategic initiatives for Q2?",
+            "answer": "I'll do my best to provide an accurate and helpful response based on the provided context.\n\nAccording to the Quarterly Business Report [1], the strategic initiatives planned for Q2 2025 are:\n\n* International Expansion: Launch in European markets\n* Enterprise Solution: Develop and release enterprise-grade features\n* Strategic Partnerships: Form alliances with complementary service providers\n* Operational Efficiency: Implement automation to reduce operational costs\n\nThese initiatives aim to build upon the company's strong growth in key metrics, including revenue, customer acquisition, and product engagement.\n\nPlease note that I've based my response primarily on the provided context. If more information is needed or clarification is required, please let me know!",
+            "expected_facts": [
+              "International Expansion",
+              "European markets",
+              "Enterprise Solution",
+              "Strategic Partnerships",
+              "Operational Efficiency"
+            ],
+            "facts_found": 5,
+            "fact_percentage": 100.0,
+            "correct_sources": true,
+            "sources": [
+              {
+                "document_id": "business_report",
+                "relevance_score": 0.5109074115398808
+              },
+              {
+                "document_id": "technical_doc",
+                "relevance_score": 0.38224892211823436
+              },
+              {
+                "document_id": "product_specs",
+                "relevance_score": 0.3782355963681827
+              }
+            ]
+          },
+          {
+            "query": "What products are available and at what price points?",
+            "answer": "I've reviewed the provided context and will do my best to provide an accurate answer based on the available information.\n\nAccording to the product specifications [1], Metis RAG offers several products with different price points:\n\n* MetisRAG Enterprise: $4999\n* MetisRAG Professional: $1999\n* MetisRAG Basic: $499\n* MetisRAG API: $0.10 per query (pay-per-use)\n* MetisRAG Mobile: $9.99 per month\n\nThe context does not contain any information about other products or pricing tiers beyond these five options.\n\nPlease note that this answer is based solely on the provided context and may not include all possible products or pricing information. If you have further questions, feel free to ask!",
+            "expected_facts": [
+              "MetisRAG Enterprise",
+              "$4999",
+              "MetisRAG Professional",
+              "$1999",
+              "MetisRAG Basic",
+              "$499"
+            ],
+            "facts_found": 6,
+            "fact_percentage": 100.0,
+            "correct_sources": true,
+            "sources": [
+              {
+                "document_id": "product_specs",
+                "relevance_score": 0.511074574924676
+              },
+              {
+                "document_id": "business_report",
+                "relevance_score": 0.45753814380850444
+              },
+              {
+                "document_id": "technical_doc",
+                "relevance_score": 0.43169304353423765
+              }
+            ]
+          },
+          {
+            "query": "What was the customer retention rate and NPS score?",
+            "answer": "Based on the provided context [1], I found the customer retention rate and NPS score.\n\nAccording to the \"Customer Success\" section of the Quarterly Business Report [1], the customer retention rate remained strong at 94%. Additionally, the Net Promoter Score (NPS) improved from 42 to 48.\n\nSources: [1]",
+            "expected_facts": [
+              "94%",
+              "Net Promoter Score",
+              "improved from 42 to 48"
+            ],
+            "facts_found": 3,
+            "fact_percentage": 100.0,
+            "correct_sources": true,
+            "sources": [
+              {
+                "document_id": "business_report",
+                "relevance_score": 0.5571846440343674
+              },
+              {
+                "document_id": "product_specs",
+                "relevance_score": 0.4651842907204182
+              },
+              {
+                "document_id": "technical_doc",
+                "relevance_score": 0.40303926901945974
+              }
+            ]
+          }
+        ],
+        "test_multi_doc_results.json": [
+          {
+            "query": "Compare the MetisRAG Enterprise product with the RAG Engine architecture",
+            "answer": "I'll do my best to provide an accurate and informative response based on the provided context.\n\nTo compare the MetisRAG Enterprise product with the RAG Engine architecture, let's start by looking at the product specifications [2]. The MetisRAG Enterprise product is categorized as software, priced at $4999, and offers advanced RAG capabilities, multi-document retrieval, and enterprise security. This suggests that the product is a comprehensive solution that leverages the RAG Engine architecture.\n\nThe RAG Engine architecture [1] consists of several components, including the frontend layer, API layer, and RAG engine. The RAG engine itself includes document processing, vector store, and LLM integration. It appears that the RAG Engine architecture provides the underlying technology for the MetisRAG Enterprise product.\n\nOne key difference between the product and the architecture is the scope of features offered. The product specifications list advanced capabilities like multi-document retrieval and enterprise security, which are not explicitly mentioned in the RAG Engine architecture documentation. This suggests that the product may offer additional features beyond what's described in the architecture.\n\nHowever, it's important to note that the context doesn't provide direct information on how the MetisRAG Enterprise product specifically utilizes the RAG Engine architecture. For instance, we don't know which specific components of the architecture are used or how they contribute to the product's features and capabilities.\n\nTo better understand the relationship between the product and the architecture, I would recommend consulting additional resources or documentation that provides more detailed information on how the MetisRAG Enterprise product is built upon the RAG Engine architecture.",
+            "expected_facts": [
+              "MetisRAG Enterprise",
+              "$4999",
+              "Advanced RAG capabilities",
+              "RAG Engine",
+              "Document Processing",
+              "Vector Store"
+            ],
+            "facts_found": 6,
+            "fact_percentage": 100.0,
+            "multi_doc_retrieval": true,
+            "correct_sources": true,
+            "source_doc_ids": [
+              "technical_doc",
+              "product_specs",
+              "business_report"
+            ]
+          },
+          {
+            "query": "What is the relationship between the Q1 financial performance and the product offerings?",
+            "answer": "Based on the provided context, it appears that there is a relationship between the Q1 financial performance and the product offerings.\n\nAccording to [1], the company achieved $4.2M in revenue for Q1 2025, representing a 15% increase year-over-year. This strong financial performance can be attributed to the successful launch of three major features (Advanced Analytics Dashboard, Mobile Application Redesign, and API Integration Platform) by the product team.\n\nThe user engagement metrics show a 22% increase in daily active users following these releases, which likely contributed to the revenue growth. Additionally, the marketing team executed campaigns that generated 2,500 new leads, resulting in 300 new customers with a sales conversion rate of 12%. This suggests that the company's product offerings were effective in driving customer acquisition and revenue.\n\nFurthermore, the Customer Success section indicates that customer retention rate remained strong at 94%, which also likely had a positive impact on the financial performance. The overall improvement in key metrics, including revenue, customer acquisition, and product engagement, demonstrates a direct correlation between the Q1 financial performance and the company's product offerings.\n\nIn summary, based on the context, it can be inferred that the successful launch of new features and the resulting increase in user engagement and customer acquisition contributed to the strong financial performance in Q1 2025.",
+            "expected_facts": [
+              "$4.2M in revenue",
+              "MetisRAG Enterprise",
+              "MetisRAG Professional",
+              "MetisRAG Basic"
+            ],
+            "facts_found": 1,
+            "fact_percentage": 25.0,
+            "multi_doc_retrieval": true,
+            "correct_sources": true,
+            "source_doc_ids": [
+              "technical_doc",
+              "product_specs",
+              "business_report"
+            ]
+          }
+        ],
+        "test_citation_results.json": [
+          {
+            "query": "What is the architecture of Metis RAG?",
+            "has_citation_markers": true,
+            "citation_count": 1,
+            "source_count": 3,
+            "reasonable_citation_count": true
+          },
+          {
+            "query": "What was the revenue reported in Q1 2025?",
+            "has_citation_markers": true,
+            "citation_count": 1,
+            "source_count": 3,
+            "reasonable_citation_count": true
+          },
+          {
+            "query": "What are the components of the RAG engine?",
+            "has_citation_markers": true,
+            "citation_count": 1,
+            "source_count": 3,
+            "reasonable_citation_count": true
+          },
+          {
+            "query": "What are the strategic initiatives for Q2?",
+            "has_citation_markers": true,
+            "citation_count": 1,
+            "source_count": 3,
+            "reasonable_citation_count": true
+          },
+          {
+            "query": "What products are available and at what price points?",
+            "has_citation_markers": true,
+            "citation_count": 2,
+            "source_count": 3,
+            "reasonable_citation_count": true
+          },
+          {
+            "query": "What was the customer retention rate and NPS score?",
+            "has_citation_markers": true,
+            "citation_count": 1,
+            "source_count": 3,
+            "reasonable_citation_count": true
+          }
+        ]
+      }
+    }
+  ]
+}

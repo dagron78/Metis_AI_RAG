@@ -1,0 +1,82 @@
+[
+  {
+    "query": "What is the architecture of Metis RAG?",
+    "standard": {
+      "total_time": 171.3785719871521,
+      "sources_count": 1
+    },
+    "judge": {
+      "total_time": 36.81675601005554,
+      "sources_count": 1,
+      "component_timings": {
+        "analyze_query": 12.479793787002563,
+        "evaluate_chunks": 6.393211126327515,
+        "enhanced_retrieval": 18.878051280975342
+      }
+    }
+  },
+  {
+    "query": "What are the components of the RAG engine?",
+    "standard": {
+      "total_time": 164.1695818901062,
+      "sources_count": 1
+    },
+    "judge": {
+      "total_time": 31.121859073638916,
+      "sources_count": 1,
+      "component_timings": {
+        "analyze_query": 12.357210874557495,
+        "evaluate_chunks": 5.824731111526489,
+        "enhanced_retrieval": 18.187943935394287
+      }
+    }
+  },
+  {
+    "query": "How does the vector store work?",
+    "standard": {
+      "total_time": 167.41857886314392,
+      "sources_count": 1
+    },
+    "judge": {
+      "total_time": 31.442083835601807,
+      "sources_count": 1,
+      "component_timings": {
+        "analyze_query": 11.610037803649902,
+        "evaluate_chunks": 6.113225936889648,
+        "enhanced_retrieval": 17.730960845947266
+      }
+    }
+  },
+  {
+    "query": "What is the role of the LLM integration component?",
+    "standard": {
+      "total_time": 175.33833718299866,
+      "sources_count": 1
+    },
+    "judge": {
+      "total_time": 29.5294828414917,
+      "sources_count": 1,
+      "component_timings": {
+        "analyze_query": 11.025973081588745,
+        "evaluate_chunks": 5.471881866455078,
+        "enhanced_retrieval": 16.504756927490234
+      }
+    }
+  },
+  {
+    "query": "How does the document processing pipeline work?",
+    "standard": {
+      "total_time": 174.38789820671082,
+      "sources_count": 1
+    },
+    "judge": {
+      "total_time": 31.299037218093872,
+      "sources_count": 1,
+      "component_timings": {
+        "analyze_query": 11.572484970092773,
+        "evaluate_chunks": 5.757498025894165,
+        "enhanced_retrieval": 17.335467100143433
+      }
+    }
+  }
+]

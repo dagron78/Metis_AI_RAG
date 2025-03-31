@@ -1,0 +1,29 @@
+[
+  {
+    "filename": "test_document.txt",
+    "strategy": "markdown",
+    "parameters": {
+      "chunk_size": 1500,
+      "chunk_overlap": 200
+    },
+    "justification": "The document is formatted with Markdown headers, indicating a clear hierarchical structure. Using the 'markdown' strategy will preserve this structure, ensuring that related sections and subsections are grouped together. A chunk size of 1500 characters allows for substantial content within each chunk while maintaining reasonable size. An overlap of 200 characters helps to avoid abrupt transitions between chunks and ensures context is carried over."
+  },
+  {
+    "filename": "technical_documentation.md",
+    "strategy": "markdown",
+    "parameters": {
+      "chunk_size": 1500,
+      "chunk_overlap": 200
+    },
+    "justification": "The document is a markdown file with a well-defined structure using headers (e.g., Introduction, Architecture Overview, Deployment Options, Configuration, API Reference, Performance Considerations).  Using the 'markdown' strategy will allow us to split the document along these logical sections, preserving the context and relationships between different parts of the documentation. A chunk size of 1500 characters allows for a reasonable amount of content within each chunk while still allowing for meaningful sections. An overlap of 200 ensures that context isn't lost between chunks."
+  },
+  {
+    "filename": "test_data.csv",
+    "strategy": "recursive",
+    "parameters": {
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    "justification": "The document is a CSV file, which doesn't inherently have a clear header structure suitable for markdown chunking. While it's structured data, the content within each cell (particularly the 'skills' column) can be quite variable in length.  Token-based chunking might be overly granular, as it could split skills lists mid-item. Recursive chunking provides a good balance. A chunk size of 1000 characters allows for capturing a reasonable amount of context from multiple rows, while an overlap of 200 helps maintain continuity between chunks, especially when a row's content spans across two chunks. This approach will allow the RAG system to understand the relationships between employees and their skills."
+  }
+]

@@ -1,0 +1,146 @@
+[
+  {
+    "query": "What is the architecture of Metis RAG?",
+    "answer": "Based on the provided context, the architecture of Metis RAG can be summarized as follows:\n\nAccording to [1] and [2], Metis RAG has a modular architecture consisting of three main components: Frontend Layer, API Layer, and RAG Engine.\n\nThe Frontend Layer is built with HTML, CSS, and JavaScript, providing an intuitive interface for document management, chat interactions, system configuration, and analytics and monitoring. This is stated in both [1] and [2].\n\nThe API Layer is implemented using FastAPI and provides endpoints for document upload and management, chat interactions, system configuration, and analytics data retrieval. Again, this information is present in both [1] and [2].\n\nThe RAG Engine consists of three main parts: Document Processing, Vector Store, and LLM Integration.\n\nDocument Processing handles file validation and parsing, text extraction, chunking with configurable strategies, and metadata extraction, as described in [1] and [2].\n\nVector Store is responsible for storing document embeddings, efficient similarity search, and metadata filtering. This information can be found in both [1] and [2].\n\nLLM Integration connects to Ollama for local LLM inference, manages prompt templates, and handles context window optimization. This is also stated in both [1] and [2].\n\nNo additional information beyond what's provided in the context is necessary to answer this question.\n\nSources:\n[1] Source: technical_documentation.md, Tags: [], Folder: /test\n[2] Source: technical_documentation.md, Tags: [], Folder: /test",
+    "sources": [
+      {
+        "document_id": "b09f6566-22ad-4d5f-ad6e-1c8a5dda1ef8",
+        "chunk_id": "f86ba6ad-8036-44b4-a647-d6044fc42cdc",
+        "relevance_score": 0.6145516890095938,
+        "excerpt": "# Metis RAG Technical Documentation\n\n## Introduction\n\nThis document provides technical documentation..."
+      },
+      {
+        "document_id": "2fec744c-af0d-40da-b8b4-b22fbf53ca8c",
+        "chunk_id": "465de177-2f2c-4f02-bc13-b45e30970fcb",
+        "relevance_score": 0.6145516890095938,
+        "excerpt": "# Metis RAG Technical Documentation\n\n## Introduction\n\nThis document provides technical documentation..."
+      },
+      {
+        "document_id": "23adc9d8-5baa-4d9b-a0f4-75180c467c47",
+        "chunk_id": "4cb81e59-d0cd-427d-9478-3db915be355c",
+        "relevance_score": 0.5401424824966378,
+        "excerpt": "Product ID: P003\nName: MetisRAG Basic\nCategory: Software\nPrice: $499\nFeatures: Basic RAG capabilitie..."
+      }
+    ]
+  },
+  {
+    "query": "What was the revenue reported in Q1 2025?",
+    "answer": "I'll do my best to provide an accurate and well-informed response based on the provided context.\n\nAccording to the Quarterly Business Report [1], the company achieved $4.2M in revenue for Q1 2025, representing a 15% increase year-over-year.\n\nSource: [1]\n\nPlease let me know if you'd like me to provide more information or clarification!",
+    "sources": [
+      {
+        "document_id": "3404bc5a-fe9f-4d36-8d19-6a8a4fd8216a",
+        "chunk_id": "1561ae99-4450-4d13-8460-9cf188d7d7ff",
+        "relevance_score": 0.6630528548563427,
+        "excerpt": "Quarterly Business Report\nExecutive Summary\nThis quarterly report provides an overview of business p..."
+      },
+      {
+        "document_id": "173e7a09-66e5-4523-a883-6916e339d6a2",
+        "chunk_id": "7d141d75-a409-472d-9529-74d94d89f742",
+        "relevance_score": 0.6630528548563427,
+        "excerpt": "Quarterly Business Report\nExecutive Summary\nThis quarterly report provides an overview of business p..."
+      },
+      {
+        "document_id": "23adc9d8-5baa-4d9b-a0f4-75180c467c47",
+        "chunk_id": "016005ef-97e5-405b-8360-ea5501fb15d6",
+        "relevance_score": 0.5167652143787004,
+        "excerpt": "Product ID: P001\nName: MetisRAG Enterprise\nCategory: Software\nPrice: $4999\nFeatures: Advanced RAG ca..."
+      }
+    ]
+  },
+  {
+    "query": "What are the components of the RAG engine?",
+    "answer": "Based on the provided context, I can answer the user's question.\n\nThe components of the RAG engine are described in the Architecture Overview section [1] and [2]. According to this information, the core RAG engine consists of three main components:\n\n* Document Processing: This component handles file validation and parsing, text extraction, chunking with configurable strategies, and metadata extraction.\n* Vector Store: This component is responsible for storing document embeddings, efficient similarity search, and metadata filtering.\n* LLM Integration: This component connects to Ollama for local LLM inference, manages prompt templates, and handles context window optimization.\n\nThese components work together to enable the Metis RAG system's Retrieval-Augmented Generation capabilities.",
+    "sources": [
+      {
+        "document_id": "b09f6566-22ad-4d5f-ad6e-1c8a5dda1ef8",
+        "chunk_id": "f86ba6ad-8036-44b4-a647-d6044fc42cdc",
+        "relevance_score": 0.57311767290417,
+        "excerpt": "# Metis RAG Technical Documentation\n\n## Introduction\n\nThis document provides technical documentation..."
+      },
+      {
+        "document_id": "2fec744c-af0d-40da-b8b4-b22fbf53ca8c",
+        "chunk_id": "465de177-2f2c-4f02-bc13-b45e30970fcb",
+        "relevance_score": 0.57311767290417,
+        "excerpt": "# Metis RAG Technical Documentation\n\n## Introduction\n\nThis document provides technical documentation..."
+      },
+      {
+        "document_id": "23adc9d8-5baa-4d9b-a0f4-75180c467c47",
+        "chunk_id": "36fe23f2-875b-4b97-a697-b531f3e063a2",
+        "relevance_score": 0.5202960339765587,
+        "excerpt": "Product ID: P002\nName: MetisRAG Professional\nCategory: Software\nPrice: $1999\nFeatures: Standard RAG ..."
+      }
+    ]
+  },
+  {
+    "query": "What are the strategic initiatives for Q2?",
+    "answer": "Based on the provided context, it appears that there is no specific information regarding strategic initiatives for Q2 (Quarter 2). The context primarily discusses the potential and current state of Quantum Process Synchronization (QPS) research, emphasizing its developmental phase.\n\nWhile we don't have direct information about strategic initiatives for Q2, we can infer from the general tone and themes in the provided context that any strategic plans for this quarter would likely involve continued research, testing, and refinement of QPS-based technologies. The fact that investors and governments worldwide are showing strong interest in quantum research suggests that there may be ongoing efforts to accelerate the development of practical applications.\n\nHowever, without more specific information, it's difficult to provide concrete details about what these strategic initiatives might entail. If you're looking for guidance on potential strategic plans or initiatives related to QPS, I would suggest exploring other sources that provide more context or insights into the research and development landscape.",
+    "sources": [
+      {
+        "document_id": "c8f04dec-4895-4bc0-ade4-c2c1ce465f18",
+        "chunk_id": "2ed5746d-8fba-4f8d-9287-553b93aec2a0",
+        "relevance_score": 0.5260502976127305,
+        "excerpt": "While the potential of QPS is immense, the research team emphasizes that practical applications are ..."
+      },
+      {
+        "document_id": "94db96c8-d51e-4c2a-8bbf-5e78cf655596",
+        "chunk_id": "774daf50-a734-49f4-b473-c19fc94801ee",
+        "relevance_score": 0.5260502976127305,
+        "excerpt": "While the potential of QPS is immense, the research team emphasizes that practical applications are ..."
+      },
+      {
+        "document_id": "d9c026c6-5313-4a7e-8d9e-60ee34a816c9",
+        "chunk_id": "b10fa892-9ae1-438f-8870-559d363db1df",
+        "relevance_score": 0.5260502976127305,
+        "excerpt": "While the potential of QPS is immense, the research team emphasizes that practical applications are ..."
+      }
+    ]
+  },
+  {
+    "query": "How does the vector store work?",
+    "answer": "Based on the provided context, specifically [1] and [2], I can provide information about the Vector Store component of the Metis RAG system.\n\nAccording to the documentation, the Vector Store is responsible for:\n\n* Storing document embeddings\n* Efficient similarity search\n* Metadata filtering\n\nThis suggests that the Vector Store plays a crucial role in enabling efficient retrieval and comparison of documents within the Metis RAG system. The vector store likely uses techniques such as latent semantic analysis (LSA) or word embeddings to create dense representations of documents, allowing for fast and accurate matching between queries and relevant documents.\n\nHowever, I must note that the context does not provide detailed information on how the Vector Store component works in practice, such as specific algorithms used or parameters for tuning its performance. For more comprehensive understanding of this component's functionality, additional documentation or expert knowledge may be necessary.\n\nIn any case, based on the provided context, it appears that the Vector Store is designed to facilitate efficient and effective document retrieval within the Metis RAG system.",
+    "sources": [
+      {
+        "document_id": "b09f6566-22ad-4d5f-ad6e-1c8a5dda1ef8",
+        "chunk_id": "f86ba6ad-8036-44b4-a647-d6044fc42cdc",
+        "relevance_score": 0.5206977405774185,
+        "excerpt": "# Metis RAG Technical Documentation\n\n## Introduction\n\nThis document provides technical documentation..."
+      },
+      {
+        "document_id": "2fec744c-af0d-40da-b8b4-b22fbf53ca8c",
+        "chunk_id": "465de177-2f2c-4f02-bc13-b45e30970fcb",
+        "relevance_score": 0.5206977405774185,
+        "excerpt": "# Metis RAG Technical Documentation\n\n## Introduction\n\nThis document provides technical documentation..."
+      },
+      {
+        "document_id": "23adc9d8-5baa-4d9b-a0f4-75180c467c47",
+        "chunk_id": "4cb81e59-d0cd-427d-9478-3db915be355c",
+        "relevance_score": 0.49338299939463015,
+        "excerpt": "Product ID: P003\nName: MetisRAG Basic\nCategory: Software\nPrice: $499\nFeatures: Basic RAG capabilitie..."
+      }
+    ]
+  },
+  {
+    "query": "What was the customer retention rate?",
+    "answer": "Based on the provided context, the customer retention rate is mentioned in [1] and [2]. According to these sources, the customer retention rate remained strong at 94%.\n\nSince this information is present in the provided context, I will not attempt to provide an alternative answer or make any assumptions. Instead, I will reiterate the directly stated information.\n\nCustomer Retention Rate: 94% [1], [2]",
+    "sources": [
+      {
+        "document_id": "3404bc5a-fe9f-4d36-8d19-6a8a4fd8216a",
+        "chunk_id": "1561ae99-4450-4d13-8460-9cf188d7d7ff",
+        "relevance_score": 0.5500964726882089,
+        "excerpt": "Quarterly Business Report\nExecutive Summary\nThis quarterly report provides an overview of business p..."
+      },
+      {
+        "document_id": "173e7a09-66e5-4523-a883-6916e339d6a2",
+        "chunk_id": "7d141d75-a409-472d-9529-74d94d89f742",
+        "relevance_score": 0.5500964726882089,
+        "excerpt": "Quarterly Business Report\nExecutive Summary\nThis quarterly report provides an overview of business p..."
+      },
+      {
+        "document_id": "23adc9d8-5baa-4d9b-a0f4-75180c467c47",
+        "chunk_id": "955afe4e-e33d-4cef-abdb-f02504119b3d",
+        "relevance_score": 0.4963214209080996,
+        "excerpt": "Product ID: P005\nName: MetisRAG Mobile\nCategory: Mobile App\nPrice: $9.99 per month\nFeatures: iOS and..."
+      }
+    ]
+  }
+]

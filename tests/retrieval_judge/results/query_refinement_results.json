@@ -1,0 +1,79 @@
+[
+  {
+    "query": "How does the system work?",
+    "type": "ambiguous",
+    "description": "Very general query without specific focus",
+    "refined_query": "How does the RAG system work, including document embedding storage, the document processing pipeline, and the LLM integration component?",
+    "time": 1.9273748397827148
+  },
+  {
+    "query": "Tell me about the API",
+    "type": "ambiguous",
+    "description": "Ambiguous query about the API without specifying which aspect",
+    "refined_query": "Tell me about the API layer, specifically its implementation using FastAPI for document upload and management, chat interactions, and analytics data retrieval, including authentication with JWT tokens.",
+    "time": 2.0591607093811035
+  },
+  {
+    "query": "How does the vektor store work?",
+    "type": "typo",
+    "description": "Typo in 'vector'",
+    "refined_query": "refinement process?",
+    "time": 2.063575029373169
+  },
+  {
+    "query": "What is the documnet procesing pipeline?",
+    "type": "typo",
+    "description": "Multiple typos in 'document processing'",
+    "refined_query": "What is the document processing pipeline, including file validation, parsing, chunking, and metadata extraction?",
+    "time": 1.7061607837677002
+  },
+  {
+    "query": "How does the system handle context window optimization?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about LLM context windows",
+    "refined_query": "How does the LLM integration component handle context window optimization, specifically within the Retrieval Judge's query refinement process?",
+    "time": 1.803995132446289
+  },
+  {
+    "query": "What embedding models are supported for semantic search?",
+    "type": "domain-specific",
+    "description": "Domain-specific query about embedding models",
+    "refined_query": "What embedding models are supported for semantic search, specifically considering models like Llama 3, Gemma, and Mistral?",
+    "time": 1.8295328617095947
+  },
+  {
+    "query": "What are the chunking strategies and how do they affect retrieval performance?",
+    "type": "multi-part",
+    "description": "Multi-part query about chunking strategies and their impact",
+    "refined_query": "What are the different document chunking strategies and how do they affect retrieval performance, particularly within the context of document processing pipelines and retrieval judge optimization?",
+    "time": 1.98307204246521
+  },
+  {
+    "query": "How does the authentication work and what endpoints are available for document management?",
+    "type": "multi-part",
+    "description": "Multi-part query about authentication and document management endpoints",
+    "refined_query": "What authentication methods are used for the document management API endpoints (specifically JWT tokens), and what document management API endpoints are available (e.g., upload, management)?",
+    "time": 2.098104953765869
+  },
+  {
+    "query": "RAG?",
+    "type": "short",
+    "description": "Very short query with just an acronym",
+    "refined_query": "RAG system components and functionality",
+    "time": 1.2879359722137451
+  },
+  {
+    "query": "Embeddings?",
+    "type": "short",
+    "description": "Very short query with just a technical term",
+    "refined_query": "Explain vector store embeddings and their role in RAG systems, including HNSW indexing and metadata filtering.",
+    "time": 1.7461588382720947
+  },
+  {
+    "query": "I'm trying to understand how the Metis RAG system works in detail, particularly how the document processing pipeline handles different file formats, how the chunking strategies are implemented, how the vector store manages embeddings efficiently, and how the retrieval judge optimizes the retrieval process to improve the relevance of the results. Can you explain all of these aspects in detail?",
+    "type": "long",
+    "description": "Very long query with multiple questions",
+    "refined_query": "I want a detailed explanation of the Metis RAG system\u2019s architecture, focusing on its document processing pipeline, chunking strategies, vector store implementation, and the Retrieval Judge\u2019s optimization process. Specifically, I\u2019m interested in how the system handles different file formats (PDF, DOCX, TXT, Markdown), the configurable chunking strategies used for document splitting, the efficient metadata filtering within the vector store (using HNSW index and metadata like tags, folder, and document ID), and how the Retrieval Judge leverages LLM analysis to refine queries and optimize retrieval parameters for improved relevance.",
+    "time": 4.841519117355347
+  }
+]

@@ -1,0 +1,21 @@
+Device ID,Device Name,Category,Protocol,Battery Life,Price,Indoor Range,Outdoor Range,Water Resistant,Voice Control,Hub Required
+SH-MS100,Motion Sensor,Sensor,Zigbee,2 years,$24.99,40 ft,25 ft,No,No,Yes
+SH-DS100,Door Sensor,Sensor,Zigbee,2 years,$19.99,50 ft,30 ft,No,No,Yes
+SH-LS100,Light Switch,Switch,Z-Wave,N/A,$34.99,100 ft,75 ft,No,Yes,Yes
+SH-PL100,Smart Plug,Plug,Wi-Fi,N/A,$29.99,150 ft,100 ft,No,Yes,No
+SH-BL100,Smart Bulb,Lighting,Bluetooth,N/A,$15.99,30 ft,N/A,No,Yes,No
+SH-KB100,Smart Keypad,Security,SHC,1 year,$79.99,N/A,N/A,Yes,No,Yes
+SH-CM100,Smart Camera,Security,Wi-Fi,8 hours,$129.99,N/A,100 ft,Yes,Yes,No
+SH-TH100,Temperature/Humidity Sensor,Sensor,Zigbee,18 months,$39.99,60 ft,45 ft,Yes,No,Yes
+SH-WV100,Water Valve Controller,Plumbing,Z-Wave,N/A,$89.99,50 ft,N/A,Yes,Yes,Yes
+SH-RC100,Remote Control,Controller,RF,1 year,$79.99,75 ft,50 ft,No,Yes,Yes
+SH-SW100,Siren/Warning Device,Security,Zigbee,Backup: 24 hours,$49.99,100 ft,75 ft,Yes,No,Yes
+SH-LD100,Leak Detector,Sensor,Zigbee,3 years,$29.99,40 ft,N/A,Yes,No,Yes
+SH-CO100,CO Detector,Safety,Zigbee,5 years,$59.99,50 ft,N/A,No,No,Yes
+SH-SM100,Smoke Detector,Safety,Zigbee,5 years,$59.99,50 ft,N/A,No,No,Yes
+SH-GS100,Glass Break Sensor,Security,Zigbee,3 years,$39.99,30 ft,N/A,No,No,Yes
+SH-VB100,Vibration Sensor,Security,Zigbee,2 years,$24.99,30 ft,N/A,No,No,Yes
+SH-LK100,Smart Lock,Security,Z-Wave,1 year,$149.99,50 ft,N/A,Yes,Yes,Yes
+SH-GD100,Garage Door Controller,Security,Z-Wave,N/A,$79.99,75 ft,50 ft,No,Yes,Yes
+SH-TH101,Outdoor Temperature Sensor,Sensor,Zigbee,18 months,$49.99,N/A,75 ft,Yes,No,Yes
+SH-IR100,IR Blaster,Controller,Wi-Fi,N/A,$39.99,30 ft,N/A,No,Yes,No

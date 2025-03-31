@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Model Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Model Selection</h1>
+        
+        <div class="form-group">
+            <label for="model">Select Model:</label>
+            <select id="model" name="model">
+                <option value="llama3" selected>Llama 3</option>
+                <!-- Other models will be loaded dynamically -->
+            </select>
+        </div>
+        
+        <button id="load-models">Load Models</button>
+        <button id="check-models">Check API Response</button>
+        
+        <h2>API Response:</h2>
+        <pre id="api-response">Click "Check API Response" to see the raw API response</pre>
+        
+        <h2>Selected Model:</h2>
+        <pre id="selected-model">No model selected</pre>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const modelSelect = document.getElementById('model');
+                const loadModelsBtn = document.getElementById('load-models');
+                const checkModelsBtn = document.getElementById('check-models');
+                const apiResponseEl = document.getElementById('api-response');
+                const selectedModelEl = document.getElementById('selected-model');
+                
+                // Load models when the page loads
+                loadModels();
+                
+                // Load models when the button is clicked
+                loadModelsBtn.addEventListener('click', loadModels);
+                
+                // Check API response
+                checkModelsBtn.addEventListener('click', checkApiResponse);
+                
+                // Update selected model when changed
+                modelSelect.addEventListener('change', function() {
+                    selectedModelEl.textContent = `Selected model: ${modelSelect.value}`;
+                });
+                
+                function loadModels() {
+                    fetch('/api/system/models')
+                        .then(response => response.json())
+                        .then(models => {
+                            console.log('Models:', models);
+                            
+                            // Clear the dropdown
+                            modelSelect.innerHTML = '';
+                            
+                            // Add each model to the dropdown
+                            models.forEach(model => {
+                                const option = document.createElement('option');
+                                option.value = model.name;
+                                option.textContent = model.name;
+                                modelSelect.appendChild(option);
+                                console.log('Added model:', model.name);
+                            });
+                            
+                            // Update selected model
+                            selectedModelEl.textContent = `Selected model: ${modelSelect.value}`;
+                        })
+                        .catch(error => {
+                            console.error('Error loading models:', error);
+                            apiResponseEl.textContent = `Error: ${error.message}`;
+                        });
+                }
+                
+                function checkApiResponse() {
+                    fetch('/api/system/models')
+                        .then(response => response.json())
+                        .then(data => {
+                            apiResponseEl.textContent = JSON.stringify(data, null, 2);
+                        })
+                        .catch(error => {
+                            apiResponseEl.textContent = `Error: ${error.message}`;
+                        });
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

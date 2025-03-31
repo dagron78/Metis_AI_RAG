@@ -1,0 +1,206 @@
+{
+  "metadata": {
+    "db_type": "postgresql",
+    "timestamp": "2025-03-20T11:02:27.479278",
+    "num_runs": 3
+  },
+  "document_operations": [
+    {
+      "size_name": "small",
+      "size_kb": 5,
+      "avg_create_time": 0.003162940343221029,
+      "avg_retrieve_time": 0.0006759961446126302,
+      "avg_update_time": 0.0019226868947347004,
+      "avg_delete_time": 0.0008033116658528646,
+      "total_avg_time": 0.006564935048421224,
+      "num_runs": 3
+    },
+    {
+      "size_name": "medium",
+      "size_kb": 50,
+      "avg_create_time": 0.0019379456837972004,
+      "avg_retrieve_time": 0.0007118384043375651,
+      "avg_update_time": 0.0018669764200846355,
+      "avg_delete_time": 0.000572045644124349,
+      "total_avg_time": 0.00508880615234375,
+      "num_runs": 3
+    },
+    {
+      "size_name": "large",
+      "size_kb": 500,
+      "avg_create_time": 0.00519100824991862,
+      "avg_retrieve_time": 0.0008143583933512369,
+      "avg_update_time": 0.0026547114054361978,
+      "avg_delete_time": 0.0004947185516357422,
+      "total_avg_time": 0.009154796600341797,
+      "num_runs": 3
+    },
+    {
+      "size_name": "xlarge",
+      "size_kb": 2000,
+      "avg_create_time": 0.015054543813069662,
+      "avg_retrieve_time": 0.0019447008768717449,
+      "avg_update_time": 0.006839354832967122,
+      "avg_delete_time": 0.0008493264516194662,
+      "total_avg_time": 0.024687925974527992,
+      "num_runs": 3
+    }
+  ],
+  "chunk_operations": [
+    {
+      "size_name": "small",
+      "size_kb": 5,
+      "chunking_strategy": "recursive",
+      "chunk_count": 4,
+      "chunk_insert_time": 0.019770145416259766,
+      "chunk_retrieve_time": 0.0034301280975341797,
+      "chunk_update_time": 0.011821985244750977,
+      "per_chunk_insert_time": 0.004942536354064941,
+      "per_chunk_retrieve_time": 0.0008575320243835449,
+      "per_chunk_update_time": 0.002955496311187744
+    },
+    {
+      "size_name": "small",
+      "size_kb": 5,
+      "chunking_strategy": "token",
+      "chunk_count": 4,
+      "chunk_insert_time": 0.0025451183319091797,
+      "chunk_retrieve_time": 0.0006148815155029297,
+      "chunk_update_time": 0.003389120101928711,
+      "per_chunk_insert_time": 0.0006362795829772949,
+      "per_chunk_retrieve_time": 0.00015372037887573242,
+      "per_chunk_update_time": 0.0008472800254821777
+    },
+    {
+      "size_name": "medium",
+      "size_kb": 50,
+      "chunking_strategy": "recursive",
+      "chunk_count": 38,
+      "chunk_insert_time": 0.005304813385009766,
+      "chunk_retrieve_time": 0.0010678768157958984,
+      "chunk_update_time": 0.029368162155151367,
+      "per_chunk_insert_time": 0.00013960035223709909,
+      "per_chunk_retrieve_time": 2.8102021468313116e-05,
+      "per_chunk_update_time": 0.0007728463725039834
+    },
+    {
+      "size_name": "medium",
+      "size_kb": 50,
+      "chunking_strategy": "token",
+      "chunk_count": 38,
+      "chunk_insert_time": 0.0049479007720947266,
+      "chunk_retrieve_time": 0.0009081363677978516,
+      "chunk_update_time": 0.02543783187866211,
+      "per_chunk_insert_time": 0.0001302079150551244,
+      "per_chunk_retrieve_time": 2.3898325468364516e-05,
+      "per_chunk_update_time": 0.000669416628385845
+    },
+    {
+      "size_name": "large",
+      "size_kb": 500,
+      "chunking_strategy": "recursive",
+      "chunk_count": 381,
+      "chunk_insert_time": 0.041272878646850586,
+      "chunk_retrieve_time": 0.00441288948059082,
+      "chunk_update_time": 0.23132109642028809,
+      "per_chunk_insert_time": 0.00010832776547729812,
+      "per_chunk_retrieve_time": 1.1582387088164883e-05,
+      "per_chunk_update_time": 0.0006071419853550869
+    },
+    {
+      "size_name": "large",
+      "size_kb": 500,
+      "chunking_strategy": "token",
+      "chunk_count": 381,
+      "chunk_insert_time": 0.030472993850708008,
+      "chunk_retrieve_time": 0.005027055740356445,
+      "chunk_update_time": 0.2580249309539795,
+      "per_chunk_insert_time": 7.998161115671393e-05,
+      "per_chunk_retrieve_time": 1.3194372021932927e-05,
+      "per_chunk_update_time": 0.000677230789905458
+    },
+    {
+      "size_name": "xlarge",
+      "size_kb": 2000,
+      "chunking_strategy": "recursive",
+      "chunk_count": 1521,
+      "chunk_insert_time": 0.1307377815246582,
+      "chunk_retrieve_time": 0.016109228134155273,
+      "chunk_update_time": 0.8459148406982422,
+      "per_chunk_insert_time": 8.595514893139921e-05,
+      "per_chunk_retrieve_time": 1.0591208503718128e-05,
+      "per_chunk_update_time": 0.0005561570287299423
+    },
+    {
+      "size_name": "xlarge",
+      "size_kb": 2000,
+      "chunking_strategy": "token",
+      "chunk_count": 1521,
+      "chunk_insert_time": 0.16907000541687012,
+      "chunk_retrieve_time": 0.016005992889404297,
+      "chunk_update_time": 0.8438138961791992,
+      "per_chunk_insert_time": 0.0001111571370262131,
+      "per_chunk_retrieve_time": 1.0523335233007428e-05,
+      "per_chunk_update_time": 0.0005547757371329383
+    }
+  ],
+  "query_performance": [
+    {
+      "query": "What is the main purpose of the RAG system?",
+      "avg_query_time": 0.00044043858846028644,
+      "avg_token_count": 9,
+      "avg_source_count": 0,
+      "num_runs": 3
+    },
+    {
+      "query": "How does the document analysis service work?",
+      "avg_query_time": 0.00031264623006184894,
+      "avg_token_count": 7,
+      "avg_source_count": 0,
+      "num_runs": 3
+    },
+    {
+      "query": "What are the key components of the LangGraph integration?",
+      "avg_query_time": 0.00031264623006184894,
+      "avg_token_count": 9,
+      "avg_source_count": 0,
+      "num_runs": 3
+    },
+    {
+      "query": "Explain the database schema for documents and chunks",
+      "avg_query_time": 0.0002876122792561849,
+      "avg_token_count": 8,
+      "avg_source_count": 0,
+      "num_runs": 3
+    },
+    {
+      "query": "How does the memory integration enhance the system?",
+      "avg_query_time": 0.00026996930440266925,
+      "avg_token_count": 8,
+      "avg_source_count": 0,
+      "num_runs": 3
+    }
+  ],
+  "batch_processing": [
+    {
+      "batch_size": 1,
+      "total_time": 0.005749940872192383,
+      "per_document_time": 0.005749940872192383
+    },
+    {
+      "batch_size": 5,
+      "total_time": 0.0265960693359375,
+      "per_document_time": 0.0053192138671875
+    },
+    {
+      "batch_size": 10,
+      "total_time": 0.051831960678100586,
+      "per_document_time": 0.005183196067810059
+    },
+    {
+      "batch_size": 20,
+      "total_time": 0.11331009864807129,
+      "per_document_time": 0.005665504932403564
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+Product ID,Name,Category,Price,Features,Release Date
+P001,MetisRAG Enterprise,Software,$4999,Advanced RAG capabilities|Multi-document retrieval|Enterprise security,2025-01-15
+P002,MetisRAG Professional,Software,$1999,Standard RAG capabilities|Document management|API access,2025-01-15
+P003,MetisRAG Basic,Software,$499,Basic RAG capabilities|Limited document storage|Web interface,2025-01-15
+P004,MetisRAG API,Service,$0.10 per query,Pay-per-use|REST API|Developer documentation,2025-02-01
+P005,MetisRAG Mobile,Mobile App,$9.99 per month,iOS and Android|Offline capabilities|Voice interface,2025-03-15

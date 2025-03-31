@@ -40,15 +40,18 @@
     
     <!-- Streaming Toggle -->
     <div class="form-group checkbox-container">
-        <input type="checkbox" id="stream-toggle" name="use_stream" value="true" checked>
+        <input type="checkbox" id="stream-toggle" name="use_stream" value="true">
         <label for="stream-toggle">
             Use Streaming
             <span class="tooltip">
                 <i class="fas fa-info-circle"></i>
-                <span class="tooltip-text">When enabled, responses will be streamed in real-time. Disable for better error handling.</span>
+                <span class="tooltip-text">When enabled, responses will be streamed in real-time. May cause errors with some models.</span>
             </span>
-            <div class="param-description">Enable streaming responses for real-time feedback</div>
+            <div class="param-description">Enable streaming responses (may be unstable)</div>
         </label>
+    </div>
+    <div class="streaming-warning" style="color: #ff9800; font-size: 0.8em; margin-top: 5px; padding: 5px; border-left: 3px solid #ff9800;">
+        <i class="fas fa-exclamation-triangle"></i> Streaming mode may cause errors with some models. For best results, keep it disabled.
     </div>
     
     <!-- Advanced Parameters -->

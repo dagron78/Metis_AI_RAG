@@ -1,0 +1,64 @@
+{
+  "query_id": "basic_entity",
+  "query": "Tell me about Stabilium and its applications in quantum computing.",
+  "execution_time": 60.8381609916687,
+  "answer": "Stabilium is a revolutionary material with significant applications in quantum computing. According to document [1], Stabilium maintains quantum coherence for up to 500 microseconds, operates effectively at temperatures up to 28K, and has resonance modulation properties built into its molecular structure. Furthermore, document [2] details its use in quantum teleportation enhancement and accelerating quantum computing by facilitating quantum tunneling through non-Euclidean space-time regions. Document [3] highlights its role in quantum memory and integration with Quantum Resonance Modulation (QRM) techniques. Finally, document [4] describes its application in quantum sensing in curved space-time regions. ",
+  "sources": [
+    {
+      "document_id": "stabilium_overview",
+      "chunk_id": "stabilium_overview_chunk_0",
+      "relevance_score": 0.95,
+      "filename": "",
+      "excerpt": "# Stabilium: A Revolutionary Material for Quantum Computing\n\n## Overview\n\nStabilium is a synthetic m..."
+    },
+    {
+      "document_id": "quantum_physics",
+      "chunk_id": "quantum_physics_chunk_2",
+      "relevance_score": 0.9,
+      "filename": "",
+      "excerpt": "asurement Precision**: Stabilium-based quantum sensors can approach the theoretical limits imposed b..."
+    },
+    {
+      "document_id": "stabilium_overview",
+      "chunk_id": "stabilium_overview_chunk_1",
+      "relevance_score": 0.9,
+      "filename": "",
+      "excerpt": "um computing by enabling the development of more practical quantum processors:\n\n1. **Qubit Stability..."
+    },
+    {
+      "document_id": "advanced_quantum",
+      "chunk_id": "advanced_quantum_chunk_3",
+      "relevance_score": 0.85,
+      "filename": "",
+      "excerpt": " curved space-time regions where standard quantum mechanics breaks down.\n\n## Applications in Advance..."
+    },
+    {
+      "document_id": "advanced_quantum",
+      "chunk_id": "advanced_quantum_chunk_1",
+      "relevance_score": 0.8,
+      "filename": "",
+      "excerpt": "g through non-Euclidean space-time manifolds due to several unique properties:\n\n1. **Quantum Coheren..."
+    },
+    {
+      "document_id": "stabilium_versions",
+      "chunk_id": "stabilium_versions_chunk_0",
+      "relevance_score": 0.7107210560210238,
+      "filename": "",
+      "excerpt": "# Stabilium Versions: Comparative Analysis\n\n## Evolution of Stabilium Technology\n\nSince its initial ..."
+    }
+  ],
+  "chunks_retrieved": 15,
+  "chunks_used": 6,
+  "refined_query": "Tell me about Stabilium applications in quantum computing, specifically focusing on its use as a substrate for superconducting qubits, its ability to enhance quantum coherence times, and its role in facilitating quantum tunneling through non-Euclidean space-time manifolds.",
+  "entity_analysis": {
+    "entities_found": [
+      "Stabilium"
+    ],
+    "entities_preserved": true,
+    "preserved_entities": [
+      "Stabilium"
+    ],
+    "missing_entities": [],
+    "analysis": "Found 1 entities, 1 preserved, 0 missing"
+  }
+}

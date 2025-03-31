@@ -14,7 +14,7 @@ class OllamaClient:
     """
     Client for interacting with Ollama API
     """
-    def __init__(self, base_url: str = OLLAMA_BASE_URL, timeout: int = 60):
+    def __init__(self, base_url: str = OLLAMA_BASE_URL, timeout: int = 30):
         self.base_url = base_url
         self.timeout = timeout
         self.client = httpx.AsyncClient(timeout=timeout)
@@ -119,40 +119,61 @@ class OllamaClient:
     
     async def _stream_response(self, payload: Dict[str, Any]):
         """
-        Stream response from the model
+        Stream response from the model with improved error handling and longer timeouts
         """
+        # Increase timeout for streaming responses
+        STREAM_TIMEOUT = 300  # 5 minutes
+        
         async def event_generator():
             try:
-                async with httpx.AsyncClient(timeout=120) as client:
-                    async with client.stream(
-                        "POST",
-                        f"{self.base_url}/api/generate",
-                        json=payload,
-                        timeout=120
-                    ) as response:
-                        response.raise_for_status()
-                        async for line in response.aiter_lines():
-                            if line:
-                                try:
-                                    data = json.loads(line)
-                                    
-                                    # Check if the response contains an error message
-                                    if 'error' in data:
-                                        logger.warning(f"Model returned an error in stream: {data['error']}")
-                                        yield f"I'm unable to answer that question. {data['error']}"
-                                        break
-                                    
-                                    yield data.get("response", "")
-                                    if data.get("done", False):
-                                        break
-                                except json.JSONDecodeError:
-                                    logger.error(f"Error decoding JSON: {line}")
+                # Use a longer timeout for streaming responses
+                async with httpx.AsyncClient(timeout=STREAM_TIMEOUT) as client:
+                    try:
+                        # Set longer read timeout and connection timeout
+                        async with client.stream(
+                            "POST",
+                            f"{self.base_url}/api/generate",
+                            json=payload,
+                            timeout=httpx.Timeout(connect=30, read=STREAM_TIMEOUT, write=30, pool=30)
+                        ) as response:
+                            response.raise_for_status()
+                            
+                            # Process the stream with better error handling
+                            async for line in response.aiter_lines():
+                                if line:
+                                    try:
+                                        data = json.loads(line)
+                                        
+                                        # Check if the response contains an error message
+                                        if 'error' in data:
+                                            error_msg = data['error']
+                                            logger.warning(f"Model returned an error in stream: {error_msg}")
+                                            yield f"I'm unable to answer that question. {error_msg}"
+                                            break
+                                        
+                                        # Extract and yield the response token directly
+                                        token = data.get("response", "")
+                                        if token:
+                                            yield token
+                                            
+                                        # Check if we're done
+                                        if data.get("done", False):
+                                            logger.info("Stream completed successfully")
+                                            break
+                                    except json.JSONDecodeError:
+                                        logger.error(f"Error decoding JSON: {line}")
+                    except httpx.ReadTimeout:
+                        logger.error("Read timeout while streaming response")
+                        yield "\n\nThe response was taking too long to generate. Please try again with a simpler query or disable streaming."
+                    except httpx.ConnectTimeout:
+                        logger.error("Connection timeout while streaming response")
+                        yield "\n\nCouldn't connect to the language model server. Please check if Ollama is running."
             except httpx.HTTPStatusError as e:
                 logger.error(f"HTTP error in streaming response: {str(e)}")
-                yield "I'm unable to answer that question right now. There was an issue connecting to the language model."
+                yield "\n\nI'm unable to answer that question right now. There was an issue connecting to the language model."
             except Exception as e:
-                logger.error(f"Error in streaming response: {str(e)}")
-                yield "I'm unable to process your request right now. There might be an issue with the language model or your question."
+                logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
+                yield "\n\nI'm unable to process your request right now. There might be an issue with the language model or your question."
         
         return event_generator()  # Return the generator directly
     

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metis_RAG System Visualization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        h2 {
+            margin-top: 20px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #bdc3c7;
+            cursor: pointer;
+        }
+        h2:hover {
+            color: #3498db;
+        }
+        h2::before {
+            content: "▶ ";
+            font-size: 0.8em;
+        }
+        h2.expanded::before {
+            content: "▼ ";
+        }
+        .diagram-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            max-height: 500px;
+            transition: max-height 0.3s ease;
+        }
+        .description {
+            margin-bottom: 10px;
+        }
+        .mermaid {
+            margin: 0 auto;
+            font-size: 12px;
+            transform-origin: top left;
+        }
+        .section {
+            margin-bottom: 20px;
+            display: none;
+        }
+        .section.expanded {
+            display: block;
+        }
+        .key-component {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        .key-component h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .key-component ul {
+            padding-left: 20px;
+        }
+        .controls {
+            margin-bottom: 10px;
+            text-align: right;
+        }
+        .zoom-control {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .zoom-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 2px;
+        }
+        .zoom-btn:hover {
+            background-color: #2980b9;
+        }
+        .zoom-level {
+            display: inline-block;
+            width: 40px;
+            text-align: center;
+        }
+        #toc {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        #toc h2 {
+            margin-top: 0;
+            cursor: default;
+        }
+        #toc h2::before {
+            content: "";
+        }
+        #toc ul {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+        #toc li {
+            margin-bottom: 5px;
+        }
+        #toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        #toc a:hover {
+            text-decoration: underline;
+        }
+        .expand-all-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .expand-all-btn:hover {
+            background-color: #2980b9;
+        }
+        .legend {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            border-radius: 2px;
+            vertical-align: middle;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Mermaid
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                securityLevel: 'loose',
+                flowchart: {
+                    useMaxWidth: true,
+                    htmlLabels: true,
+                    curve: 'basis'
+                },
+                er: {
+                    useMaxWidth: true
+                },
+                sequence: {
+                    useMaxWidth: true,
+                    showSequenceNumbers: true
+                }
+            });
+            
+            // Make sections collapsible
+            const headings = document.querySelectorAll('h2:not(#toc-heading)');
+            headings.forEach(heading => {
+                heading.addEventListener('click', function() {
+                    this.classList.toggle('expanded');
+                    const section = this.nextElementSibling;
+                    section.classList.toggle('expanded');
+                });
+            });
+            
+            // Expand first section by default
+            if (headings.length > 0) {
+                headings[0].classList.add('expanded');
+                headings[0].nextElementSibling.classList.add('expanded');
+            }
+            
+            // Add zoom functionality
+            const containers = document.querySelectorAll('.diagram-container');
+            containers.forEach((container, index) => {
+                const mermaidDiv = container.querySelector('.mermaid');
+                if (mermaidDiv) {
+                    let scale = 0.8; // Initial scale
+                    
+                    // Create zoom controls
+                    const controls = document.createElement('div');
+                    controls.className = 'controls';
+                    
+                    const zoomControl = document.createElement('div');
+                    zoomControl.className = 'zoom-control';
+                    
+                    const zoomOutBtn = document.createElement('button');
+                    zoomOutBtn.className = 'zoom-btn';
+                    zoomOutBtn.textContent = '-';
+                    zoomOutBtn.addEventListener('click', function() {
+                        scale = Math.max(0.3, scale - 0.1);
+                        mermaidDiv.style.transform = `scale(${scale})`;
+                        zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+                    });
+                    
+                    const zoomLevel = document.createElement('span');
+                    zoomLevel.className = 'zoom-level';
+                    zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+                    
+                    const zoomInBtn = document.createElement('button');
+                    zoomInBtn.className = 'zoom-btn';
+                    zoomInBtn.textContent = '+';
+                    zoomInBtn.addEventListener('click', function() {
+                        scale = Math.min(2, scale + 0.1);
+                        mermaidDiv.style.transform = `scale(${scale})`;
+                        zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+                    });
+                    
+                    const fitBtn = document.createElement('button');
+                    fitBtn.className = 'zoom-btn';
+                    fitBtn.textContent = 'Fit';
+                    fitBtn.addEventListener('click', function() {
+                        scale = 0.8;
+                        mermaidDiv.style.transform = `scale(${scale})`;
+                        zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+                    });
+                    
+                    zoomControl.appendChild(zoomOutBtn);
+                    zoomControl.appendChild(zoomLevel);
+                    zoomControl.appendChild(zoomInBtn);
+                    zoomControl.appendChild(fitBtn);
+                    
+                    controls.appendChild(zoomControl);
+                    container.insertBefore(controls, mermaidDiv);
+                    
+                    // Set initial scale
+                    mermaidDiv.style.transform = `scale(${scale})`;
+                }
+            });
+            
+            // Add expand all button
+            const expandAllBtn = document.createElement('button');
+            expandAllBtn.className = 'expand-all-btn';
+            expandAllBtn.textContent = 'Expand All';
+            expandAllBtn.addEventListener('click', function() {
+                const allExpanded = document.querySelectorAll('h2.expanded').length === headings.length;
+                
+                if (allExpanded) {
+                    // Collapse all except the first one
+                    headings.forEach((heading, index) => {
+                        if (index > 0) {
+                            heading.classList.remove('expanded');
+                            heading.nextElementSibling.classList.remove('expanded');
+                        }
+                    });
+                    this.textContent = 'Expand All';
+                } else {
+                    // Expand all
+                    headings.forEach(heading => {
+                        heading.classList.add('expanded');
+                        heading.nextElementSibling.classList.add('expanded');
+                    });
+                    this.textContent = 'Collapse All';
+                }
+            });
+            
+            const title = document.querySelector('h1');
+            title.appendChild(expandAllBtn);
+        });
+    </script>
+</head>
+<body>
+    <h1>Metis_RAG System Visualization</h1>
+    
+    <div id="toc">
+        <h2 id="toc-heading">Table of Contents</h2>
+        <ul>
+            <li><a href="#system-architecture">System Architecture</a></li>
+            <li><a href="#database-schema">Database Schema</a></li>
+            <li><a href="#query-processing">Query Processing Flow</a></li>
+            <li><a href="#document-processing">Document Processing Flow</a></li>
+            <li><a href="#tool-system">Tool System</a></li>
+            <li><a href="#langgraph">LangGraph Integration</a></li>
+            <li><a href="#key-components">Key Components</a></li>
+        </ul>
+    </div>
+    
+    <h2 id="system-architecture">System Architecture</h2>
+    <div class="section">
+        <div class="description">
+            <p>This diagram shows the overall architecture of the Metis_RAG system, including the main components and their interactions. The system is organized in layers, with data flowing from the user through the API layer to the core RAG engine and back.</p>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><span class="legend-color" style="background-color: #c4e3f3;"></span> User Interface</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #d9edf7;"></span> API Layer</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #dff0d8;"></span> Core RAG Engine</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #fcf8e3;"></span> Tool System</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #f2dede;"></span> Document Processing</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #e8e8e8;"></span> Data Storage</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #d9d9d9;"></span> Vector Store</div>
+        </div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+graph TD
+    %% Define styles for different components
+    classDef userInterface fill:#c4e3f3,stroke:#9acfea,color:#31708f
+    classDef apiLayer fill:#d9edf7,stroke:#9acfea,color:#31708f
+    classDef coreEngine fill:#dff0d8,stroke:#d6e9c6,color:#3c763d
+    classDef toolSystem fill:#fcf8e3,stroke:#faebcc,color:#8a6d3b
+    classDef docProcessing fill:#f2dede,stroke:#ebccd1,color:#a94442
+    classDef dataStorage fill:#e8e8e8,stroke:#ccc,color:#333
+    classDef vectorStore fill:#d9d9d9,stroke:#bbb,color:#333
+
+    %% User Interface Layer
+    WebUI["Web UI"]:::userInterface
+    APIClient["API Client"]:::userInterface
+    
+    %% API Layer
+    API["FastAPI Endpoints"]:::apiLayer
+    Auth["Authentication"]:::apiLayer
+    
+    %% Core RAG Engine
+    QA["Query Analyzer"]:::coreEngine
+    QP["Query Planner"]:::coreEngine
+    PE["Plan Executor"]:::coreEngine
+    RS["Response Synthesizer"]:::coreEngine
+    RE["Response Evaluator"]:::coreEngine
+    PL["Process Logger"]:::coreEngine
+    
+    %% Tool System
+    TR["Tool Registry"]:::toolSystem
+    RAGTool["RAG Tool"]:::toolSystem
+    CalcTool["Calculator Tool"]:::toolSystem
+    DBTool["Database Tool"]:::toolSystem
+    
+    %% Document Processing
+    DAS["Document Analysis Service"]:::docProcessing
+    WP["Worker Pool"]:::docProcessing
+    PJ["Processing Job"]:::docProcessing
+    
+    %% Database Layer
+    PostgreSQL[(PostgreSQL)]:::dataStorage
+    DocRepo["Document Repository"]:::dataStorage
+    ConvRepo["Conversation Repository"]:::dataStorage
+    AnalyticsRepo["Analytics Repository"]:::dataStorage
+    
+    %% Vector Store
+    ChromaDB[(ChromaDB)]:::vectorStore
+    
+    %% Connections
+    WebUI --> APIClient
+    APIClient --> API
+    API --> Auth
+    
+    API --> QA
+    API --> DAS
+    API --> DocRepo
+    API --> ConvRepo
+    API --> AnalyticsRepo
+    
+    QA --> QP
+    QP --> PE
+    PE --> RS
+    RS --> RE
+    
+    PL -.-> QA
+    PL -.-> QP
+    PL -.-> PE
+    PL -.-> RS
+    PL -.-> RE
+    
+    PE --> TR
+    TR --> RAGTool
+    TR --> CalcTool
+    TR --> DBTool
+    
+    DAS --> WP
+    WP --> PJ
+    
+    DocRepo --> PostgreSQL
+    ConvRepo --> PostgreSQL
+    AnalyticsRepo --> PostgreSQL
+    
+    RAGTool --> ChromaDB
+    RAGTool --> DocRepo
+    PJ --> DocRepo
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="database-schema">Database Schema</h2>
+    <div class="section">
+        <div class="description">
+            <p>This entity-relationship diagram shows the database schema used by the Metis_RAG system.</p>
+        </div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+erDiagram
+    Documents ||--o{ Chunks : contains
+    Documents ||--o{ DocumentTags : has
+    Tags ||--o{ DocumentTags : used_in
+    Documents }|--|| Folders : stored_in
+    Conversations ||--o{ Messages : contains
+    Messages ||--o{ Citations : references
+    Citations }o--|| Documents : cites
+    Citations }o--|| Chunks : cites_specific
+    ProcessingJobs ||--o{ Documents : processes
+    AnalyticsQueries }o--|| Documents : uses
+</pre>
+        </div>
+        <div class="key-component">
+            <h3>Key Database Tables</h3>
+            <ul>
+                <li><strong>Documents</strong>: Stores document metadata and content</li>
+                <li><strong>Chunks</strong>: Contains document fragments for retrieval</li>
+                <li><strong>Tags</strong>: Categorizes documents</li>
+                <li><strong>Folders</strong>: Organizes documents in a hierarchy</li>
+                <li><strong>Conversations</strong>: Tracks user interactions</li>
+                <li><strong>Messages</strong>: Stores individual messages in conversations</li>
+                <li><strong>Citations</strong>: Links responses to source documents</li>
+                <li><strong>ProcessingJobs</strong>: Manages document processing tasks</li>
+                <li><strong>AnalyticsQueries</strong>: Records query performance metrics</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 id="query-processing">Query Processing Flow</h2>
+    <div class="section">
+        <div class="description">
+            <p>This sequence diagram illustrates the flow of a query through the Metis_RAG system.</p>
+        </div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+sequenceDiagram
+    participant User
+    participant API as API Layer
+    participant QA as Query Analyzer
+    participant QP as Query Planner
+    participant PE as Plan Executor
+    participant TR as Tool Registry
+    participant RT as RAG Tool
+    participant VS as Vector Store
+    participant RS as Response Synthesizer
+    participant RE as Response Evaluator
+    participant PL as Process Logger
+
+    User->>API: Submit Query
+    API->>QA: Analyze Query
+    QA->>PL: Log Analysis
+    QA->>QP: Create Plan
+    QP->>PL: Log Plan
+    QP->>PE: Execute Plan
+    
+    loop For Each Step
+        PE->>TR: Get Tool
+        TR->>RT: Execute RAG Tool
+        RT->>VS: Retrieve Chunks
+        VS-->>RT: Return Chunks
+        RT-->>PE: Return Results
+        PE->>PL: Log Step Results
+    end
+    
+    PE->>RS: Synthesize Response
+    RS->>PL: Log Synthesis
+    RS->>RE: Evaluate Response
+    RE->>PL: Log Evaluation
+    
+    alt Response Needs Refinement
+        RE->>RS: Refine Response
+        RS->>PL: Log Refinement
+    end
+    
+    RE-->>API: Return Final Response
+    API-->>User: Display Response
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="document-processing">Document Processing Flow</h2>
+    <div class="section">
+        <div class="description">
+            <p>This sequence diagram shows how documents are processed in the Metis_RAG system.</p>
+        </div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+sequenceDiagram
+    participant User
+    participant API as API Layer
+    participant DAS as Document Analysis Service
+    participant WP as Worker Pool
+    participant PJ as Processing Job
+    participant DR as Document Repository
+    participant VS as Vector Store
+
+    User->>API: Upload Document
+    API->>DR: Store Document
+    API->>DAS: Analyze Document
+    DAS->>WP: Create Processing Job
+    WP->>PJ: Execute Job
+    
+    PJ->>DR: Retrieve Document
+    DR-->>PJ: Return Document
+    PJ->>PJ: Chunk Document
+    PJ->>VS: Store Chunks & Embeddings
+    PJ->>DR: Update Document Status
+    
+    DR-->>API: Return Success
+    API-->>User: Confirm Processing
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="tool-system">Tool System</h2>
+    <div class="section">
+        <div class="description">
+            <p>This class diagram shows the structure of the tool system in Metis_RAG.</p>
+        </div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+classDiagram
+    class Tool {
+        <<abstract>>
+        +String name
+        +String description
+        +execute(input_data)
+        +get_description()
+        +get_input_schema()
+        +get_output_schema()
+        +get_examples()
+    }
+    
+    class ToolRegistry {
+        -Dict tools
+        +register_tool(tool)
+        +get_tool(name)
+        +list_tools()
+        +get_tool_examples(name)
+        +get_tool_count()
+    }
+    
+    class RAGTool {
+        -RAGEngine rag_engine
+        +execute(input_data)
+        +get_input_schema()
+        +get_output_schema()
+        +get_examples()
+    }
+    
+    class DatabaseTool {
+        -DatabaseConnection db_connection
+        +execute(input_data)
+        +get_input_schema()
+        +get_output_schema()
+        +get_examples()
+    }
+    
+    class CalculatorTool {
+        +execute(input_data)
+        +get_input_schema()
+        +get_output_schema()
+        +get_examples()
+    }
+    
+    Tool <|-- RAGTool
+    Tool <|-- DatabaseTool
+    Tool <|-- CalculatorTool
+    ToolRegistry o-- Tool
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="langgraph">LangGraph Integration</h2>
+    <div class="section">
+        <div class="description">
+            <p>This diagram shows how LangGraph is integrated into the Metis_RAG system for complex query processing.</p>
+        </div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+flowchart TD
+    QA[Query Analysis]
+    QP[Query Planning]
+    PE[Plan Execution]
+    RT[Retrieval]
+    QR[Query Refinement]
+    CO[Context Optimization]
+    GN[Generation]
+    RE[Response Evaluation]
+    RR[Response Refinement]
+    CP[Complete]
+    
+    QA -->|Simple Query| RT
+    QA -->|Complex Query| QP
+    QP --> PE
+    PE --> RT
+    RT -->|Needs Refinement| QR
+    RT -->|Good Results| CO
+    QR --> RT
+    CO --> GN
+    GN --> RE
+    RE -->|Needs Refinement| RR
+    RE -->|Good Response| CP
+    RR --> RE
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="key-components">Key Components</h2>
+    <div class="section">
+        <div class="key-component">
+            <h3>Core RAG Engine</h3>
+            <ul>
+                <li><strong>Query Analyzer</strong>: Determines query complexity and required tools</li>
+                <li><strong>Query Planner</strong>: Creates execution plans for complex queries</li>
+                <li><strong>Plan Executor</strong>: Executes query plans using appropriate tools</li>
+                <li><strong>Response Synthesizer</strong>: Generates coherent responses from execution results</li>
+                <li><strong>Response Evaluator</strong>: Assesses response quality and determines if refinement is needed</li>
+                <li><strong>Process Logger</strong>: Records the entire query processing workflow for auditing</li>
+            </ul>
+        </div>
+        
+        <div class="key-component">
+            <h3>Tool System</h3>
+            <ul>
+                <li><strong>Tool Registry</strong>: Manages available tools</li>
+                <li><strong>RAG Tool</strong>: Retrieves information from documents using vector search</li>
+                <li><strong>Calculator Tool</strong>: Performs mathematical calculations</li>
+                <li><strong>Database Tool</strong>: Queries structured data</li>
+            </ul>
+        </div>
+        
+        <div class="key-component">
+            <h3>Document Processing</h3>
+            <ul>
+                <li><strong>Document Analysis Service</strong>: Analyzes documents to determine optimal processing strategies</li>
+                <li><strong>Worker Pool</strong>: Manages parallel document processing</li>
+                <li><strong>Processing Job</strong>: Represents a document processing task</li>
+            </ul>
+        </div>
+        
+        <div class="key-component">
+            <h3>Database Layer</h3>
+            <ul>
+                <li><strong>Document Repository</strong>: Manages document storage and retrieval</li>
+                <li><strong>Conversation Repository</strong>: Stores conversation history</li>
+                <li><strong>Analytics Repository</strong>: Records query analytics</li>
+            </ul>
+        </div>
+        
+        <div class="key-component">
+            <h3>Vector Store</h3>
+            <ul>
+                <li><strong>ChromaDB</strong>: Stores document chunks and embeddings for semantic search</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

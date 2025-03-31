@@ -1,0 +1,132 @@
+{
+  "results": [
+    {
+      "query": "What is the architecture of Metis RAG?",
+      "response_time_ms": 14820.42121887207,
+      "answer_length": 1476,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0057449340820312,
+      "memory_mb": 164.78125,
+      "threads": 23,
+      "system_cpu_percent": 11.5,
+      "system_memory_percent": 81.5
+    },
+    {
+      "query": "How does the document processing pipeline work?",
+      "response_time_ms": 12753.172874450684,
+      "answer_length": 1386,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0125160217285156,
+      "memory_mb": 165.890625,
+      "threads": 23,
+      "system_cpu_percent": 9.7,
+      "system_memory_percent": 81.5
+    },
+    {
+      "query": "What is the role of the vector store?",
+      "response_time_ms": 4216.8519496917725,
+      "answer_length": 346,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0172843933105469,
+      "memory_mb": 166.671875,
+      "threads": 23,
+      "system_cpu_percent": 9.4,
+      "system_memory_percent": 81.6
+    },
+    {
+      "query": "How does the frontend interface with the API layer?",
+      "response_time_ms": 14805.053234100342,
+      "answer_length": 1595,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0178565979003906,
+      "memory_mb": 166.765625,
+      "threads": 23,
+      "system_cpu_percent": 8.4,
+      "system_memory_percent": 80.6
+    },
+    {
+      "query": "What is the purpose of the LLM integration component?",
+      "response_time_ms": 10764.720916748047,
+      "answer_length": 1051,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0232925415039062,
+      "memory_mb": 167.65625,
+      "threads": 23,
+      "system_cpu_percent": 8.6,
+      "system_memory_percent": 81.0
+    },
+    {
+      "query": "Explain the chunking strategies used in document processing.",
+      "response_time_ms": 12380.050897598267,
+      "answer_length": 1321,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0245323181152344,
+      "memory_mb": 167.859375,
+      "threads": 23,
+      "system_cpu_percent": 8.7,
+      "system_memory_percent": 81.4
+    },
+    {
+      "query": "How does the system handle metadata filtering?",
+      "response_time_ms": 7647.094964981079,
+      "answer_length": 786,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0296821594238281,
+      "memory_mb": 168.703125,
+      "threads": 23,
+      "system_cpu_percent": 8.6,
+      "system_memory_percent": 81.4
+    },
+    {
+      "query": "What technologies are used in the frontend layer?",
+      "response_time_ms": 4877.293109893799,
+      "answer_length": 427,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0300636291503906,
+      "memory_mb": 168.765625,
+      "threads": 23,
+      "system_cpu_percent": 9.6,
+      "system_memory_percent": 81.0
+    },
+    {
+      "query": "How does the RAG engine retrieve relevant information?",
+      "response_time_ms": 6343.724012374878,
+      "answer_length": 612,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0326385498046875,
+      "memory_mb": 169.1875,
+      "threads": 23,
+      "system_cpu_percent": 13.0,
+      "system_memory_percent": 81.2
+    },
+    {
+      "query": "What is the overall purpose of the Metis RAG system?",
+      "response_time_ms": 9755.89895248413,
+      "answer_length": 1028,
+      "sources_count": 1,
+      "cpu_percent": 0.0,
+      "memory_percent": 1.0327339172363281,
+      "memory_mb": 169.203125,
+      "threads": 23,
+      "system_cpu_percent": 8.9,
+      "system_memory_percent": 81.5
+    }
+  ],
+  "statistics": {
+    "min_response_time_ms": 4216.8519496917725,
+    "max_response_time_ms": 14820.42121887207,
+    "avg_response_time_ms": 9836.428213119507,
+    "median_response_time_ms": 10260.309934616089,
+    "stddev_response_time_ms": 3923.403709708135,
+    "total_queries": 10
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "query_id": "specialized_terminology",
+  "query": "Explain the role of Stabilium in facilitating quantum tunneling through non-Euclidean space-time manifolds.",
+  "execution_time": 37.51750707626343,
+  "answer": "Stabilium plays a critical role in facilitating quantum tunneling through non-Euclidean space-time manifolds. According to document [1], Stabilium maintains quantum states even when subjected to extreme conditions near space-time curvature anomalies. Furthermore, it provides topological protection to quantum information, preventing decoherence during tunneling events [1]. The material\u2019s unique response to space-time curvature creates \u201ctunneling-friendly\u201d conditions at its boundaries [1]. Document [4] elaborates on this, stating that Stabilium enables quantum information to maintain fidelity above 92% during tunneling, significantly higher than conventional materials [4]. Essentially, Stabilium acts as a conduit for quantum particles to traverse these complex geometries while preserving their quantum properties [1, 4].",
+  "sources": [
+    {
+      "document_id": "advanced_quantum",
+      "chunk_id": "advanced_quantum_chunk_1",
+      "relevance_score": 0.95,
+      "filename": "",
+      "excerpt": "g through non-Euclidean space-time manifolds due to several unique properties:\n\n1. **Quantum Coheren..."
+    },
+    {
+      "document_id": "advanced_quantum",
+      "chunk_id": "advanced_quantum_chunk_3",
+      "relevance_score": 0.9,
+      "filename": "",
+      "excerpt": " curved space-time regions where standard quantum mechanics breaks down.\n\n## Applications in Advance..."
+    },
+    {
+      "document_id": "advanced_quantum",
+      "chunk_id": "advanced_quantum_chunk_0",
+      "relevance_score": 0.85,
+      "filename": "",
+      "excerpt": "# Quantum Tunneling Through Non-Euclidean Space-Time Manifolds\n\n## Theoretical Framework\n\nQuantum tu..."
+    },
+    {
+      "document_id": "advanced_quantum",
+      "chunk_id": "advanced_quantum_chunk_2",
+      "relevance_score": 0.75,
+      "filename": "",
+      "excerpt": "cy 300% higher than theoretical predictions for conventional materials.\n\n2. **Information Preservati..."
+    }
+  ],
+  "chunks_retrieved": 15,
+  "chunks_used": 4,
+  "refined_query": "",
+  "entity_analysis": {
+    "entities_found": [],
+    "entities_preserved": true,
+    "analysis": "No query refinement was performed"
+  }
+}
