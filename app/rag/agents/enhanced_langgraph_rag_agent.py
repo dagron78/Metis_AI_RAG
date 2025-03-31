@@ -261,8 +261,36 @@ class EnhancedLangGraphRAGAgent:
         """
         logger.info(f"Analyzing query: {state['query'][:50]}...")
         
-        # Use the query analyzer to analyze the query
-        analysis = await self.query_analyzer.analyze(state["query"])
+        # Extract conversation context if available
+        conversation_context = state.get("conversation_context")
+        
+        # Convert conversation context to chat history format if available
+        chat_history = None
+        if conversation_context:
+            # Parse conversation context into a list of (user, assistant) tuples
+            # Assuming format like "User: message\nAssistant: response\n..."
+            lines = conversation_context.strip().split('\n')
+            history = []
+            user_msg = None
+            
+            for line in lines:
+                if line.startswith("User: "):
+                    if user_msg is not None and len(history) > 0:
+                        # If we have a previous user message without a response, discard it
+                        user_msg = line[6:]  # Remove "User: " prefix
+                    else:
+                        user_msg = line[6:]  # Remove "User: " prefix
+                elif line.startswith("Assistant: ") and user_msg is not None:
+                    ai_msg = line[11:]  # Remove "Assistant: " prefix
+                    history.append((user_msg, ai_msg))
+                    user_msg = None
+            
+            if history:
+                chat_history = history
+                logger.info(f"Extracted {len(chat_history)} conversation turns from context")
+        
+        # Use the query analyzer to analyze the query with chat history
+        analysis = await self.query_analyzer.analyze(state["query"], chat_history)
         
         # Update the state with the query analysis
         state["query_analysis"] = {
@@ -327,8 +355,39 @@ class EnhancedLangGraphRAGAgent:
         
         logger.info(f"Planning query execution: {query[:50]}...")
         
-        # Create a plan using the query planner
-        plan = await self.query_planner.create_plan(query_id=query_id, query=query)
+        # Extract chat history from the state if available
+        chat_history = None
+        conversation_context = state.get("conversation_context")
+        
+        if conversation_context:
+            # Parse conversation context into a list of (user, assistant) tuples
+            # Assuming format like "User: message\nAssistant: response\n..."
+            lines = conversation_context.strip().split('\n')
+            history = []
+            user_msg = None
+            
+            for line in lines:
+                if line.startswith("User: "):
+                    if user_msg is not None and len(history) > 0:
+                        # If we have a previous user message without a response, discard it
+                        user_msg = line[6:]  # Remove "User: " prefix
+                    else:
+                        user_msg = line[6:]  # Remove "User: " prefix
+                elif line.startswith("Assistant: ") and user_msg is not None:
+                    ai_msg = line[11:]  # Remove "Assistant: " prefix
+                    history.append((user_msg, ai_msg))
+                    user_msg = None
+            
+            if history:
+                chat_history = history
+                logger.info(f"Using {len(chat_history)} conversation turns for planning")
+        
+        # Create a plan using the query planner with chat history
+        plan = await self.query_planner.create_plan(
+            query_id=query_id,
+            query=query,
+            chat_history=chat_history
+        )
         
         # Update the state with the planning information
         state["planning"] = {

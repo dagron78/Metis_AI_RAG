@@ -3,7 +3,7 @@ QueryPlanner - Plans the execution of complex queries
 """
 import logging
 import json
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 
 class QueryPlan:
     """
@@ -11,9 +11,11 @@ class QueryPlan:
     
     A QueryPlan consists of a sequence of steps, each of which may involve
     executing a tool, retrieving information, or performing some other action.
+    The plan can also store conversation history to provide context for the execution.
     """
     
-    def __init__(self, query_id: str, query: str, steps: List[Dict[str, Any]]):
+    def __init__(self, query_id: str, query: str, steps: List[Dict[str, Any]],
+                 chat_history: Optional[List[Tuple[str, str]]] = None):
         """
         Initialize a query plan
         
@@ -21,6 +23,8 @@ class QueryPlan:
             query_id: Unique query ID
             query: Original query string
             steps: List of execution steps
+            chat_history: Optional list of (user_message, ai_message) tuples representing
+                          the conversation history
         """
         self.query_id = query_id
         self.query = query
@@ -28,6 +32,7 @@ class QueryPlan:
         self.current_step = 0
         self.results = []
         self.completed = False
+        self.chat_history = chat_history
     
     def get_next_step(self) -> Optional[Dict[str, Any]]:
         """
@@ -74,7 +79,8 @@ class QueryPlan:
             "steps": self.steps,
             "current_step": self.current_step,
             "results": self.results,
-            "completed": self.completed
+            "completed": self.completed,
+            "chat_history": self.chat_history
         }
     
     @classmethod
@@ -91,7 +97,8 @@ class QueryPlan:
         plan = cls(
             query_id=data["query_id"],
             query=data["query"],
-            steps=data["steps"]
+            steps=data["steps"],
+            chat_history=data.get("chat_history")
         )
         plan.current_step = data.get("current_step", 0)
         plan.results = data.get("results", [])
@@ -120,21 +127,23 @@ class QueryPlanner:
         self.tool_registry = tool_registry
         self.logger = logging.getLogger("app.rag.query_planner")
     
-    async def create_plan(self, query_id: str, query: str) -> QueryPlan:
+    async def create_plan(self, query_id: str, query: str,
+                         chat_history: Optional[List[Tuple[str, str]]] = None) -> QueryPlan:
         """
         Create a plan for executing a query
         
         Args:
             query_id: Unique query ID
             query: Query string
+            chat_history: Optional list of (user_message, ai_message) tuples
             
         Returns:
             QueryPlan instance
         """
         self.logger.info(f"Creating plan for query: {query}")
         
-        # Analyze the query
-        analysis = await self.query_analyzer.analyze(query)
+        # Analyze the query with chat history context
+        analysis = await self.query_analyzer.analyze(query, chat_history)
         
         # Determine if the query is simple or complex
         complexity = analysis.get("complexity", "simple")
@@ -186,17 +195,19 @@ class QueryPlanner:
                     "description": f"Retrieve information for sub-query: {sub_query}"
                 })
             
-            # Add a final step to synthesize the results
+            # Add a final step to synthesize the results with chat history
             steps.append({
                 "type": "synthesize",
-                "description": "Synthesize results from previous steps"
+                "description": "Synthesize results from previous steps with conversation history",
+                "with_history": True  # Flag to indicate this step should use history
             })
         
-        # Create the plan
+        # Create the plan with chat history
         plan = QueryPlan(
             query_id=query_id,
             query=query,
-            steps=steps
+            steps=steps,
+            chat_history=chat_history  # Pass chat history to the plan
         )
         
         self.logger.info(f"Created plan with {len(steps)} steps for query: {query}")

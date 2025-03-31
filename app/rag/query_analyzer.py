@@ -5,7 +5,7 @@ import logging
 import time
 import re
 import json
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 
 class QueryAnalyzer:
     """
@@ -28,12 +28,14 @@ class QueryAnalyzer:
         self.llm_provider = llm_provider
         self.logger = logging.getLogger("app.rag.query_analyzer")
     
-    async def analyze(self, query: str) -> Dict[str, Any]:
+    async def analyze(self, query: str,
+                     chat_history: Optional[List[Tuple[str, str]]] = None) -> Dict[str, Any]:
         """
         Analyze a query to determine its complexity and requirements
         
         Args:
             query: Query string
+            chat_history: Optional list of (user_message, ai_message) tuples
             
         Returns:
             Dict with keys:
@@ -45,7 +47,7 @@ class QueryAnalyzer:
         start_time = time.time()
         self.logger.info(f"Analyzing query: {query}")
         
-        prompt = self._create_analysis_prompt(query)
+        prompt = self._create_analysis_prompt(query, chat_history)
         response = await self.llm_provider.generate(prompt=prompt)
         analysis = self._parse_analysis(response.get("response", ""))
         
@@ -54,20 +56,35 @@ class QueryAnalyzer:
         
         return analysis
     
-    def _create_analysis_prompt(self, query: str) -> str:
+    def _create_analysis_prompt(self, query: str,
+                               chat_history: Optional[List[Tuple[str, str]]] = None) -> str:
         """
         Create a prompt for query analysis
         
         Args:
             query: Query string
+            chat_history: Optional list of (user_message, ai_message) tuples
             
         Returns:
             Prompt string
         """
-        return f"""
-You are an expert query analyzer for a RAG (Retrieval-Augmented Generation) system. Your task is to analyze the following query and determine its complexity, required tools, and potential sub-queries.
+        # Format chat history if available
+        history_str = ""
+        if chat_history:
+            history_lines = []
+            for i, (user_msg, ai_msg) in enumerate(chat_history):
+                history_lines.append(f"Turn {i+1}:")
+                history_lines.append(f"User: {user_msg}")
+                history_lines.append(f"AI: {ai_msg}")
+            history_str = "\n".join(history_lines)
 
-Query: "{query}"
+        return f"""
+You are an expert query analyzer for a RAG (Retrieval-Augmented Generation) system. Your task is to analyze the following query, considering the preceding conversation history, and determine its complexity, required tools, and potential sub-queries.
+
+Conversation History:
+{history_str if history_str else "None"}
+
+Current Query: "{query}"
 
 Available tools:
 1. rag - Retrieves information from documents using RAG
@@ -94,6 +111,7 @@ Analyze the query carefully, considering:
 3. Does it need structured data lookup? (use database tool)
 4. Does it require multiple steps or a combination of tools?
 5. Would breaking it into sub-queries improve the response quality?
+6. How does the conversation history affect the interpretation of the current query? Does the query refer back to previous turns (e.g., "like you mentioned before", "tell me more about that")?
 
 Provide your analysis in valid JSON format.
 """
