@@ -7,6 +7,7 @@ import json
 import re
 import asyncio
 import aiofiles
+import uuid
 from typing import Any, Dict, List, Optional, Union, Tuple
 from pathlib import Path
 
@@ -268,9 +269,9 @@ class DatabaseTool(Tool):
             await self.connection_manager.release_postgres_connection(conn_id, conn)
     
     async def _query_csv(
-        self, 
-        query: str, 
-        csv_path: str, 
+        self,
+        query: str,
+        csv_path: str,
         params: Dict[str, Any] = None
     ) -> Tuple[List[Dict[str, Any]], List[str]]:
         """
@@ -284,26 +285,23 @@ class DatabaseTool(Tool):
         Returns:
             Tuple of (results, columns)
         """
-        import pandas as pd
+        from app.rag.tools.csv_json_handler import AsyncCSVHandler
         
-        # Create a unique in-memory database name for this CSV
-        db_name = f":memory:{Path(csv_path).stem}"
-        
-        # Register the connection with the connection manager
+        # Register the in-memory SQLite connection and get its UUID
         conn_id = self.connection_manager.register_connection(":memory:")
         
         # Get a connection from the connection manager
-        conn = await self.connection_manager.get_sqlite_connection(conn_id)
-        
+        conn = None
         try:
-            # Read CSV file (pandas doesn't have async version, so we use run_in_executor)
-            df = await asyncio.to_thread(pd.read_csv, csv_path)
+            conn = await self.connection_manager.get_sqlite_connection(conn_id)
             
             # Get table name from file path
             table_name = Path(csv_path).stem
             
-            # Write dataframe to SQLite (also not async)
-            await asyncio.to_thread(df.to_sql, table_name, conn, index=False, if_exists='replace')
+            # Create table from CSV file
+            headers, rows_inserted = await AsyncCSVHandler.create_table_from_csv(conn, table_name, csv_path)
+            
+            self.logger.info(f"Created table '{table_name}' from CSV with {rows_inserted} rows and {len(headers)} columns")
             
             # Modify query to use the table name
             modified_query = re.sub(
@@ -335,18 +333,26 @@ class DatabaseTool(Tool):
             results = [dict(row) for row in rows]
             
             await cursor.close()
+            
+            # Commit changes to ensure all operations are complete
+            await conn.commit()
+            
             return results, columns
         except Exception as e:
             self.logger.error(f"Error executing CSV query: {str(e)}")
             raise
         finally:
             # Close the connection
-            await self.connection_manager.close(conn_id)
+            if conn_id:
+                try:
+                    await self.connection_manager.close(conn_id)
+                except Exception as e:
+                    self.logger.warning(f"Error closing connection {conn_id}: {str(e)}")
     
     async def _query_json(
-        self, 
-        query: str, 
-        json_path: str, 
+        self,
+        query: str,
+        json_path: str,
         params: Dict[str, Any] = None
     ) -> Tuple[List[Dict[str, Any]], List[str]]:
         """
@@ -360,42 +366,23 @@ class DatabaseTool(Tool):
         Returns:
             Tuple of (results, columns)
         """
-        import pandas as pd
+        from app.rag.tools.csv_json_handler import AsyncJSONHandler
         
-        # Create a unique in-memory database name for this JSON
-        db_name = f":memory:{Path(json_path).stem}"
-        
-        # Register the connection with the connection manager
+        # Register the in-memory SQLite connection and get its UUID
         conn_id = self.connection_manager.register_connection(":memory:")
         
         # Get a connection from the connection manager
-        conn = await self.connection_manager.get_sqlite_connection(conn_id)
-        
+        conn = None
         try:
-            # Read JSON file asynchronously
-            async with aiofiles.open(json_path, 'r') as f:
-                content = await f.read()
-                data = json.loads(content)
-            
-            # Convert to dataframe
-            if isinstance(data, list):
-                df = pd.DataFrame(data)
-            elif isinstance(data, dict):
-                # Handle nested JSON structures
-                if any(isinstance(v, (list, dict)) for v in data.values()):
-                    # Normalize nested JSON
-                    df = pd.json_normalize(data)
-                else:
-                    # Simple key-value pairs
-                    df = pd.DataFrame([data])
-            else:
-                raise ValueError("JSON file must contain an object or array")
+            conn = await self.connection_manager.get_sqlite_connection(conn_id)
             
             # Get table name from file path
             table_name = Path(json_path).stem
             
-            # Write dataframe to SQLite (not async)
-            await asyncio.to_thread(df.to_sql, table_name, conn, index=False, if_exists='replace')
+            # Create table from JSON file
+            headers, rows_inserted = await AsyncJSONHandler.create_table_from_json(conn, table_name, json_path)
+            
+            self.logger.info(f"Created table '{table_name}' from JSON with {rows_inserted} rows and {len(headers)} columns")
             
             # Modify query to use the table name
             modified_query = re.sub(
@@ -427,13 +414,21 @@ class DatabaseTool(Tool):
             results = [dict(row) for row in rows]
             
             await cursor.close()
+            
+            # Commit changes to ensure all operations are complete
+            await conn.commit()
+            
             return results, columns
         except Exception as e:
             self.logger.error(f"Error executing JSON query: {str(e)}")
             raise
         finally:
             # Close the connection
-            await self.connection_manager.close(conn_id)
+            if conn_id:
+                try:
+                    await self.connection_manager.close(conn_id)
+                except Exception as e:
+                    self.logger.warning(f"Error closing connection {conn_id}: {str(e)}")
     
     def get_input_schema(self) -> Dict[str, Any]:
         """
