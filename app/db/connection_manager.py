@@ -81,7 +81,9 @@ class DatabaseConnectionManager:
             connection_string = connection_string.replace('postgres://', 'postgresql://')
         
         # Determine connection type
-        if connection_string.endswith(('.db', '.sqlite', '.sqlite3')) or connection_string.startswith('sqlite:'):
+        if connection_string == ':memory:' or connection_string == 'sqlite::memory:':
+            conn_type = 'sqlite'
+        elif connection_string.endswith(('.db', '.sqlite', '.sqlite3')) or connection_string.startswith('sqlite:'):
             conn_type = 'sqlite'
         elif connection_string.startswith('postgresql://'):
             conn_type = 'postgres'
