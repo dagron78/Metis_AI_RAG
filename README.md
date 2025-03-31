@@ -17,6 +17,7 @@ Metis RAG is an application that combines conversational AI with Retrieval Augme
 - Document management with tagging and organization
 - System monitoring and analytics
 - Background Task System for asynchronous processing
+- Persistent chat memory across conversation turns
 - Responsive UI with light/dark mode
 - Enhanced logging and debugging capabilities
 
@@ -80,6 +81,15 @@ The system includes a comprehensive response quality pipeline to ensure high-qua
 - **Response Evaluation**: Assesses factual accuracy, completeness, relevance, and checks for hallucinations
 - **Response Refinement**: Iteratively improves responses based on evaluation results
 - **Audit Reporting**: Generates comprehensive audit reports with information source tracking and verification status
+
+### Conversation Memory
+
+The system maintains persistent memory across conversation turns:
+
+- **Context Augmentation**: Includes conversation history in the LLM context for more coherent multi-turn dialogues
+- **Memory-Aware Query Analysis**: Analyzes queries in the context of previous conversation turns
+- **Memory-Enhanced Planning**: Creates query execution plans that consider conversation history
+- **Contextual Response Generation**: Generates responses that maintain continuity with previous exchanges
 
 ### Quality Assurance Features
 
