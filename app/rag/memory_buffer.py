@@ -35,11 +35,15 @@ async def add_to_memory_buffer(
     Returns:
         Created memory object
     """
+    # Track if we created a session
+    session_created = False
+    session_gen = None
+    
     try:
         # Get database session if not provided
-        session_created = False
         if db is None:
-            db = await anext(get_session())
+            session_gen = get_session()
+            db = await anext(session_gen)
             session_created = True
         
         # Verify conversation exists
@@ -49,8 +53,6 @@ async def add_to_memory_buffer(
         
         if not conversation:
             logger.warning(f"Conversation {conversation_id} not found, cannot store memory")
-            if session_created:
-                await db.close()
             return None
         
         # Create memory object
@@ -69,18 +71,23 @@ async def add_to_memory_buffer(
         logger.info(f"Added memory to buffer: {content[:50]}...")
         logger.info(f"Memory ID: {memory.id}, Conversation ID: {conversation_id}, Label: {label}")
         
-        # Close the session if we created it
-        if session_created:
-            await db.close()
-            
         return memory
     except Exception as e:
         logger.error(f"Error adding to memory buffer: {str(e)}")
-        if db:
-            await db.rollback()
-            if session_created:
-                await db.close()
+        if db and session_created:
+            try:
+                await db.rollback()
+            except Exception as rollback_error:
+                logger.warning(f"Error rolling back transaction: {str(rollback_error)}")
         raise
+    finally:
+        # Only close the session if we created it
+        if session_created and session_gen:
+            try:
+                # Close the generator to trigger the finally block in get_session
+                await session_gen.aclose()
+            except Exception as e:
+                logger.warning(f"Error closing session generator: {str(e)}")
 
 async def get_memory_buffer(
     conversation_id: UUID,
@@ -102,11 +109,15 @@ async def get_memory_buffer(
     Returns:
         List of memory objects
     """
+    # Track if we created a session
+    session_created = False
+    session_gen = None
+    
     try:
         # Get database session if not provided
-        session_created = False
         if db is None:
-            db = await anext(get_session())
+            session_gen = get_session()
+            db = await anext(session_gen)
             session_created = True
         
         logger.debug(f"Getting memories for conversation {conversation_id}")
@@ -194,16 +205,19 @@ async def get_memory_buffer(
             logger.debug(f"Memory {i+1}: ID={memory.id}, Content={memory.content[:50]}..., Label={memory.label}")
         logger.info(f"Retrieved {len(memories)} memories from buffer")
         
-        # Close the session if we created it
-        if session_created:
-            await db.close()
-            
         return memories
     except Exception as e:
         logger.error(f"Error getting memory buffer: {str(e)}")
-        if session_created and db:
-            await db.close()
         return []
+    finally:
+        # Only close the session if we created it
+        if session_created and session_gen:
+            try:
+                # Close the generator to trigger the finally block in get_session
+                await session_gen.aclose()
+            except Exception as e:
+                logger.warning(f"Error closing session generator: {str(e)}")
+
 async def process_query(
     query: str,
     user_id: str,
@@ -222,126 +236,138 @@ async def process_query(
     Returns:
         Tuple of (processed_query, memory_response, memory_operation)
     """
-    # Get database session if not provided
+    # Track if we created a session
     session_created = False
-    if db is None:
-        db = await anext(get_session())
-        session_created = True
+    session_gen = None
     
-    # Convert conversation_id to UUID if it's a string
-    if isinstance(conversation_id, str):
-        try:
-            conversation_id = UUID(conversation_id)
-            logger.info(f"Converted string conversation_id to UUID: {conversation_id}")
-        except ValueError:
-            logger.error(f"Invalid conversation_id format: {conversation_id}")
-            # Return original query without memory processing
-            if session_created:
-                await db.close()
-            return query, None, None
-    
-    logger.info(f"Processing query for memory commands: {query[:50]}...")
-    logger.info(f"User ID: {user_id}, Conversation ID: {conversation_id}")
-    
-    # Check for explicit memory commands
-    memory_match = re.search(r"remember\s+this(?:\s+(?:phrase|name|information))?\s*:\s*(.+)", query, re.IGNORECASE)
-    if memory_match:
-        content = memory_match.group(1).strip()
+    try:
+        # Get database session if not provided
+        if db is None:
+            session_gen = get_session()
+            db = await anext(session_gen)
+            session_created = True
         
-        # Store in memory buffer
+        # Convert conversation_id to UUID if it's a string
+        if isinstance(conversation_id, str):
+            try:
+                conversation_id = UUID(conversation_id)
+                logger.info(f"Converted string conversation_id to UUID: {conversation_id}")
+            except ValueError:
+                logger.error(f"Invalid conversation_id format: {conversation_id}")
+                # Return original query without memory processing
+                return query, None, None
+        
+        logger.info(f"Processing query for memory commands: {query[:50]}...")
+        logger.info(f"User ID: {user_id}, Conversation ID: {conversation_id}")
+        
+        # Check for explicit memory commands
+        memory_match = re.search(r"remember\s+this(?:\s+(?:phrase|name|information))?\s*:\s*(.+)", query, re.IGNORECASE)
+        if memory_match:
+            content = memory_match.group(1).strip()
+            
+            # Store in memory buffer
+            memory = await add_to_memory_buffer(
+                conversation_id=conversation_id,
+                content=content,
+                label="explicit_memory",
+                db=db
+            )
+            
+            # Check if memory was stored successfully
+            if not memory:
+                logger.warning(f"Failed to store explicit memory: conversation {conversation_id} not found")
+                return query, "I couldn't store that in my memory due to a technical issue.", None
+            
+            # Create confirmation response
+            memory_response = f"I've stored this in my memory: '{content}'"
+            logger.info(f"Memory stored successfully: {content[:50]}...")
+            
+            # Remove the command from the query
+            processed_query = query.replace(memory_match.group(0), "").strip()
+            if not processed_query:
+                processed_query = "Thank you for providing that information."
+            
+            return processed_query, memory_response, "store"
+            
+        # Always store the user's query in the memory buffer for implicit memory
         memory = await add_to_memory_buffer(
             conversation_id=conversation_id,
-            content=content,
-            label="explicit_memory",
+            content=query,
+            label="implicit_memory",
             db=db
         )
         
-        # Check if memory was stored successfully
-        if not memory:
-            logger.warning(f"Failed to store explicit memory: conversation {conversation_id} not found")
-            return query, "I couldn't store that in my memory due to a technical issue.", None
-        
-        # Create confirmation response
-        memory_response = f"I've stored this in my memory: '{content}'"
-        logger.info(f"Memory stored successfully: {content[:50]}...")
-        
-        # Remove the command from the query
-        processed_query = query.replace(memory_match.group(0), "").strip()
-        if not processed_query:
-            processed_query = "Thank you for providing that information."
-        
-        return processed_query, memory_response, "store"
-    # Always store the user's query in the memory buffer for implicit memory
-    memory = await add_to_memory_buffer(
-        conversation_id=conversation_id,
-        content=query,
-        label="implicit_memory",
-        db=db
-    )
-    
-    if memory:
-        logger.info(f"Stored user query in memory buffer: {query[:50]}...")
-    else:
-        logger.warning(f"Failed to store user query in memory buffer: conversation {conversation_id} not found")
-    
-    # Check for explicit recall command with improved pattern
-    recall_match = re.search(r"(?:recall|remember)(?:\s+(?:the|my|what|about))?\s*(.*)", query, re.IGNORECASE)
-    
-    # Check for implicit memory-related queries
-    implicit_memory_match = re.search(r"(?:what is|what's|what are|tell me|do you know|do you remember) (?:my|our|the) (favorite|preferred|best|chosen|selected|liked|loved|hated|disliked|color|food|movie|book|song|hobby|interest|name|birthday|address|phone|email|contact|information|preference|choice|option|selection)", query, re.IGNORECASE)
-    
-    if (recall_match and not memory_match) or implicit_memory_match:  # Avoid conflict with "remember this" command
-        # Get search term from either explicit or implicit match
-        if recall_match:
-            search_term = recall_match.group(1).strip() if recall_match.group(1) else None
-            logger.info(f"Explicit recall command detected with search term: '{search_term}'")
+        if memory:
+            logger.info(f"Stored user query in memory buffer: {query[:50]}...")
         else:
-            search_term = implicit_memory_match.group(1).strip() if implicit_memory_match.group(1) else None
-            logger.info(f"Implicit memory query detected with search term: '{search_term}'")
+            logger.warning(f"Failed to store user query in memory buffer: conversation {conversation_id} not found")
         
-        # Retrieve from memory buffer - use the same database session
-        memories = await get_memory_buffer(
-            conversation_id=conversation_id,
-            search_term=search_term,
-            db=db
-        )
+        # Check for explicit recall command with improved pattern
+        recall_match = re.search(r"(?:recall|remember)(?:\s+(?:the|my|what|about))?\s*(.*)", query, re.IGNORECASE)
         
-        # Log the memories for debugging
-        logger.debug(f"Retrieved {len(memories)} memories for recall operation")
-        for i, memory in enumerate(memories):
-            logger.debug(f"Memory {i+1}: {memory.content}")
+        # Check for implicit memory-related queries
+        implicit_memory_match = re.search(r"(?:what is|what's|what are|tell me|do you know|do you remember) (?:my|our|the) (favorite|preferred|best|chosen|selected|liked|loved|hated|disliked|color|food|movie|book|song|hobby|interest|name|birthday|address|phone|email|contact|information|preference|choice|option|selection)", query, re.IGNORECASE)
         
-        if memories:
-            memory_items = [f"{i+1}. {memory.content}" for i, memory in enumerate(memories)]
-            memory_response = "Here's what I remember:\n" + "\n".join(memory_items)
-            logger.info(f"Retrieved {len(memories)} memories for recall operation")
+        if (recall_match and not memory_match) or implicit_memory_match:  # Avoid conflict with "remember this" command
+            # Get search term from either explicit or implicit match
+            if recall_match:
+                search_term = recall_match.group(1).strip() if recall_match.group(1) else None
+                logger.info(f"Explicit recall command detected with search term: '{search_term}'")
+            else:
+                search_term = implicit_memory_match.group(1).strip() if implicit_memory_match.group(1) else None
+                logger.info(f"Implicit memory query detected with search term: '{search_term}'")
             
-            # For implicit queries, we want to continue with the original query
-            # but include the memory information in the response
-            if implicit_memory_match:
-                return query, memory_response, "recall"
-        else:
-            memory_response = "I don't have any memories stored about that."
-            logger.info("No memories found for recall operation")
+            # Retrieve from memory buffer - use the same database session
+            memories = await get_memory_buffer(
+                conversation_id=conversation_id,
+                search_term=search_term,
+                db=db
+            )
+            
+            # Log the memories for debugging
+            logger.debug(f"Retrieved {len(memories)} memories for recall operation")
+            for i, memory in enumerate(memories):
+                logger.debug(f"Memory {i+1}: {memory.content}")
+            
+            if memories:
+                memory_items = [f"{i+1}. {memory.content}" for i, memory in enumerate(memories)]
+                memory_response = "Here's what I remember:\n" + "\n".join(memory_items)
+                logger.info(f"Retrieved {len(memories)} memories for recall operation")
+                
+                # For implicit queries, we want to continue with the original query
+                # but include the memory information in the response
+                if implicit_memory_match:
+                    return query, memory_response, "recall"
+            else:
+                memory_response = "I don't have any memories stored about that."
+                logger.info("No memories found for recall operation")
+            
+            # For explicit recall commands, remove the command from the query
+            if recall_match:
+                processed_query = query.replace(recall_match.group(0), "").strip()
+                if not processed_query:
+                    processed_query = "Please provide the information you'd like me to recall."
+                return processed_query, memory_response, "recall"
+            
+            # For implicit memory queries with no memories found, continue with original query
+            return query, memory_response, "recall"
         
-        # For explicit recall commands, remove the command from the query
-        if recall_match:
-            processed_query = query.replace(recall_match.group(0), "").strip()
-            if not processed_query:
-                processed_query = "Please provide the information you'd like me to recall."
-            return processed_query, memory_response, "recall"
+        # No memory command found
+        logger.info("No memory command detected in query")
         
-        # For implicit memory queries with no memories found, continue with original query
-        return query, memory_response, "recall"
+        return query, None, None
     
-    # No memory command found
-    logger.info("No memory command detected in query")
-    
-    # Close the session if we created it
-    if session_created:
-        await db.close()
-        
-    return query, None, None
+    except Exception as e:
+        logger.error(f"Error processing memory commands: {str(e)}")
+        return query, None, None
+    finally:
+        # Only close the session if we created it
+        if session_created and session_gen:
+            try:
+                # Close the generator to trigger the finally block in get_session
+                await session_gen.aclose()
+            except Exception as e:
+                logger.warning(f"Error closing session generator: {str(e)}")
 
 async def get_conversation_context(
     conversation_history: Optional[List[Any]] = None,

@@ -101,31 +101,48 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             context = ""
             sources = []
             
-            # Extract conversation_id from conversation_history if available
-            conversation_id = None
-            if conversation_history and len(conversation_history) > 0:
+            # Only extract conversation_id from conversation_history if not already provided
+            if not conversation_id and conversation_history and len(conversation_history) > 0:
                 # Assuming the first message has the conversation_id
                 conversation_id = getattr(conversation_history[0], 'conversation_id', None)
                 if conversation_id:
                     logger.info(f"Using conversation_id from history: {conversation_id}")
             
-            # Generate a user_id if not provided
-            if not user_id:
-                if conversation_id:
-                    # Use conversation_id to create a consistent user_id
-                    user_id = f"session_{str(conversation_id)[:8]}"
-                    logger.info(f"Generated consistent session user_id from conversation: {user_id}")
-                else:
-                    user_id = f"session_{str(uuid.uuid4())[:8]}"
-                    logger.info(f"Generated new session user_id: {user_id}")
+            # Use the user_id from the conversation if provided
+            if not user_id and conversation_id:
+                # Generate a consistent user_id based on the conversation_id
+                # Use UUID5 to ensure deterministic generation
+                user_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"conversation-{conversation_id}"))
+                logger.info(f"Using consistent user_id from conversation: {user_id}")
+            elif not user_id:
+                # If no user_id and no conversation_id, generate a new one
+                user_id = str(uuid.uuid4())
+                logger.info(f"Generated new user_id: {user_id}")
+            else:
+                # User ID was provided - ensure it's a valid UUID
+                logger.info(f"Using provided user_id: {user_id}")
             
-            # Convert string user_id to UUID if needed
+            # Always ensure user_id is a valid UUID
             user_uuid = None
-            if user_id:
+            if isinstance(user_id, UUID):
+                # Already a UUID object
+                user_uuid = user_id
+            elif isinstance(user_id, str):
                 try:
-                    user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+                    # Try to convert string to UUID
+                    user_uuid = UUID(user_id)
                 except ValueError:
-                    logger.warning(f"Invalid user_id format: {user_id}, using as string")
+                    # If it's not a valid UUID string, generate a deterministic UUID
+                    # This ensures the same string always maps to the same UUID
+                    user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{user_id}")
+                    logger.warning(f"Converting non-UUID user_id format: {user_id} to deterministic UUID: {user_uuid}")
+                    # Update the user_id to be the UUID string for consistency
+                    user_id = str(user_uuid)
+            else:
+                # If it's neither a UUID nor a string, log an error and use a default UUID
+                logger.error(f"Unexpected user_id type: {type(user_id)}, using default UUID")
+                user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, "default-user")
+                user_id = str(user_uuid)
             
             # Process memory commands if user_id is provided
             processed_query = query
@@ -133,9 +150,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             memory_operation = None
             # Log conversation ID for debugging
             if conversation_id:
-                # Store conversation_id for future use
+                # Always use the provided conversation_id
                 self.conversation_id = conversation_id
-                logger.info(f"Using conversation_id: {conversation_id}")
+                logger.info(f"Using provided conversation_id: {conversation_id}")
             else:
                 # Try to get conversation_id from kwargs if provided
                 if 'conversation_id' in kwargs:
@@ -144,11 +161,10 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                         logger.info(f"Using conversation_id from kwargs: {conversation_id}")
                         self.conversation_id = conversation_id
                 
-                # If still no conversation_id, generate a new one
+                # If still no conversation_id, this is a warning condition
+                # The API should always create a conversation and pass its ID
                 if not conversation_id:
-                    conversation_id = str(uuid.uuid4())
-                    logger.info(f"Generated new conversation_id: {conversation_id}")
-                    self.conversation_id = conversation_id
+                    logger.warning("No conversation_id provided, this may cause issues with memory operations")
             
             if user_id and conversation_id:
                 processed_query, memory_response, memory_operation = await process_query(
@@ -424,6 +440,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     token_count=len(query.split())  # Approximate token count
                 )
                 
+                # Perform memory cleanup to reduce memory usage
+                await self._cleanup_memory()
+                
                 return {
                     "query": query,
                     "stream": stream_response,
@@ -474,6 +493,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     token_count=len(query.split()) + len(response_text.split())  # Approximate token count
                 )
                 
+                # Perform memory cleanup to reduce memory usage
+                await self._cleanup_memory()
+                
                 return {
                     "query": query,
                     "answer": response_text,
@@ -482,3 +504,26 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
         except Exception as e:
             logger.error(f"Error querying RAG engine: {str(e)}")
             raise
+            
+    async def _cleanup_memory(self) -> None:
+        """
+        Perform memory cleanup to reduce memory usage
+        """
+        try:
+            # Import gc module for garbage collection
+            import gc
+            
+            # Force garbage collection
+            gc.collect()
+            
+            # Clear any cached data
+            if hasattr(self, '_context_cache'):
+                self._context_cache = {}
+            
+            # Clear any large temporary variables
+            context = None
+            sources = None
+            
+            logger.info("Memory cleanup performed after query processing")
+        except Exception as e:
+            logger.warning(f"Error during memory cleanup: {str(e)}")

@@ -44,11 +44,57 @@ AsyncSessionLocal = async_sessionmaker(
     future=True,
     class_=AsyncSession
 )
-
 # Create a function to get a session
 async def get_session():
-    async with AsyncSessionLocal() as session:
+    """
+    Get a database session.
+    
+    This is an async generator that yields a session and handles proper cleanup.
+    The session is automatically closed when the generator is closed.
+    
+    Yields:
+        AsyncSession: Database session
+    """
+    # Create a new session
+    session = AsyncSessionLocal()
+    
+    # Track if we've yielded the session
+    session_yielded = False
+    
+    try:
+        # Yield the session to the caller
+        session_yielded = True
         yield session
+    except Exception as e:
+        # Log the error
+        logger.error(f"Session error: {str(e)}")
+        
+        # Ensure transaction is rolled back on error
+        if session_yielded:
+            try:
+                await session.rollback()
+            except Exception as rollback_error:
+                logger.warning(f"Error rolling back session: {str(rollback_error)}")
+        
+        # Re-raise the exception
+        raise
+    finally:
+        # Clean up the session
+        if session_yielded:
+            try:
+                # Check if the session is in a transaction
+                if session.in_transaction():
+                    # Roll back any active transaction
+                    await session.rollback()
+                
+                # Close the session to return connections to the pool
+                await session.close()
+                
+                # Force garbage collection to clean up any lingering references
+                import gc
+                gc.collect()
+            except Exception as e:
+                logger.warning(f"Error during session cleanup: {str(e)}")
 
 async def init_db():
     """
