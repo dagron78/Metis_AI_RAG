@@ -4,7 +4,7 @@ Memory buffer functionality for Metis RAG
 import logging
 import re
 import time
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union, Tuple
 from uuid import UUID
 from datetime import datetime
 
@@ -22,7 +22,7 @@ async def add_to_memory_buffer(
     content: str,
     label: str = "explicit_memory",
     db: AsyncSession = None
-) -> Memory:
+) -> Optional[Memory]:
     """
     Add content to the memory buffer
     
@@ -41,6 +41,17 @@ async def add_to_memory_buffer(
         if db is None:
             db = await anext(get_session())
             session_created = True
+        
+        # Verify conversation exists
+        stmt = select(Conversation).where(Conversation.id == conversation_id)
+        result = await db.execute(stmt)
+        conversation = result.scalars().first()
+        
+        if not conversation:
+            logger.warning(f"Conversation {conversation_id} not found, cannot store memory")
+            if session_created:
+                await db.close()
+            return None
         
         # Create memory object
         memory = Memory(
@@ -193,20 +204,19 @@ async def get_memory_buffer(
         if session_created and db:
             await db.close()
         return []
-
 async def process_query(
     query: str,
     user_id: str,
-    conversation_id: UUID,
+    conversation_id: Union[str, UUID],
     db: AsyncSession = None
-) -> tuple[str, Optional[str], Optional[str]]:
+) -> Tuple[str, Optional[str], Optional[str]]:
     """
     Process a query for memory commands before sending to RAG
     
     Args:
         query: User query
         user_id: User ID
-        conversation_id: Conversation ID
+        conversation_id: Conversation ID (can be string or UUID)
         db: Database session
         
     Returns:
@@ -218,6 +228,18 @@ async def process_query(
         db = await anext(get_session())
         session_created = True
     
+    # Convert conversation_id to UUID if it's a string
+    if isinstance(conversation_id, str):
+        try:
+            conversation_id = UUID(conversation_id)
+            logger.info(f"Converted string conversation_id to UUID: {conversation_id}")
+        except ValueError:
+            logger.error(f"Invalid conversation_id format: {conversation_id}")
+            # Return original query without memory processing
+            if session_created:
+                await db.close()
+            return query, None, None
+    
     logger.info(f"Processing query for memory commands: {query[:50]}...")
     logger.info(f"User ID: {user_id}, Conversation ID: {conversation_id}")
     
@@ -227,12 +249,17 @@ async def process_query(
         content = memory_match.group(1).strip()
         
         # Store in memory buffer
-        await add_to_memory_buffer(
+        memory = await add_to_memory_buffer(
             conversation_id=conversation_id,
             content=content,
             label="explicit_memory",
             db=db
         )
+        
+        # Check if memory was stored successfully
+        if not memory:
+            logger.warning(f"Failed to store explicit memory: conversation {conversation_id} not found")
+            return query, "I couldn't store that in my memory due to a technical issue.", None
         
         # Create confirmation response
         memory_response = f"I've stored this in my memory: '{content}'"
@@ -244,15 +271,18 @@ async def process_query(
             processed_query = "Thank you for providing that information."
         
         return processed_query, memory_response, "store"
-    
     # Always store the user's query in the memory buffer for implicit memory
-    await add_to_memory_buffer(
+    memory = await add_to_memory_buffer(
         conversation_id=conversation_id,
         content=query,
         label="implicit_memory",
         db=db
     )
-    logger.info(f"Stored user query in memory buffer: {query[:50]}...")
+    
+    if memory:
+        logger.info(f"Stored user query in memory buffer: {query[:50]}...")
+    else:
+        logger.warning(f"Failed to store user query in memory buffer: conversation {conversation_id} not found")
     
     # Check for explicit recall command with improved pattern
     recall_match = re.search(r"(?:recall|remember)(?:\s+(?:the|my|what|about))?\s*(.*)", query, re.IGNORECASE)

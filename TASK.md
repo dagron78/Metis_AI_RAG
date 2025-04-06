@@ -31,6 +31,13 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
   - [ ] Update conversation repository
   - [ ] Fix memory buffer integration
 
+- [x] **Fix Foreign Key Violation in Memory Storage**
+  - [x] Modify `process_query` in `memory_buffer.py` to convert string conversation_ids to UUID objects
+  - [x] Add conversation existence verification in `add_to_memory_buffer`
+  - [x] Add proper error handling and logging for memory operations
+  - [x] Update type hints to make the expected types clearer
+  - [x] Add unit tests to verify the fixes
+
 - [ ] **Add Diagnostics and Testing**
   - [ ] Implement memory diagnostics endpoint
   - [ ] Add detailed logging for memory operations
@@ -110,6 +117,7 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
 - [ ] **Fix Memory Loss Issues**
   - [ ] Address system forgetting user information
   - [ ] Fix conversation history not being effectively utilized
+  - [x] Fix foreign key violation when storing implicit memories
 
 - [ ] **Fix Content Fabrication Issues**
   - [ ] Prevent generation of text for non-existent documents
