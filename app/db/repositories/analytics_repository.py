@@ -1,5 +1,6 @@
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, timedelta
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, cast, Date, extract
 
@@ -12,10 +13,10 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
     Repository for AnalyticsQuery model
     """
     
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         super().__init__(session, AnalyticsQuery)
     
-    def log_query(self, 
+    async def log_query(self,
                  query: str, 
                  model: Optional[str] = None, 
                  use_rag: bool = True, 
@@ -53,11 +54,11 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         )
         
         self.session.add(analytics_query)
-        self.session.commit()
-        self.session.refresh(analytics_query)
+        await self.session.commit()
+        await self.session.refresh(analytics_query)
         return analytics_query
     
-    def get_query_count_by_date(self, days: int = 30) -> List[Dict[str, Any]]:
+    async def get_query_count_by_date(self, days: int = 30) -> List[Dict[str, Any]]:
         """
         Get query count by date
         
@@ -69,7 +70,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         """
         start_date = datetime.utcnow() - timedelta(days=days)
         
-        query_result = (
+        query_result = await (
             self.session.query(
                 cast(AnalyticsQuery.timestamp, Date).label("date"),
                 func.count(AnalyticsQuery.id).label("count")
@@ -82,7 +83,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         
         return [{"date": str(row.date), "count": row.count} for row in query_result]
     
-    def get_average_response_time(self, days: int = 30) -> Dict[str, float]:
+    async def get_average_response_time(self, days: int = 30) -> Dict[str, float]:
         """
         Get average response time
         
@@ -94,20 +95,20 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         """
         start_date = datetime.utcnow() - timedelta(days=days)
         
-        avg_time_overall = (
+        avg_time_overall = await (
             self.session.query(func.avg(AnalyticsQuery.response_time_ms))
             .filter(AnalyticsQuery.timestamp >= start_date)
             .scalar() or 0
         )
         
-        avg_time_with_rag = (
+        avg_time_with_rag = await (
             self.session.query(func.avg(AnalyticsQuery.response_time_ms))
             .filter(AnalyticsQuery.timestamp >= start_date)
             .filter(AnalyticsQuery.use_rag == True)
             .scalar() or 0
         )
         
-        avg_time_without_rag = (
+        avg_time_without_rag = await (
             self.session.query(func.avg(AnalyticsQuery.response_time_ms))
             .filter(AnalyticsQuery.timestamp >= start_date)
             .filter(AnalyticsQuery.use_rag == False)
@@ -120,7 +121,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
             "without_rag": float(avg_time_without_rag)
         }
     
-    def get_query_type_distribution(self, days: int = 30) -> List[Dict[str, Any]]:
+    async def get_query_type_distribution(self, days: int = 30) -> List[Dict[str, Any]]:
         """
         Get query type distribution
         
@@ -132,7 +133,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         """
         start_date = datetime.utcnow() - timedelta(days=days)
         
-        query_result = (
+        query_result = await (
             self.session.query(
                 AnalyticsQuery.query_type,
                 func.count(AnalyticsQuery.id).label("count")
@@ -146,7 +147,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         
         return [{"query_type": row.query_type, "count": row.count} for row in query_result]
     
-    def get_model_usage_statistics(self, days: int = 30) -> List[Dict[str, Any]]:
+    async def get_model_usage_statistics(self, days: int = 30) -> List[Dict[str, Any]]:
         """
         Get model usage statistics
         
@@ -158,7 +159,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         """
         start_date = datetime.utcnow() - timedelta(days=days)
         
-        query_result = (
+        query_result = await (
             self.session.query(
                 AnalyticsQuery.model,
                 func.count(AnalyticsQuery.id).label("query_count"),
@@ -184,7 +185,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
             for row in query_result
         ]
     
-    def get_success_rate(self, days: int = 30) -> Dict[str, Any]:
+    async def get_success_rate(self, days: int = 30) -> Dict[str, Any]:
         """
         Get query success rate
         
@@ -196,13 +197,13 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         """
         start_date = datetime.utcnow() - timedelta(days=days)
         
-        total_queries = (
+        total_queries = await (
             self.session.query(func.count(AnalyticsQuery.id))
             .filter(AnalyticsQuery.timestamp >= start_date)
             .scalar() or 0
         )
         
-        successful_queries = (
+        successful_queries = await (
             self.session.query(func.count(AnalyticsQuery.id))
             .filter(AnalyticsQuery.timestamp >= start_date)
             .filter(AnalyticsQuery.successful == True)
@@ -218,7 +219,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
             "success_rate": success_rate
         }
     
-    def get_document_usage_statistics(self, days: int = 30, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_document_usage_statistics(self, days: int = 30, limit: int = 10) -> List[Dict[str, Any]]:
         """
         Get document usage statistics
         
@@ -241,7 +242,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         # For now, we'll return a placeholder
         return []
     
-    def get_hourly_query_distribution(self, days: int = 30) -> List[Dict[str, Any]]:
+    async def get_hourly_query_distribution(self, days: int = 30) -> List[Dict[str, Any]]:
         """
         Get hourly query distribution
         
@@ -253,7 +254,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
         """
         start_date = datetime.utcnow() - timedelta(days=days)
         
-        query_result = (
+        query_result = await (
             self.session.query(
                 extract('hour', AnalyticsQuery.timestamp).label("hour"),
                 func.count(AnalyticsQuery.id).label("count")

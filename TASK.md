@@ -395,6 +395,17 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
    - [x] Update the `ChatResponse` model to include the new `warnings` field
    - [x] Ensure that even if analytics or other post-processing fails, the user still gets a response
 
+## Completed Implementation Tasks (April 6, 2025 - Part 5)
+
+- [x] **Fix Async Operations in Analytics Repository**
+   - [x] Update `AnalyticsRepository` class to properly use async/await
+   - [x] Add `await` before `self.session.commit()` and `self.session.refresh(analytics_query)` in `log_query` method
+   - [x] Make all database-interacting methods async and add `await` before database operations
+   - [x] Update `app/api/analytics.py` to properly use `await` when calling repository methods
+   - [x] Fix RuntimeWarnings related to coroutines never being awaited
+   - [x] Ensure analytics data is properly recorded in the database
+   - [x] Verify fixes with automated tests
+
 ## Next Implementation Tasks (April 7, 2025)
 
 - [ ] **Create Unit Tests for Query Classification**
