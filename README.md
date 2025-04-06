@@ -2,6 +2,14 @@
 
 Metis RAG is an application that combines conversational AI with Retrieval Augmented Generation (RAG) capabilities. It allows users to chat with large language models while providing relevant context from uploaded documents.
 
+## Project Documentation
+
+This repository contains the following key documentation:
+
+- **README.md** (this file): Overview, features, and usage instructions
+- **[PLANNING.md](PLANNING.md)**: High-level architecture, design decisions, and technical specifications
+- **[TASK.md](TASK.md)**: Current tasks, priorities, and development roadmap
+
 ## Features
 
 - Chat with large language models through Ollama
