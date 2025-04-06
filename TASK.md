@@ -373,6 +373,28 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
    - [x] Create test script to verify specific fixes
    - [x] Verify fixes with automated tests
 
+## Completed Implementation Tasks (April 6, 2025 - Part 4)
+
+- [x] **Fix Analytics Recording Error**
+   - [x] Fix method name mismatch in `app/api/analytics.py`
+   - [x] Change `analytics_repository.create_analytics_query()` to `analytics_repository.log_query()`
+   - [x] Ensure analytics data is properly recorded in the database
+   - [x] Verify analytics recording works correctly
+
+- [x] **Improve Query Classification Logic**
+   - [x] Enhance the `_is_code_related_query` function in `app/rag/rag_engine_base.py`
+   - [x] Add specific detection for creative/narrative content (stories, fiction, etc.)
+   - [x] Prioritize creative content indicators over code keywords
+   - [x] Require multiple context clues for programming language mentions
+   - [x] Fix misclassification of queries like "tell me a fictional story"
+
+- [x] **Improve API Error Handling**
+   - [x] Update the `query_chat` endpoint in `app/api/chat.py` to handle post-processing errors separately
+   - [x] Add try-except blocks around non-critical operations
+   - [x] Add a warnings list to track non-critical issues
+   - [x] Update the `ChatResponse` model to include the new `warnings` field
+   - [x] Ensure that even if analytics or other post-processing fails, the user still gets a response
+
 ## Next Implementation Tasks (April 7, 2025)
 
 - [ ] **Create Unit Tests for Query Classification**
