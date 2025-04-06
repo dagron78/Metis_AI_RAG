@@ -168,6 +168,7 @@ SETTINGS = SimpleNamespace(
     email_enabled=EMAIL_ENABLED,
     email_sender=SMTP_SENDER,
     base_url=BASE_URL,
+    api_base_url=BASE_URL,  # Use the same base URL for API endpoints
     
     # Mem0 settings
     mem0_endpoint=MEM0_ENDPOINT,
