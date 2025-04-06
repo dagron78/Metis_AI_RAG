@@ -45,6 +45,9 @@ async def add_to_memory_buffer(
             session_gen = get_session()
             db = await anext(session_gen)
             session_created = True
+            logger.debug(f"Created new session for add_to_memory_buffer, conversation_id: {conversation_id}")
+        else:
+            logger.debug(f"Using provided session for add_to_memory_buffer, conversation_id: {conversation_id}")
         
         # Verify conversation exists
         stmt = select(Conversation).where(Conversation.id == conversation_id)
@@ -86,8 +89,9 @@ async def add_to_memory_buffer(
             try:
                 # Close the generator to trigger the finally block in get_session
                 await session_gen.aclose()
+                logger.debug(f"Closed session generator in add_to_memory_buffer, conversation_id: {conversation_id}")
             except Exception as e:
-                logger.warning(f"Error closing session generator: {str(e)}")
+                logger.warning(f"Error closing session generator in add_to_memory_buffer: {str(e)}")
 
 async def get_memory_buffer(
     conversation_id: UUID,
@@ -119,6 +123,9 @@ async def get_memory_buffer(
             session_gen = get_session()
             db = await anext(session_gen)
             session_created = True
+            logger.debug(f"Created new session for get_memory_buffer, conversation_id: {conversation_id}")
+        else:
+            logger.debug(f"Using provided session for get_memory_buffer, conversation_id: {conversation_id}")
         
         logger.debug(f"Getting memories for conversation {conversation_id}")
         
@@ -215,8 +222,9 @@ async def get_memory_buffer(
             try:
                 # Close the generator to trigger the finally block in get_session
                 await session_gen.aclose()
+                logger.debug(f"Closed session generator in get_memory_buffer, conversation_id: {conversation_id}")
             except Exception as e:
-                logger.warning(f"Error closing session generator: {str(e)}")
+                logger.warning(f"Error closing session generator in get_memory_buffer: {str(e)}")
 
 async def process_query(
     query: str,
@@ -246,6 +254,9 @@ async def process_query(
             session_gen = get_session()
             db = await anext(session_gen)
             session_created = True
+            logger.debug("Created new session for process_query")
+        else:
+            logger.debug("Using provided session for process_query")
         
         # Convert conversation_id to UUID if it's a string
         if isinstance(conversation_id, str):
@@ -256,6 +267,25 @@ async def process_query(
                 logger.error(f"Invalid conversation_id format: {conversation_id}")
                 # Return original query without memory processing
                 return query, None, None
+        
+        # Convert user_id to UUID if it's a string
+        user_uuid = None
+        if isinstance(user_id, str):
+            try:
+                user_uuid = UUID(user_id)
+                logger.info(f"Converted string user_id to UUID: {user_uuid}")
+            except ValueError:
+                # Generate a deterministic UUID based on the string
+                user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{user_id}")
+                logger.warning(f"Invalid user_id format: {user_id}, generated deterministic UUID: {user_uuid}")
+                user_id = str(user_uuid)  # Update user_id to be the UUID string
+        elif isinstance(user_id, UUID):
+            user_uuid = user_id
+            user_id = str(user_uuid)  # Ensure user_id is a string
+        else:
+            logger.error(f"Unexpected user_id type: {type(user_id)}")
+            # Return original query without memory processing
+            return query, None, None
         
         logger.info(f"Processing query for memory commands: {query[:50]}...")
         logger.info(f"User ID: {user_id}, Conversation ID: {conversation_id}")
@@ -366,8 +396,9 @@ async def process_query(
             try:
                 # Close the generator to trigger the finally block in get_session
                 await session_gen.aclose()
+                logger.debug("Closed session generator in process_query")
             except Exception as e:
-                logger.warning(f"Error closing session generator: {str(e)}")
+                logger.warning(f"Error closing session generator in process_query: {str(e)}")
 
 async def get_conversation_context(
     conversation_history: Optional[List[Any]] = None,

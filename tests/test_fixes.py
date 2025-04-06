@@ -163,12 +163,13 @@ async def test_conversation_id_persistence():
     test_conversation_id = uuid.uuid4()
     logger.info(f"Test conversation ID: {test_conversation_id}")
     
-    # Create a test user ID
+    # Create a test user ID as a UUID object
     test_user_id = uuid.uuid4()
     logger.info(f"Test user ID: {test_user_id}")
     
-    # Get a session generator
+    # Create a session generator
     session_gen = get_session()
+    db = None
     
     try:
         # Get the session
@@ -187,40 +188,51 @@ async def test_conversation_id_persistence():
         # Initialize RAG engine
         rag_engine = RAGEngine()
         
-        # Test with provided conversation ID
-        query_result = await rag_engine.query(
-            query="Test query",
-            conversation_id=test_conversation_id,
-            user_id=str(uuid.uuid4()),  # Use a valid UUID string
-            use_rag=False  # Disable RAG to simplify the test
-        )
+        # Create a separate session for the RAG engine to use
+        # This prevents session conflicts
+        rag_session_gen = get_session()
+        rag_db = await anext(rag_session_gen)
         
-        logger.info(f"Query result: {query_result}")
-        
-        # Verify that a memory was created for this conversation
-        memories = await get_memory_buffer(
-            conversation_id=test_conversation_id,
-            db=db
-        )
-        
-        # Verify that at least one memory was created
-        assert len(memories) > 0, "At least one memory should have been created"
-        logger.info(f"Found {len(memories)} memories for conversation {test_conversation_id}")
-        
-        # Verify the memory has the correct conversation ID
-        assert memories[0].conversation_id == test_conversation_id, \
-            f"Memory should have the correct conversation ID: {test_conversation_id}, but got: {memories[0].conversation_id}"
-        
-        logger.info(f"Memory has the correct conversation ID: {memories[0].conversation_id}")
-        
-        # Clean up
-        await db.execute(text(f"DELETE FROM memories WHERE conversation_id = '{test_conversation_id}'"))
-        await db.execute(text(f"DELETE FROM conversations WHERE id = '{test_conversation_id}'"))
-        await db.commit()
-        
-        logger.info("Conversation ID persistence test passed")
+        try:
+            # Test with provided conversation ID
+            query_result = await rag_engine.query(
+                query="Test query",
+                conversation_id=test_conversation_id,
+                user_id=str(test_user_id),  # Use a valid UUID string
+                use_rag=False,  # Disable RAG to simplify the test
+                db=rag_db  # Pass the dedicated session
+            )
+            
+            logger.info(f"Query result: {query_result}")
+            
+            # Verify that a memory was created for this conversation
+            memories = await get_memory_buffer(
+                conversation_id=test_conversation_id,
+                db=db  # Use the original session
+            )
+            
+            # Verify that at least one memory was created
+            assert len(memories) > 0, "At least one memory should have been created"
+            logger.info(f"Found {len(memories)} memories for conversation {test_conversation_id}")
+            
+            # Verify the memory has the correct conversation ID
+            assert memories[0].conversation_id == test_conversation_id, \
+                f"Memory should have the correct conversation ID: {test_conversation_id}, but got: {memories[0].conversation_id}"
+            
+            logger.info(f"Memory has the correct conversation ID: {memories[0].conversation_id}")
+            
+            # Clean up
+            await db.execute(text(f"DELETE FROM memories WHERE conversation_id = '{test_conversation_id}'"))
+            await db.execute(text(f"DELETE FROM conversations WHERE id = '{test_conversation_id}'"))
+            await db.commit()
+            
+            logger.info("Conversation ID persistence test passed")
+        finally:
+            # Close the RAG session
+            if rag_session_gen:
+                await rag_session_gen.aclose()
     finally:
-        # Close the session generator to trigger cleanup
+        # Close the main session
         if session_gen:
             await session_gen.aclose()
 

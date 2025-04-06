@@ -7,6 +7,7 @@ import uuid
 from typing import List, Dict, Any, Optional, AsyncGenerator
 from datetime import datetime
 from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import DEFAULT_MODEL
 from app.models.chat import Citation, Message
@@ -71,6 +72,7 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                    metadata_filters: Optional[Dict[str, Any]] = None,
                    user_id: Optional[str] = None,
                    conversation_id: Optional[str] = None,
+                   db: AsyncSession = None,  # Add db parameter
                    **kwargs) -> Dict[str, Any]:
         """
         Query the RAG engine with optional conversation history and metadata filtering
@@ -87,6 +89,7 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             conversation_history: Conversation history
             metadata_filters: Metadata filters
             user_id: User ID for permission filtering
+            db: Database session to use for memory operations
             
         Returns:
             Response dictionary
@@ -170,7 +173,8 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 processed_query, memory_response, memory_operation = await process_query(
                     query=query,
                     user_id=user_id,
-                    conversation_id=conversation_id
+                    conversation_id=conversation_id,
+                    db=db  # Pass the provided session
                 )
                 
                 # If it's a recall operation with a response, return immediately
