@@ -367,6 +367,12 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
    - [x] Add timing summaries for performance analysis
    - [x] Enhance the caching strategy for frequently used prompts
 
+- [x] **Fix Additional Issues (April 6, 2025 - Part 3)**
+   - [x] Add api_base_url attribute to SETTINGS object in app/core/config.py
+   - [x] Fix _record_analytics method to use api_base_url correctly
+   - [x] Create test script to verify specific fixes
+   - [x] Verify fixes with automated tests
+
 ## Next Implementation Tasks (April 7, 2025)
 
 - [ ] **Create Unit Tests for Query Classification**
