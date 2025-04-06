@@ -31,7 +31,7 @@ async def record_query(
             query_data["timestamp"] = datetime.now().isoformat()
         
         # Create analytics query record
-        analytics_query = await analytics_repository.create_analytics_query(
+        analytics_query = analytics_repository.log_query(
             query=query_data.get("query", ""),
             model=query_data.get("model", ""),
             use_rag=query_data.get("use_rag", False),

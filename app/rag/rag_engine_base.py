@@ -80,47 +80,41 @@ class BaseRAGEngine:
         # Convert to lowercase for case-insensitive matching
         query_lower = query.lower()
         
+        # First, check for creative/narrative content indicators
+        # These take precedence over code indicators
+        creative_content_indicators = [
+            "story", "fiction", "fictional", "narrative", "tale", "novel",
+            "write a story", "tell me a story", "create a story",
+            "character", "plot", "setting", "genre", "protagonist", "antagonist",
+            "fantasy", "sci-fi", "mystery", "thriller", "romance", "adventure",
+            "once upon a time", "in a world", "in a land", "in a galaxy",
+            "poem", "poetry", "sonnet", "limerick", "haiku", "verse",
+            "creative", "imagine", "pretend", "scenario"
+        ]
+        
+        for indicator in creative_content_indicators:
+            if indicator in query_lower:
+                logger.info(f"Query matched creative content indicator: '{indicator}'")
+                return False
+        
         # Check for explicit non-code indicators
         non_code_indicators = [
             "summary of", "explain", "what is", "definition of",
             "tell me about", "describe", "history of", "concept of",
-            "brief", "overview", "introduction to", "guide to"
+            "brief", "overview", "introduction to", "guide to",
+            "philosophy", "theory", "concept", "idea", "meaning",
+            "opinion", "thoughts", "perspective", "viewpoint",
+            "explain to me", "help me understand", "can you explain",
+            "summarize", "simplify", "break down", "elaborate on"
         ]
         
         for indicator in non_code_indicators:
             if indicator in query_lower:
-                # Log the non-code indicator that was matched
                 logger.debug(f"Query matched non-code indicator: '{indicator}'")
                 return False
         
-        # Check for code-related keywords (refined list)
-        code_keywords = [
-            # Programming languages (specific)
-            'python', 'javascript', 'java', 'c++', 'c#', 'typescript',
-            'php', 'ruby', 'go', 'rust', 'swift', 'kotlin', 'scala',
-            
-            # Programming concepts (specific)
-            'function', 'class', 'method', 'variable', 'algorithm',
-            'loop', 'conditional', 'recursion', 'inheritance',
-            
-            # Development terms (specific)
-            'compile', 'debug', 'syntax', 'runtime', 'exception',
-            'framework', 'library', 'api', 'sdk', 'ide',
-            
-            # Code-specific actions
-            'implement', 'code', 'program', 'develop', 'write code',
-            'script', 'coding', 'programming'
-        ]
-        
-        # Check if any code keyword is in the query with word boundaries
-        for keyword in code_keywords:
-            # Use word boundary to avoid partial matches
-            pattern = r'\b' + re.escape(keyword) + r'\b'
-            if re.search(pattern, query_lower):
-                logger.info(f"Detected code-related query, matched keyword: '{keyword}'")
-                return True
-        
-        # Check for code patterns (unchanged)
+        # Check for code patterns (specific syntax patterns)
+        # These are the most reliable indicators of code-related queries
         code_patterns = [
             r'```[\s\S]*```',  # Code blocks
             r'def\s+\w+\s*\(',  # Python function definition
@@ -147,6 +141,32 @@ class BaseRAGEngine:
             if re.search(pattern, query, re.IGNORECASE):
                 logger.info(f"Detected code-related query, matched pattern: '{pattern}'")
                 return True
+        
+        # Check for programming languages (specific)
+        programming_languages = [
+            'python', 'javascript', 'java', 'c\\+\\+', 'c#', 'typescript',
+            'php', 'ruby', 'golang', 'rust', 'swift', 'kotlin', 'scala',
+            'perl', 'r programming', 'matlab', 'assembly', 'fortran',
+            'cobol', 'lisp', 'haskell', 'erlang', 'clojure', 'f#'
+        ]
+        
+        # Check for explicit programming language mentions
+        for lang in programming_languages:
+            pattern = r'\b' + re.escape(lang) + r'\b'
+            if re.search(pattern, query_lower):
+                # For programming languages, require additional code context
+                code_context_terms = [
+                    'code', 'program', 'script', 'function', 'class', 'method',
+                    'implement', 'develop', 'write', 'debug', 'fix', 'error',
+                    'syntax', 'compile', 'runtime', 'execute', 'library', 'framework',
+                    'api', 'sdk', 'ide', 'editor', 'algorithm', 'data structure'
+                ]
+                
+                # Check if at least one code context term is also present
+                for term in code_context_terms:
+                    if re.search(r'\b' + re.escape(term) + r'\b', query_lower):
+                        logger.info(f"Detected code-related query, matched language '{lang}' with context '{term}'")
+                        return True
         
         logger.info(f"Query not detected as code-related: '{query[:50]}...'")
         return False

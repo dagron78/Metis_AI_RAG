@@ -65,6 +65,7 @@ class ChatResponse(BaseModel):
     conversation_id: Optional[str] = None
     citations: Optional[List[Citation]] = None
     execution_trace: Optional[List[Dict[str, Any]]] = None
+    warnings: Optional[List[str]] = None
 
     class Config:
         arbitrary_types_allowed = True

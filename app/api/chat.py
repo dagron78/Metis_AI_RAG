@@ -174,48 +174,72 @@ async def query_chat(
             metadata_filters = query.metadata_filters if hasattr(query, 'metadata_filters') else None
             
             # Get RAG response
-            rag_response = await rag_engine.query(
-                query=query.message,
-                model=model,
-                use_rag=query.use_rag,
-                stream=False,
-                model_parameters=query.model_parameters,
-                conversation_history=conversation_messages,
-                metadata_filters=metadata_filters,
-                user_id=conversation.conv_metadata.get("user_id"),
-                conversation_id=conversation_id  # Explicitly pass conversation_id
-            )
+            # Create a warnings list to track non-critical issues
+            warnings = []
             
-            # Get response and sources
-            response_text = rag_response.get("answer", "")
-            sources = rag_response.get("sources")
-            if sources is None:
-                logger.warning("No sources returned from RAG engine")
-                sources = []
+            try:
+                # Get RAG response - this is the core functionality
+                rag_response = await rag_engine.query(
+                    query=query.message,
+                    model=model,
+                    use_rag=query.use_rag,
+                    stream=False,
+                    model_parameters=query.model_parameters,
+                    conversation_history=conversation_messages,
+                    metadata_filters=metadata_filters,
+                    user_id=conversation.conv_metadata.get("user_id"),
+                    conversation_id=conversation_id  # Explicitly pass conversation_id
+                )
+                
+                # Get response and sources
+                response_text = rag_response.get("answer", "")
+                sources = rag_response.get("sources")
+                if sources is None:
+                    logger.warning("No sources returned from RAG engine")
+                    sources = []
+                    warnings.append("No sources were returned for this query")
+            except Exception as e:
+                # If the core RAG functionality fails, we need to re-raise the exception
+                logger.error(f"Critical error in RAG engine: {str(e)}")
+                raise
             
-            # Add assistant message to conversation
-            assistant_message = await conversation_repository.add_message(
-                conversation_id=UUID(conversation_id),
-                content=response_text,
-                role="assistant"
-            )
+            # Post-processing steps - these should not prevent returning a response
+            # even if they fail
             
-            # Add citations if any
+            # Step 1: Add assistant message to conversation
+            try:
+                assistant_message = await conversation_repository.add_message(
+                    conversation_id=UUID(conversation_id),
+                    content=response_text,
+                    role="assistant"
+                )
+            except Exception as e:
+                logger.error(f"Error adding assistant message to conversation: {str(e)}")
+                warnings.append("Failed to save this message to conversation history")
+                # Create a dummy message ID for citations if needed
+                assistant_message = type('obj', (object,), {'id': UUID('00000000-0000-0000-0000-000000000000')})
+            
+            # Step 2: Add citations if any
             if sources:
-                for source in sources:
-                    await conversation_repository.add_citation(
-                        message_id=assistant_message.id,
-                        document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
-                        chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
-                        relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
-                        excerpt=source.excerpt if hasattr(source, "excerpt") else ""
-                    )
+                try:
+                    for source in sources:
+                        await conversation_repository.add_citation(
+                            message_id=assistant_message.id,
+                            document_id=UUID(source.document_id) if hasattr(source, "document_id") else None,
+                            chunk_id=UUID(source.chunk_id) if hasattr(source, "chunk_id") else None,
+                            relevance_score=source.relevance_score if hasattr(source, "relevance_score") else None,
+                            excerpt=source.excerpt if hasattr(source, "excerpt") else ""
+                        )
+                except Exception as e:
+                    logger.error(f"Error adding citations to message: {str(e)}")
+                    warnings.append("Failed to save citation information")
             
-            # Return response
+            # Return response with any warnings
             return ChatResponse(
                 message=response_text,
                 conversation_id=conversation_id,
-                citations=sources
+                citations=sources,
+                warnings=warnings if warnings else None
             )
     except Exception as e:
         logger.error(f"Error generating chat response: {str(e)}")
@@ -334,29 +358,17 @@ async def save_conversation(
 async def clear_conversation(
     request: Request,
     conversation_id: Optional[UUID] = None,
-    db: AsyncSession = Depends(get_db),
-    conversation_repository: ConversationRepository = Depends(get_conversation_repository),
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Clear a conversation or all conversations for the current user
+    Clear a conversation from the UI (does not delete from database)
+    This endpoint is used by the frontend to clear the chat display
     """
+    # Simply return success - the actual clearing happens in the frontend
     if conversation_id:
-        # The repository will handle permission checks based on user_id
-        conversation = await conversation_repository.get_by_id(conversation_id)
-        if not conversation:
-            raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
-        
-        # Note: The repository's get_by_id method already checks permissions
-        # If the conversation doesn't belong to the user, it will return None
-        
-        # Delete specific conversation
-        await conversation_repository.delete(conversation_id)
-        return {"success": True, "message": f"Conversation {conversation_id} cleared"}
+        return {"success": True, "message": f"Conversation {conversation_id} cleared from display"}
     else:
-        # Delete all conversations for the current user
-        await conversation_repository.delete_by_user_id(current_user.id)
-        return {"success": True, "message": "All your conversations cleared"}
+        return {"success": True, "message": "All conversations cleared from display"}
 
 @router.post("/langgraph_rag", response_model=ChatResponse)
 async def langgraph_query_chat(
