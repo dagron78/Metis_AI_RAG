@@ -4,10 +4,11 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
 
 ## Current Priorities
 
-1. **Fix Memory Functionality Issues**
-2. **Improve RAG Response Accuracy**
-3. **Enhance System Prompts**
-4. **Optimize Document Processing**
+1. ✅ **Fix Memory Functionality Issues**
+2. ✅ **Fix Performance and Authentication Issues**
+3. **Improve RAG Response Accuracy**
+4. **Enhance System Prompts**
+5. **Optimize Document Processing**
 
 ## Task Breakdown
 
@@ -146,6 +147,13 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
   - [x] Fix conversation ID persistence timing issues
   - [x] Fix user ID format inconsistency problems
 
+- [x] **Fix Performance and Authentication Issues**
+  - [x] Fix incorrect query type detection causing wrong system prompt usage
+  - [x] Fix analytics endpoint authentication failures
+  - [x] Improve memory management to reduce high memory usage
+  - [x] Fix user ID edge cases with "system" and session-based IDs
+  - [x] Add performance monitoring to identify bottlenecks
+
 - [ ] **Fix Content Fabrication Issues**
   - [ ] Prevent generation of text for non-existent documents
   - [ ] Improve handling of "no documents found" scenarios
@@ -175,15 +183,18 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
 
 ## Next Steps
 
-1. Implement the memory functionality fixes to address the most critical issues
-2. Test the memory functionality to ensure it works correctly
-3. Proceed with RAG response accuracy improvements
-4. Implement and test the remaining enhancements
-5. Update documentation to reflect the changes
+1. ✅ Implement the memory functionality fixes to address the most critical issues
+2. ✅ Test the memory functionality to ensure it works correctly
+3. ✅ Fix the remaining issues identified in log analysis (query classification, analytics auth, memory management, user ID edge cases, performance)
+4. Proceed with RAG response accuracy improvements
+5. Implement and test the remaining enhancements
+6. Update documentation to reflect the changes
+7. Create comprehensive unit tests for all fixed components
 
 ## Completion Criteria
 
-- All memory functionality issues are resolved
+- ✅ All memory functionality issues are resolved
+- ✅ Performance and authentication issues are fixed
 - RAG responses accurately reflect available documents
 - System prompts effectively guide the LLM behavior
 - Document processing is optimized for performance
@@ -211,87 +222,25 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
 ### 2. Implementation Details
 
 #### Fix 1: Conversation ID Consistency
-```python
-# In rag_engine.py
-# Replace the conversation_id generation logic with:
-if conversation_id:
-    # Always use the provided conversation_id
-    logger.info(f"Using provided conversation_id: {conversation_id}")
-    self.conversation_id = conversation_id
-else:
-    # This should rarely happen since the API always creates a conversation
-    logger.warning("No conversation_id provided, this may cause issues with memory operations")
-```
+- Replace the conversation_id generation logic in rag_engine.py
+- Always use the provided conversation_id
+- Log warnings when no conversation_id is provided
 
 #### Fix 2: User ID Handling
-```python
-# In rag_engine.py
-# Replace the user_id generation logic with:
-if not user_id:
-    # Generate a proper UUID for anonymous users
-    user_id = str(uuid.uuid4())
-    logger.info(f"Generated UUID for anonymous user: {user_id}")
-else:
-    logger.info(f"Using provided user_id: {user_id}")
-
-# Ensure user_id is a valid UUID
-try:
-    user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
-except ValueError:
-    # If conversion fails, generate a deterministic UUID based on the string
-    user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{user_id}")
-    logger.warning(f"Converted invalid user_id format to UUID: {user_uuid}")
-```
+- Replace the user_id generation logic in rag_engine.py
+- Generate proper UUIDs for anonymous users
+- Ensure user_id is a valid UUID
+- Generate deterministic UUIDs for invalid user_id formats
 
 #### Fix 3: Session Management
-```python
-# In session.py
-async def get_session():
-    """
-    Get a database session.
-    
-    This is an async generator that yields a session and handles proper cleanup.
-    The session is automatically closed when the generator is closed.
-    
-    Yields:
-        AsyncSession: Database session
-    """
-    session = AsyncSessionLocal()
-    try:
-        yield session
-    finally:
-        try:
-            await session.close()
-        except Exception as e:
-            logger.warning(f"Error closing session: {str(e)}")
-```
+- Improve get_session function in session.py
+- Implement proper session cleanup
+- Add error handling for session operations
 
 #### Fix 4: Memory Optimization
-```python
-# In rag_engine.py
-async def _cleanup_memory(self) -> None:
-    """
-    Perform memory cleanup to reduce memory usage
-    """
-    try:
-        # Import gc module for garbage collection
-        import gc
-        
-        # Force garbage collection
-        gc.collect()
-        
-        # Clear any cached data
-        if hasattr(self, '_context_cache'):
-            self._context_cache = {}
-        
-        # Clear any large temporary variables
-        context = None
-        sources = None
-        
-        logger.info("Memory cleanup performed after query processing")
-    except Exception as e:
-        logger.warning(f"Error during memory cleanup: {str(e)}")
-```
+- Implement memory cleanup in rag_engine.py
+- Force garbage collection after query processing
+- Clear cached data and large temporary variables
 
 ### 3. Testing Plan
 
@@ -380,309 +329,81 @@ async def _cleanup_memory(self) -> None:
    - [x] Add more robust error handling for session operations
    - [x] Implement better connection pool management
    - [x] Add more detailed logging for session lifecycle events
-## Metis RAG System Fixes - Detailed Implementation Plan (April 6, 2025)
 
-### 1. Fix Session Management in test_conversation_id_persistence
+## Completed Implementation Tasks (April 6, 2025 - Part 2)
 
-```python
-@pytest.mark.asyncio
-async def test_conversation_id_persistence():
-    """
-    Test that the RAG engine respects the conversation ID passed from the API
-    by creating a conversation in the database first
-    """
-    logger.info("Testing conversation ID persistence...")
-    
-    # Create a test conversation ID as a UUID object
-    test_conversation_id = uuid.uuid4()
-    logger.info(f"Test conversation ID: {test_conversation_id}")
-    
-    # Create a test user ID as a UUID object
-    test_user_id = uuid.uuid4()
-    logger.info(f"Test user ID: {test_user_id}")
-    
-    # Create a session generator
-    session_gen = get_session()
-    db = None
-    
-    try:
-        # Get the session
-        db = await anext(session_gen)
-        
-        # Create a conversation in the database
-        conversation = Conversation(
-            id=test_conversation_id,
-            user_id=None,  # Set to None to avoid foreign key constraint
-            conv_metadata={"title": "Test Conversation"}
-        )
-        db.add(conversation)
-        await db.commit()
-        logger.info(f"Created test conversation with ID: {test_conversation_id}")
-        
-        # Initialize RAG engine
-        rag_engine = RAGEngine()
-        
-        # Create a separate session for the RAG engine to use
-        # This prevents session conflicts
-        rag_session_gen = get_session()
-        rag_db = await anext(rag_session_gen)
-        
-        try:
-            # Test with provided conversation ID
-            query_result = await rag_engine.query(
-                query="Test query",
-                conversation_id=test_conversation_id,
-                user_id=str(test_user_id),  # Use a valid UUID string
-                use_rag=False,  # Disable RAG to simplify the test
-                db=rag_db  # Pass the dedicated session
-            )
-            
-            logger.info(f"Query result: {query_result}")
-            
-            # Verify that a memory was created for this conversation
-            memories = await get_memory_buffer(
-                conversation_id=test_conversation_id,
-                db=db  # Use the original session
-            )
-            
-            # Verify that at least one memory was created
-            assert len(memories) > 0, "At least one memory should have been created"
-            logger.info(f"Found {len(memories)} memories for conversation {test_conversation_id}")
-            
-            # Verify the memory has the correct conversation ID
-            assert memories[0].conversation_id == test_conversation_id, \
-                f"Memory should have the correct conversation ID: {test_conversation_id}, but got: {memories[0].conversation_id}"
-            
-            logger.info(f"Memory has the correct conversation ID: {memories[0].conversation_id}")
-            
-            # Clean up
-            await db.execute(text(f"DELETE FROM memories WHERE conversation_id = '{test_conversation_id}'"))
-            await db.execute(text(f"DELETE FROM conversations WHERE id = '{test_conversation_id}'"))
-            await db.commit()
-            
-            logger.info("Conversation ID persistence test passed")
-        finally:
-            # Close the RAG session
-            if rag_session_gen:
-                await rag_session_gen.aclose()
-    finally:
-        # Close the main session
-        if session_gen:
-            await session_gen.aclose()
-```
+- [x] **Fix Incorrect Query Type Detection**
+   - [x] Refine code keywords list in `_is_code_related_query` method to avoid false positives
+   - [x] Add negative patterns (terms that indicate it's NOT a code query)
+   - [x] Implement word boundary checks to prevent partial matches
+   - [x] Add more detailed logging of matched keywords/patterns
+   - [x] Fix issue with "RAG summary" query being incorrectly classified as code-related
 
-### 2. Fix RAG Engine to Accept a Database Session
+- [x] **Fix Analytics Endpoint Authentication**
+   - [x] Modify `_record_analytics` method to include authentication headers
+   - [x] Implement a method to get a system JWT token for internal API calls
+   - [x] Use environment variables for API endpoint configuration
+   - [x] Add retry logic for failed analytics requests
+   - [x] Ensure analytics failures don't impact the main application flow
 
-```python
-async def query(self,
-               query: str,
-               model: str = DEFAULT_MODEL,
-               use_rag: bool = True,
-               top_k: int = 10,
-               system_prompt: Optional[str] = None,
-               stream: bool = False,
-               model_parameters: Dict[str, Any] = None,
-               conversation_history: Optional[List[Message]] = None,
-               metadata_filters: Optional[Dict[str, Any]] = None,
-               user_id: Optional[str] = None,
-               conversation_id: Optional[str] = None,
-               db: AsyncSession = None,  # Add db parameter
-               **kwargs) -> Dict[str, Any]:
-    """
-    Query the RAG engine with optional conversation history and metadata filtering
-    
-    Args:
-        query: Query string
-        model: Model to use
-        use_rag: Whether to use RAG
-        conversation_id: Conversation ID for memory operations
-        top_k: Number of results to return
-        system_prompt: System prompt
-        stream: Whether to stream the response
-        model_parameters: Model parameters
-        conversation_history: Conversation history
-        metadata_filters: Metadata filters
-        user_id: User ID for permission filtering
-        db: Database session to use for memory operations
-        
-    Returns:
-        Response dictionary
-    """
-    # ... existing code ...
-    
-    # Process memory commands if user_id is provided
-    processed_query = query
-    memory_response = None
-    memory_operation = None
-    
-    if user_id and conversation_id:
-        processed_query, memory_response, memory_operation = await process_query(
-            query=query,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            db=db  # Pass the provided session
-        )
-        
-        # ... rest of the method ...
-```
+- [x] **Improve Memory Management**
+   - [x] Enhance the `_cleanup_memory` method to be more aggressive
+   - [x] Implement more detailed memory usage logging
+   - [x] Add adaptive behavior based on system load
+   - [x] Clear additional caches and temporary variables
+   - [x] Add emergency cleanup for critical memory situations
 
-### 3. Fix User ID Format Inconsistency
+- [x] **Fix User ID Edge Cases**
+   - [x] Ensure all user ID generation paths create valid UUIDs
+   - [x] Replace any "system" or session-based IDs with proper UUIDs
+   - [x] Add validation for user IDs before database operations
+   - [x] Log warnings for invalid user IDs
+   - [x] Convert invalid IDs to valid UUIDs when necessary
 
-```python
-# Test with provided conversation ID
-query_result = await rag_engine.query(
-    query="Test query",
-    conversation_id=test_conversation_id,
-    user_id=str(uuid.uuid4()),  # Use a valid UUID string
-    use_rag=False  # Disable RAG to simplify the test
-)
-```
+- [x] **Optimize Performance**
+   - [x] Add detailed timing logs for each step of response generation
+   - [x] Identify bottlenecks in the process
+   - [x] Streamline the prompt creation process
+   - [x] Add timing summaries for performance analysis
+   - [x] Enhance the caching strategy for frequently used prompts
 
-### 4. Improve Session Management in memory_buffer.py
+## Next Implementation Tasks (April 7, 2025)
 
-```python
-async def process_query(
-    query: str,
-    user_id: str,
-    conversation_id: Union[str, UUID],
-    db: AsyncSession = None
-) -> Tuple[str, Optional[str], Optional[str]]:
-    """
-    Process a query for memory commands before sending to RAG
-    
-    Args:
-        query: User query
-        user_id: User ID
-        conversation_id: Conversation ID (can be string or UUID)
-        db: Database session
-        
-    Returns:
-        Tuple of (processed_query, memory_response, memory_operation)
-    """
-    # Track if we created a session
-    session_created = False
-    session_gen = None
-    
-    try:
-        # Get database session if not provided
-        if db is None:
-            session_gen = get_session()
-            db = await anext(session_gen)
-            session_created = True
-            logger.debug("Created new session for process_query")
-        else:
-            logger.debug("Using provided session for process_query")
-        
-        # Convert conversation_id to UUID if it's a string
-        if isinstance(conversation_id, str):
-            try:
-                conversation_id = UUID(conversation_id)
-                logger.info(f"Converted string conversation_id to UUID: {conversation_id}")
-            except ValueError:
-                logger.error(f"Invalid conversation_id format: {conversation_id}")
-                # Return original query without memory processing
-                return query, None, None
-        
-        # Convert user_id to UUID if it's a string
-        user_uuid = None
-        if isinstance(user_id, str):
-            try:
-                user_uuid = UUID(user_id)
-                logger.info(f"Converted string user_id to UUID: {user_uuid}")
-            except ValueError:
-                # Generate a deterministic UUID based on the string
-                user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{user_id}")
-                logger.warning(f"Invalid user_id format: {user_id}, generated deterministic UUID: {user_uuid}")
-        elif isinstance(user_id, UUID):
-            user_uuid = user_id
-        else:
-            logger.error(f"Unexpected user_id type: {type(user_id)}")
-            # Return original query without memory processing
-            return query, None, None
-        
-        # ... rest of the function ...
-    finally:
-        # Only close the session if we created it
-        if session_created and session_gen:
-            try:
-                # Close the generator to trigger the finally block in get_session
-                await session_gen.aclose()
-                logger.debug("Closed session generator in process_query")
-            except Exception as e:
-                logger.warning(f"Error closing session generator: {str(e)}")
-```
+- [ ] **Create Unit Tests for Query Classification**
+   - [ ] Create test cases for code-related queries
+   - [ ] Create test cases for non-code queries
+   - [ ] Create test cases for edge cases
+   - [ ] Verify classification accuracy
+   - [ ] Add regression tests for fixed issues
 
-### 5. Improve Session Management in session.py
+- [ ] **Implement Memory Usage Monitoring**
+   - [ ] Create a memory usage dashboard
+   - [ ] Set up alerts for high memory usage
+   - [ ] Implement automatic scaling based on memory usage
+   - [ ] Add memory usage metrics to analytics
+   - [ ] Create a memory usage report generator
 
-```python
-async def get_session():
-    """
-    Get a database session.
-    
-    This is an async generator that yields a session and handles proper cleanup.
-    The session is automatically closed when the generator is closed.
-    
-    Yields:
-        AsyncSession: Database session
-    """
-    # Create a new session
-    session = AsyncSessionLocal()
-    
-    # Track if we've yielded the session
-    session_yielded = False
-    
-    try:
-        # Yield the session to the caller
-        session_yielded = True
-        yield session
-    except Exception as e:
-        # Log the error
-        logger.error(f"Session error: {str(e)}")
-        
-        # Ensure transaction is rolled back on error
-        if session_yielded:
-            try:
-                await session.rollback()
-            except Exception as rollback_error:
-                logger.warning(f"Error rolling back session: {str(rollback_error)}")
-        
-        # Re-raise the exception
-        raise
-    finally:
-        # Clean up the session
-        if session_yielded:
-            try:
-                # Check if the session is in a transaction
-                if session.in_transaction():
-                    # Roll back any active transaction
-                    await session.rollback()
-                
-                # Close the session to return connections to the pool
-                await session.close()
-                
-                # Force garbage collection to clean up any lingering references
-                import gc
-                gc.collect()
-            except Exception as e:
-                logger.warning(f"Error during session cleanup: {str(e)}")
-```
-   - [ ] Ensure the session is not closed prematurely
-   - [ ] Add proper error handling for session operations
+- [ ] **Optimize Caching Strategy**
+   - [ ] Analyze cache hit/miss rates
+   - [ ] Implement more efficient cache key generation
+   - [ ] Add cache warming for frequently used prompts
+   - [ ] Implement cache eviction policies
+   - [ ] Add cache statistics to analytics
 
-- [ ] **Fix User ID Format Inconsistency**
-   - [ ] Ensure valid UUIDs are passed to the RAG engine
-   - [ ] Fix the root cause of passing invalid string IDs
-   - [ ] Update tests to use valid UUID strings
-   - [ ] Add validation for user IDs at the API level
+- [ ] **Enhance Analytics System**
+   - [ ] Create a comprehensive analytics dashboard
+   - [ ] Add more detailed query performance metrics
+   - [ ] Implement user behavior analytics
+   - [ ] Add document usage analytics
+   - [ ] Create periodic analytics reports
 
-- [ ] **Improve Session Management in memory_buffer.py**
-   - [ ] Enhance process_query function to be more robust
-   - [ ] Add better logging for session operations
-   - [ ] Ensure sessions are properly tracked and closed
-   - [ ] Add proper error handling for concurrent operations
-
-- [ ] **Improve Session Management in session.py**
-   - [ ] Enhance get_session function to handle concurrent operations better
-   - [ ] Add more robust error handling for session operations
-   - [ ] Implement better connection pool management
-   - [ ] Add more detailed logging for session lifecycle events
+- [ ] **Improve Error Handling and Logging**
+   - [ ] Implement centralized error handling
+   - [ ] Add structured logging for all components
+   - [ ] Create error reporting dashboard
+   - [ ] Implement automatic error notification
+   - [ ] Add error trend analysis
+   - [ ] Identify bottlenecks in the process
+   - [ ] Streamline the prompt creation process
+   - [ ] Reduce unnecessary string operations
+   - [ ] Enhance the caching strategy for frequently used prompts

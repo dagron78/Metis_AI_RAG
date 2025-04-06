@@ -80,25 +80,47 @@ class BaseRAGEngine:
         # Convert to lowercase for case-insensitive matching
         query_lower = query.lower()
         
-        # Check for code-related keywords
-        code_keywords = [
-            'code', 'program', 'function', 'class', 'method', 'variable',
-            'algorithm', 'implement', 'python', 'javascript', 'java', 'c++', 'c#',
-            'typescript', 'html', 'css', 'php', 'ruby', 'go', 'rust', 'swift',
-            'kotlin', 'scala', 'perl', 'r', 'bash', 'shell', 'sql', 'database',
-            'api', 'framework', 'library', 'package', 'module', 'import',
-            'function', 'def ', 'return', 'for loop', 'while loop', 'if statement',
-            'create a', 'write a', 'develop a', 'build a', 'implement a',
-            'tic tac toe', 'tic-tac-toe', 'game', 'application', 'app',
-            'script', 'syntax', 'error', 'debug', 'fix', 'optimize'
+        # Check for explicit non-code indicators
+        non_code_indicators = [
+            "summary of", "explain", "what is", "definition of",
+            "tell me about", "describe", "history of", "concept of",
+            "brief", "overview", "introduction to", "guide to"
         ]
         
-        # Check if any code keyword is in the query
+        for indicator in non_code_indicators:
+            if indicator in query_lower:
+                # Log the non-code indicator that was matched
+                logger.debug(f"Query matched non-code indicator: '{indicator}'")
+                return False
+        
+        # Check for code-related keywords (refined list)
+        code_keywords = [
+            # Programming languages (specific)
+            'python', 'javascript', 'java', 'c++', 'c#', 'typescript',
+            'php', 'ruby', 'go', 'rust', 'swift', 'kotlin', 'scala',
+            
+            # Programming concepts (specific)
+            'function', 'class', 'method', 'variable', 'algorithm',
+            'loop', 'conditional', 'recursion', 'inheritance',
+            
+            # Development terms (specific)
+            'compile', 'debug', 'syntax', 'runtime', 'exception',
+            'framework', 'library', 'api', 'sdk', 'ide',
+            
+            # Code-specific actions
+            'implement', 'code', 'program', 'develop', 'write code',
+            'script', 'coding', 'programming'
+        ]
+        
+        # Check if any code keyword is in the query with word boundaries
         for keyword in code_keywords:
-            if keyword in query_lower:
+            # Use word boundary to avoid partial matches
+            pattern = r'\b' + re.escape(keyword) + r'\b'
+            if re.search(pattern, query_lower):
+                logger.info(f"Detected code-related query, matched keyword: '{keyword}'")
                 return True
         
-        # Check for code patterns
+        # Check for code patterns (unchanged)
         code_patterns = [
             r'```[\s\S]*```',  # Code blocks
             r'def\s+\w+\s*\(',  # Python function definition
@@ -123,6 +145,8 @@ class BaseRAGEngine:
         # Check if any code pattern is in the query
         for pattern in code_patterns:
             if re.search(pattern, query, re.IGNORECASE):
+                logger.info(f"Detected code-related query, matched pattern: '{pattern}'")
                 return True
         
+        logger.info(f"Query not detected as code-related: '{query[:50]}...'")
         return False

@@ -4,6 +4,7 @@ RAG generation functionality
 import logging
 import time
 import re
+import asyncio
 from typing import Dict, Any, Optional, List, AsyncGenerator
 from uuid import UUID
 
@@ -30,6 +31,33 @@ class GenerationMixin:
         super().__init__()
         self.prompt_manager = PromptManager()
         logger.info("GenerationMixin initialized with PromptManager")
+    async def _get_system_token(self) -> str:
+        """
+        Create a system token for internal API calls
+        
+        Returns:
+            JWT token for system authentication
+        """
+        from app.core.security import create_access_token
+        import uuid
+        
+        # Create token data for system user
+        token_data = {
+            "sub": "system",
+            "user_id": str(uuid.uuid4()),  # Generate a unique ID for this request
+            "aud": "metis-rag-internal",
+            "iss": "metis-rag-system",
+            "jti": str(uuid.uuid4())
+        }
+        
+        # Create access token with longer expiration (30 minutes)
+        from datetime import timedelta
+        access_token = create_access_token(
+            data=token_data,
+            expires_delta=timedelta(minutes=30)
+        )
+        
+        return access_token
     
     async def _record_analytics(self,
                                query: str,
@@ -53,19 +81,62 @@ class GenerationMixin:
                 "token_count": token_count
             }
             
-            # Send analytics data to the API
+            # Get system token for authentication
+            token = await self._get_system_token()
+            
+            # Get API endpoint from environment or config
+            from app.core.config import SETTINGS
+            api_base_url = SETTINGS.api_base_url or "http://localhost:8000"
+            api_endpoint = f"{api_base_url}/api/analytics/record_query"
+            
+            # Send analytics data to the API with authentication
             import httpx
             async with httpx.AsyncClient() as client:
-                await client.post(
-                    "http://localhost:8000/api/analytics/record_query",
-                    json=analytics_data,
-                    timeout=5.0
-                )
+                # Add retry logic for robustness
+                max_retries = 3
+                retry_delay = 1.0  # seconds
+                
+                for attempt in range(max_retries):
+                    try:
+                        response = await client.post(
+                            api_endpoint,
+                            json=analytics_data,
+                            headers={"Authorization": f"Bearer {token}"},
+                            timeout=5.0
+                        )
+                        
+                        if response.status_code == 200 or response.status_code == 201:
+                            logger.debug(f"Recorded analytics for query: {query[:30]}...")
+                            break
+                        elif response.status_code == 401:
+                            # Authentication failed, try with a new token
+                            logger.warning("Authentication failed for analytics, retrying with new token")
+                            token = await self._get_system_token()
+                            if attempt == max_retries - 1:
+                                logger.error(f"Failed to authenticate for analytics after {max_retries} attempts")
+                        else:
+                            logger.warning(f"Analytics API returned status code {response.status_code}")
+                            if attempt == max_retries - 1:
+                                logger.error(f"Failed to record analytics after {max_retries} attempts")
+                        
+                        # Wait before retrying (except on last attempt)
+                        if attempt < max_retries - 1:
+                            await asyncio.sleep(retry_delay * (attempt + 1))
+                    
+                    except httpx.TimeoutException:
+                        logger.warning(f"Timeout while recording analytics (attempt {attempt+1}/{max_retries})")
+                        if attempt < max_retries - 1:
+                            await asyncio.sleep(retry_delay * (attempt + 1))
+                    
+                    except Exception as e:
+                        logger.error(f"Error during analytics request (attempt {attempt+1}/{max_retries}): {str(e)}")
+                        if attempt < max_retries - 1:
+                            await asyncio.sleep(retry_delay * (attempt + 1))
             
-            logger.debug(f"Recorded analytics for query: {query[:30]}...")
         except Exception as e:
             # Don't let analytics errors affect the main functionality
             logger.error(f"Error recording analytics: {str(e)}")
+    
     
     async def _generate_streaming_response(self,
                                           prompt: str,

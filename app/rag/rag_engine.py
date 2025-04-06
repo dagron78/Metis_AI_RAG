@@ -98,11 +98,24 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
         document_ids = []
         
         try:
+            # Start timing the entire query process
+            start_time = time.time()
             logger.info(f"RAG query: {query[:50]}...")
+            
+            # Create a timing dictionary to track performance
+            timings = {}
             
             # Get context from vector store if RAG is enabled
             context = ""
             sources = []
+            
+            # Function to record timing for a step
+            def record_timing(step_name):
+                current_time = time.time()
+                elapsed = current_time - start_time
+                step_time = elapsed - sum(timings.values())
+                timings[step_name] = step_time
+                logger.info(f"Step '{step_name}' completed in {step_time:.2f}s (total elapsed: {elapsed:.2f}s)")
             
             # Only extract conversation_id from conversation_history if not already provided
             if not conversation_id and conversation_history and len(conversation_history) > 0:
@@ -119,6 +132,7 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 logger.info(f"Using consistent user_id from conversation: {user_id}")
             elif not user_id:
                 # If no user_id and no conversation_id, generate a new one
+                # Always use UUID4 for anonymous users
                 user_id = str(uuid.uuid4())
                 logger.info(f"Generated new user_id: {user_id}")
             else:
@@ -131,20 +145,38 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 # Already a UUID object
                 user_uuid = user_id
             elif isinstance(user_id, str):
-                try:
-                    # Try to convert string to UUID
-                    user_uuid = UUID(user_id)
-                except ValueError:
-                    # If it's not a valid UUID string, generate a deterministic UUID
-                    # This ensures the same string always maps to the same UUID
-                    user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{user_id}")
-                    logger.warning(f"Converting non-UUID user_id format: {user_id} to deterministic UUID: {user_uuid}")
-                    # Update the user_id to be the UUID string for consistency
+                # Check for special case "system" user ID
+                if user_id == "system" or user_id.startswith("session_"):
+                    # Replace with a deterministic UUID based on the string
+                    old_user_id = user_id
+                    user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"fixed-{user_id}")
                     user_id = str(user_uuid)
+                    logger.warning(f"Replaced invalid user_id format: {old_user_id} with UUID: {user_id}")
+                else:
+                    try:
+                        # Try to convert string to UUID
+                        user_uuid = UUID(user_id)
+                    except ValueError:
+                        # If it's not a valid UUID string, generate a deterministic UUID
+                        # This ensures the same string always maps to the same UUID
+                        old_user_id = user_id
+                        user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{user_id}")
+                        user_id = str(user_uuid)
+                        logger.warning(f"Converting non-UUID user_id format: {old_user_id} to deterministic UUID: {user_id}")
             else:
                 # If it's neither a UUID nor a string, log an error and use a default UUID
                 logger.error(f"Unexpected user_id type: {type(user_id)}, using default UUID")
                 user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, "default-user")
+                user_id = str(user_uuid)
+                
+            # Validate the final user_id to ensure it's a valid UUID
+            try:
+                # This will raise ValueError if not a valid UUID
+                UUID(user_id)
+            except ValueError:
+                # If somehow we still have an invalid UUID, generate a new one
+                logger.error(f"Final user_id validation failed: {user_id}, generating new UUID")
+                user_uuid = uuid.uuid4()
                 user_id = str(user_uuid)
             
             # Process memory commands if user_id is provided
@@ -169,6 +201,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 if not conversation_id:
                     logger.warning("No conversation_id provided, this may cause issues with memory operations")
             
+            # Record timing for user ID and conversation ID processing
+            record_timing("id_processing")
+            
             if user_id and conversation_id:
                 processed_query, memory_response, memory_operation = await process_query(
                     query=query,
@@ -187,6 +222,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             
             # Use the processed query for RAG
             query = processed_query
+            
+            # Record timing for memory processing
+            record_timing("memory_processing")
             
             # Integrate with Mem0 if available
             if self.mem0_client and user_id:
@@ -238,6 +276,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     logger.info("No previous conversation history found in Mem0")
             else:
                 logger.info("No previous conversation history to include")
+            
+            # Record timing for conversation history processing
+            record_timing("conversation_history")
             
             if use_rag:
                 # Use enhanced retrieval if Retrieval Judge is enabled
@@ -364,6 +405,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                             logger.warning("No relevant documents found for the query")
                             context = ""
             
+            # Record timing for retrieval process
+            record_timing("retrieval")
+            
             # Determine retrieval state based on the context
             retrieval_state = "success"
             if not use_rag:
@@ -379,6 +423,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 retrieval_state = "low_relevance"
             
             logger.info(f"Determined retrieval state: {retrieval_state}")
+            
+            # Record timing for retrieval state determination
+            record_timing("retrieval_state")
             
             # Create system prompt and user prompt if not provided
             if not system_prompt:
@@ -408,6 +455,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             logger.debug(f"System prompt: {system_prompt[:200]}...")
             logger.debug(f"Full prompt: {full_prompt[:200]}...")
             
+            # Record timing for prompt creation
+            record_timing("prompt_creation")
+            
             # Generate response
             if stream:
                 # For streaming, return the stream generator directly
@@ -430,6 +480,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     model_parameters=model_parameters or {}
                 )
                 
+                # Record timing for response generation
+                record_timing("response_generation")
+                
                 # Record analytics asynchronously
                 response_time_ms = (time.time() - start_time) * 1000
                 logger.info(f"Response time: {response_time_ms:.2f}ms")
@@ -443,9 +496,13 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     document_ids=document_ids,
                     token_count=len(query.split())  # Approximate token count
                 )
-                
                 # Perform memory cleanup to reduce memory usage
                 await self._cleanup_memory()
+                
+                # Log timing summary
+                logger.info(f"Timing summary: {', '.join([f'{k}: {v:.2f}s' for k, v in timings.items()])}")
+                logger.info(f"Total processing time: {(time.time() - start_time):.2f}s")
+                
                 
                 return {
                     "query": query,
@@ -463,6 +520,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     system_prompt=system_prompt,
                     model_parameters=model_parameters or {}
                 )
+                
+                # Record timing for response generation
+                record_timing("response_generation")
                 
                 # Calculate response time
                 response_time_ms = (time.time() - start_time) * 1000
@@ -496,9 +556,13 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     document_ids=document_ids,
                     token_count=len(query.split()) + len(response_text.split())  # Approximate token count
                 )
-                
                 # Perform memory cleanup to reduce memory usage
                 await self._cleanup_memory()
+                
+                # Log timing summary
+                logger.info(f"Timing summary: {', '.join([f'{k}: {v:.2f}s' for k, v in timings.items()])}")
+                logger.info(f"Total processing time: {(time.time() - start_time):.2f}s")
+                
                 
                 return {
                     "query": query,
@@ -508,26 +572,66 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
         except Exception as e:
             logger.error(f"Error querying RAG engine: {str(e)}")
             raise
-            
-    async def _cleanup_memory(self) -> None:
-        """
-        Perform memory cleanup to reduce memory usage
-        """
-        try:
-            # Import gc module for garbage collection
-            import gc
-            
-            # Force garbage collection
-            gc.collect()
-            
-            # Clear any cached data
-            if hasattr(self, '_context_cache'):
-                self._context_cache = {}
-            
-            # Clear any large temporary variables
-            context = None
-            sources = None
-            
-            logger.info("Memory cleanup performed after query processing")
-        except Exception as e:
+            async def _cleanup_memory(self) -> None:
+                """
+                Perform memory cleanup to reduce memory usage
+                """
+                try:
+                    # Import necessary modules
+                    import gc
+                    import psutil
+                    import sys
+                    
+                    # Get current memory usage before cleanup
+                    process = psutil.Process()
+                    memory_before = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+                    
+                    # Force garbage collection with more aggressive settings
+                    gc.collect(2)  # Full collection with the highest generation
+                    
+                    # Clear any cached data
+                    if hasattr(self, '_context_cache'):
+                        self._context_cache = {}
+                    
+                    # Clear any large temporary variables
+                    context = None
+                    sources = None
+                    
+                    # Clear any other large objects that might be in memory
+                    if hasattr(self, '_last_query_data'):
+                        self._last_query_data = None
+                        
+                    if hasattr(self, '_last_response'):
+                        self._last_response = None
+                    
+                    # Get memory usage after cleanup
+                    memory_after = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+                    memory_freed = memory_before - memory_after
+                    
+                    # Log memory usage statistics
+                    logger.info(f"Memory cleanup performed: {memory_freed:.2f} MB freed")
+                    logger.info(f"Current memory usage: {memory_after:.2f} MB")
+                    
+                    # Check if memory usage is still high
+                    memory_percent = process.memory_percent()
+                    if memory_percent > 80.0:
+                        # More aggressive cleanup if memory usage is still high
+                        logger.warning(f"Memory usage still high after cleanup: {memory_percent:.1f}%")
+                        
+                        # Clear more caches
+                        if hasattr(self.vector_store, 'clear_cache'):
+                            self.vector_store.clear_cache()
+                        
+                        # Clear Python's internal caches
+                        sys.intern.clear()  # Clear string interning cache
+                        
+                        # Run garbage collection again
+                        gc.collect(2)
+                        
+                        # Log memory usage after aggressive cleanup
+                        memory_after_aggressive = process.memory_info().rss / (1024 * 1024)
+                        logger.info(f"Memory after aggressive cleanup: {memory_after_aggressive:.2f} MB")
+                    
+                except Exception as e:
+                    logger.warning(f"Error during memory cleanup: {str(e)}")
             logger.warning(f"Error during memory cleanup: {str(e)}")
