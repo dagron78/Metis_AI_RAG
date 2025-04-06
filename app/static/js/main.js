@@ -333,8 +333,74 @@ function getToken() {
     return localStorage.getItem('access_token');
 }
 
-// Authenticated fetch function
-function authenticatedFetch(url, options = {}) {
+// Check if token is expired or about to expire
+function isTokenExpired() {
+    const token = getToken();
+    if (!token) return true;
+    
+    try {
+        // Parse the JWT payload
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        // Get expiration time in milliseconds
+        const expirationTime = payload.exp * 1000;
+        
+        // Get current time
+        const currentTime = Date.now();
+        
+        // Check if token is expired or will expire in the next 5 minutes
+        return expirationTime < (currentTime + 5 * 60 * 1000);
+    } catch (e) {
+        console.error('Error checking token expiration:', e);
+        return true; // Assume expired if we can't parse the token
+    }
+}
+
+// Refresh the token
+async function refreshToken() {
+    console.log('Attempting to refresh token...');
+    
+    // Get the refresh token
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) {
+        console.error('No refresh token available');
+        return false;
+    }
+    
+    try {
+        const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                refresh_token: refreshToken
+            })
+        });
+        
+        if (!response.ok) {
+            console.error('Token refresh failed:', response.status);
+            return false;
+        }
+        
+        const data = await response.json();
+        
+        // Store the new tokens
+        localStorage.setItem('access_token', data.access_token);
+        if (data.refresh_token) {
+            localStorage.setItem('refresh_token', data.refresh_token);
+        }
+        
+        console.log('Token refreshed successfully');
+        return true;
+    } catch (e) {
+        console.error('Error refreshing token:', e);
+        return false;
+    }
+}
+
+// Authenticated fetch function with token refresh
+async function authenticatedFetch(url, options = {}) {
     // Clone the options to avoid modifying the original
     const fetchOptions = { ...options };
     
@@ -343,13 +409,48 @@ function authenticatedFetch(url, options = {}) {
         fetchOptions.headers = {};
     }
     
+    // Check if token is expired and refresh if needed
+    if (isAuthenticated() && isTokenExpired()) {
+        console.log('Token is expired or about to expire, refreshing...');
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+            // If refresh failed, redirect to login
+            console.warn('Token refresh failed, redirecting to login');
+            logout();
+            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+            throw new Error('Authentication expired');
+        }
+    }
+    
     // Add authorization header if authenticated
     if (isAuthenticated()) {
         fetchOptions.headers['Authorization'] = `Bearer ${getToken()}`;
     }
     
-    // Return the fetch promise
-    return fetch(url, fetchOptions);
+    // Make the request
+    const response = await fetch(url, fetchOptions);
+    
+    // Handle 401 Unauthorized errors
+    if (response.status === 401) {
+        console.log('Received 401 Unauthorized, attempting token refresh');
+        
+        // Try to refresh the token
+        const refreshed = await refreshToken();
+        if (refreshed) {
+            // If refresh succeeded, retry the request with the new token
+            console.log('Token refreshed, retrying request');
+            fetchOptions.headers['Authorization'] = `Bearer ${getToken()}`;
+            return fetch(url, fetchOptions);
+        } else {
+            // If refresh failed, redirect to login
+            console.warn('Token refresh failed after 401, redirecting to login');
+            logout();
+            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+            throw new Error('Authentication expired');
+        }
+    }
+    
+    return response;
 }
 
 // Make authentication functions globally available
@@ -360,6 +461,7 @@ console.log('Auth functions made global');
 
 function logout() {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('token_type');
     localStorage.removeItem('username');
     updateAuthUI();
@@ -446,6 +548,24 @@ function setupAuthListeners() {
     }
 }
 
+// Check token expiration periodically
+function setupTokenRefreshCheck() {
+    // Check token every 5 minutes
+    setInterval(() => {
+        if (isAuthenticated() && isTokenExpired()) {
+            console.log('Periodic token check: Token is expired or about to expire');
+            refreshToken().then(refreshed => {
+                if (!refreshed) {
+                    console.warn('Periodic token refresh failed');
+                    showNotification('Your session is about to expire. Please log in again.', 'warning');
+                } else {
+                    console.log('Periodic token refresh succeeded');
+                }
+            });
+        }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+}
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize conversation
@@ -454,6 +574,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up authentication UI
     updateAuthUI();
     setupAuthListeners();
+    
+    // Set up token refresh check
+    setupTokenRefreshCheck();
     
     // Check if we need to redirect to login
     const protectedPages = ['/documents', '/chat', '/analytics', '/system'];

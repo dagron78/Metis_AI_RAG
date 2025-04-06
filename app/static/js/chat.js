@@ -17,6 +17,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store conversation ID for maintaining context between messages
     let currentConversationId = null;
     
+    // Function to update and store conversation ID in localStorage
+    function updateConversationId(id) {
+        if (!id) return;
+        
+        currentConversationId = id;
+        localStorage.setItem('metis_conversation_id', id);
+        console.log('Conversation ID updated and stored:', id);
+    }
+    
+    // Retrieve conversation ID from localStorage on page load
+    const storedConversationId = localStorage.getItem('metis_conversation_id');
+    if (storedConversationId) {
+        currentConversationId = storedConversationId;
+        console.log('Retrieved stored conversation ID:', currentConversationId);
+    }
+    
     // Toggle RAG parameters visibility
     if (ragToggle) {
         ragToggle.addEventListener('change', function() {
@@ -240,8 +256,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 try {
                                                     // The data should be the conversation ID
                                                     // Remove any quotes if present (in case it's a JSON string)
-                                                    currentConversationId = data.replace(/^"|"$/g, '');
-                                                    console.log('Conversation ID received in stream:', currentConversationId);
+                                                    const conversationId = data.replace(/^"|"$/g, '');
+                                                    updateConversationId(conversationId);
+                                                    console.log('Conversation ID received in stream:', conversationId);
                                                 } catch (e) {
                                                     console.error('Error parsing conversation ID:', e);
                                                 }
@@ -258,8 +275,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                             // Skip if this is the conversation ID data that wasn't properly caught earlier
                                             if (previousLineWasConversationIdEvent) {
                                                 // The data should be the conversation ID
-                                                currentConversationId = data.replace(/^"|"$/g, '');
-                                                console.log('Conversation ID received in stream (fallback):', currentConversationId);
+                                                const conversationId = data.replace(/^"|"$/g, '');
+                                                updateConversationId(conversationId);
+                                                console.log('Conversation ID received in stream (fallback):', conversationId);
                                                 previousLineWasConversationIdEvent = false;
                                             } else {
                                                 // If not JSON and not conversation ID, append the data (older format)
@@ -344,8 +362,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Store conversation ID for future messages
                     if (data.conversation_id) {
-                        currentConversationId = data.conversation_id;
-                        console.log('Conversation ID updated:', currentConversationId);
+                        updateConversationId(data.conversation_id);
+                        console.log('Conversation ID updated from non-streaming response');
                     }
                     
                     // Display the response
@@ -416,8 +434,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // Store conversation ID for future messages
                         if (data.conversation_id) {
-                            currentConversationId = data.conversation_id;
-                            console.log('Conversation ID updated:', currentConversationId);
+                            updateConversationId(data.conversation_id);
+                            console.log('Conversation ID updated from fallback response');
                         }
                         
                         // Display the response
@@ -562,7 +580,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearConversation() {
         // Reset conversation ID
         currentConversationId = null;
-        console.log('Conversation ID reset');
+        localStorage.removeItem('metis_conversation_id');
+        console.log('Conversation ID reset and removed from localStorage');
         
         // Clear conversation from local storage or API
         authenticatedFetch('/api/chat/clear', {
@@ -578,6 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // Fallback if the global function isn't available
                 localStorage.removeItem('metis_conversation');
+                localStorage.removeItem('metis_conversation_id');
                 console.warn('window.clearConversation not found, using fallback clear method');
             }
         })
