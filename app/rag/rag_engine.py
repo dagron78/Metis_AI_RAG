@@ -69,7 +69,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                    model_parameters: Dict[str, Any] = None,
                    conversation_history: Optional[List[Message]] = None,
                    metadata_filters: Optional[Dict[str, Any]] = None,
-                   user_id: Optional[str] = None) -> Dict[str, Any]:
+                   user_id: Optional[str] = None,
+                   conversation_id: Optional[str] = None,
+                   **kwargs) -> Dict[str, Any]:
         """
         Query the RAG engine with optional conversation history and metadata filtering
         
@@ -77,6 +79,7 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             query: Query string
             model: Model to use
             use_rag: Whether to use RAG
+            conversation_id: Conversation ID for memory operations
             top_k: Number of results to return
             system_prompt: System prompt
             stream: Whether to stream the response
@@ -98,10 +101,23 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             context = ""
             sources = []
             
+            # Extract conversation_id from conversation_history if available
+            conversation_id = None
+            if conversation_history and len(conversation_history) > 0:
+                # Assuming the first message has the conversation_id
+                conversation_id = getattr(conversation_history[0], 'conversation_id', None)
+                if conversation_id:
+                    logger.info(f"Using conversation_id from history: {conversation_id}")
+            
             # Generate a user_id if not provided
             if not user_id:
-                user_id = f"session_{str(uuid.uuid4())[:8]}"
-                logger.info(f"Generated session user_id: {user_id}")
+                if conversation_id:
+                    # Use conversation_id to create a consistent user_id
+                    user_id = f"session_{str(conversation_id)[:8]}"
+                    logger.info(f"Generated consistent session user_id from conversation: {user_id}")
+                else:
+                    user_id = f"session_{str(uuid.uuid4())[:8]}"
+                    logger.info(f"Generated new session user_id: {user_id}")
             
             # Convert string user_id to UUID if needed
             user_uuid = None
@@ -115,12 +131,24 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             processed_query = query
             memory_response = None
             memory_operation = None
-            
-            # Extract conversation_id from conversation_history if available
-            conversation_id = None
-            if conversation_history and len(conversation_history) > 0:
-                # Assuming the first message has the conversation_id
-                conversation_id = getattr(conversation_history[0], 'conversation_id', None)
+            # Log conversation ID for debugging
+            if conversation_id:
+                # Store conversation_id for future use
+                self.conversation_id = conversation_id
+                logger.info(f"Using conversation_id: {conversation_id}")
+            else:
+                # Try to get conversation_id from kwargs if provided
+                if 'conversation_id' in kwargs:
+                    conversation_id = kwargs.get('conversation_id')
+                    if conversation_id:
+                        logger.info(f"Using conversation_id from kwargs: {conversation_id}")
+                        self.conversation_id = conversation_id
+                
+                # If still no conversation_id, generate a new one
+                if not conversation_id:
+                    conversation_id = str(uuid.uuid4())
+                    logger.info(f"Generated new conversation_id: {conversation_id}")
+                    self.conversation_id = conversation_id
             
             if user_id and conversation_id:
                 processed_query, memory_response, memory_operation = await process_query(
@@ -157,20 +185,23 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             # Format conversation history if provided
             conversation_context = ""
             if conversation_history and len(conversation_history) > 1:  # Only include history if there's more than just the current message
-                # Get the last few messages (up to 5) to keep context manageable, but exclude the most recent user message
+                # Get the last few messages (up to 10) to keep context manageable, but exclude the most recent user message
                 # which is the current query and shouldn't be treated as history
                 recent_history = conversation_history[:-1]
-                if len(recent_history) > 5:
-                    recent_history = recent_history[-5:]
+                if len(recent_history) > 10:
+                    recent_history = recent_history[-10:]
                 
                 # Format the conversation history
                 history_pieces = []
                 for msg in recent_history:
                     role_prefix = "User" if msg.role == "user" else "Assistant"
                     history_pieces.append(f"{role_prefix}: {msg.content}")
+                    # Log each message for debugging
+                    logger.debug(f"History message - Role: {msg.role}, Content: {msg.content[:50]}...")
                 
                 conversation_context = "\n".join(history_pieces)
                 logger.info(f"Including conversation history with {len(recent_history)} messages")
+                logger.debug(f"Conversation context: {conversation_context[:200]}...")
             elif self.mem0_client and user_id:
                 # Try to get conversation history from Mem0 if not provided
                 mem0_history = await get_conversation_history(user_id, limit=5)

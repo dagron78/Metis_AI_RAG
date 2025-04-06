@@ -86,12 +86,21 @@ The system includes a comprehensive response quality pipeline to ensure high-qua
 
 ### Conversation Memory
 
-The system maintains persistent memory across conversation turns:
+The system maintains persistent memory across conversation turns and browser sessions:
 
 - **Context Augmentation**: Includes conversation history in the LLM context for more coherent multi-turn dialogues
 - **Memory-Aware Query Analysis**: Analyzes queries in the context of previous conversation turns
 - **Memory-Enhanced Planning**: Creates query execution plans that consider conversation history
 - **Contextual Response Generation**: Generates responses that maintain continuity with previous exchanges
+- **Explicit Memory Commands**: Supports natural language commands for storing and retrieving specific information
+  - `Remember this: [information]` - Explicitly store information in memory
+  - `Recall [topic]` - Explicitly retrieve information from memory
+- **Implicit Memory Storage**: Automatically stores all user queries for future reference
+- **Implicit Memory Retrieval**: Recognizes and responds to implicit memory queries like "What is my favorite color?"
+- **Memory Categories**: Supports common memory categories like favorite colors, foods, names, etc.
+- **Persistent Memory Storage**: Stores memories in the database for long-term retention across sessions
+- **Memory Diagnostics**: Provides tools for debugging and monitoring memory functionality
+- **Session Persistence**: Maintains conversation context across page refreshes and browser sessions
 
 ### Quality Assurance Features
 
@@ -318,7 +327,19 @@ python scripts/test_background_tasks.py
 
 # Test authentication system
 python scripts/test_authentication.py
+
+# Test memory functionality
+python scripts/test_memory_functionality.py
 ```
+
+The memory functionality test script verifies:
+- Creating users and conversations
+- Storing explicit memories using the "Remember this" command
+- Storing implicit memories from all user queries
+- Processing queries with explicit recall commands
+- Processing queries with implicit memory-related questions
+- Retrieving memories with search terms
+- Retrieving memories with specific labels
 
 These test scripts create test documents, process them, and test various aspects of the system:
 - RAG retrieval tests verify that the system correctly retrieves and uses information from documents

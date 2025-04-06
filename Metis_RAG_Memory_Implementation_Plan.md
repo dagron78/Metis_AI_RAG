@@ -147,6 +147,46 @@ The memory buffer implementation has been completed and tested successfully. The
 5. ✅ Migration script for database updates
 6. ✅ Test script for functionality verification
 
+## Recent Fixes and Improvements
+
+We've recently made several improvements to the memory functionality to address issues with conversation continuity and memory retrieval:
+
+### 1. Frontend Session Management
+- Added localStorage persistence for conversation IDs in chat.js
+- Created updateConversationId() function to consistently store IDs
+- Modified page load event to retrieve stored conversation IDs
+- Updated all conversation ID handling code for consistency
+- Implemented proper handling of conversation IDs in streaming responses
+
+### 2. Authentication Issues
+- Increased JWT token expiration time from 30 minutes to 24 hours
+- Implemented token refresh functionality in main.js
+- Added periodic token checking to prevent expiration
+- Enhanced authenticatedFetch to handle token expiration and refresh
+- Updated logout function to properly clean up all tokens
+
+### 3. Conversation Continuity
+- Modified the RAG engine to maintain consistent user IDs based on conversation ID
+- Added detailed logging for conversation tracking
+- Improved conversation history handling and context preservation
+- Enhanced error handling for conversation-related operations
+- Increased conversation history context from 5 to 10 messages for better continuity
+
+### 4. Memory Retrieval Improvements
+- Enhanced the regex pattern for detecting memory recall commands
+- Improved search term matching for more flexible memory retrieval
+- Fixed database session handling to prevent connection issues
+- Added comprehensive logging throughout the memory system
+- Created a memory diagnostics endpoint for debugging
+- Added support for common memory categories (favorite colors, foods, names, etc.)
+- Implemented implicit memory storage for all user queries
+- Added detection of implicit memory-related queries (e.g., "What is my favorite color?")
+
+### 5. Testing and Diagnostics
+- Implemented a memory diagnostics endpoint at /api/chat/memory/diagnostics
+- Created a test script (scripts/test_memory_functionality.py) to verify memory functionality
+- Added detailed logging for memory operations
+
 ## Usage Instructions
 
 ### For Developers
@@ -171,23 +211,33 @@ The memory buffer implementation has been completed and tested successfully. The
    - Process user queries through the `process_query` function before sending them to the RAG engine.
 
 ### For Users
-
 Users can interact with the memory buffer using natural language commands:
 
-1. **Storing Information**:
+1. **Explicit Memory Storage**:
    - "Remember this: [information to store]"
    - "Remember this phrase: [phrase to remember]"
    - "Remember this name: [name to remember]"
 
-2. **Retrieving Information**:
+2. **Explicit Memory Retrieval**:
    - "Recall what I asked you to remember"
    - "What did I ask you to remember earlier?"
+   - "Can you remember the [phrase/name/information] from earlier?"
+   - "Recall my favorite color"
+
+3. **Implicit Memory Retrieval**:
+   - "What is my favorite color?"
+   - "What's my name?"
+   - "What food do I like?"
+   - "Tell me my preferred option"
+
+The system automatically stores all user queries as implicit memories, which can be retrieved later using either explicit recall commands or implicit memory-related questions.
    - "Can you remember the [phrase/name/information] from earlier?"
 
 ## Future Enhancements
 
 1. **Memory Categorization**:
-   - Implement automatic categorization of memories
+   - ✅ Implement automatic categorization of memories
+   - ✅ Support common memory categories (favorite colors, foods, names, etc.)
    - Allow users to specify categories when storing memories
 
 2. **Memory Expiration**:
@@ -195,7 +245,13 @@ Users can interact with the memory buffer using natural language commands:
    - Implement priority-based memory retention
 
 3. **Advanced Search**:
+   - ✅ Improved search term matching for more flexible memory retrieval
+   - ✅ Support for implicit memory-related queries
    - Semantic search for memories
    - Fuzzy matching for memory retrieval
    - Context-aware memory prioritization
-   - Memory search improvements
+
+4. **Automatic Memory Extraction**:
+   - ✅ Automatic storage of all user queries as implicit memories
+   - Implement entity extraction to automatically identify and store important information
+   - Add sentiment analysis to prioritize emotionally significant memories

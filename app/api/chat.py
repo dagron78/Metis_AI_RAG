@@ -126,7 +126,8 @@ async def query_chat(
                     model_parameters=query.model_parameters,
                     conversation_history=conversation_messages,
                     metadata_filters=metadata_filters,
-                    user_id=conversation.conv_metadata.get("user_id")
+                    user_id=conversation.conv_metadata.get("user_id"),
+                    conversation_id=conversation_id  # Explicitly pass conversation_id
                 )
                 
                 # Get sources (with safety check)
@@ -181,7 +182,8 @@ async def query_chat(
                 model_parameters=query.model_parameters,
                 conversation_history=conversation_messages,
                 metadata_filters=metadata_filters,
-                user_id=conversation.conv_metadata.get("user_id")
+                user_id=conversation.conv_metadata.get("user_id"),
+                conversation_id=conversation_id  # Explicitly pass conversation_id
             )
             
             # Get response and sources
@@ -454,7 +456,7 @@ async def langgraph_query_chat(
                     model_parameters=query.model_parameters,
                     conversation_context=conversation_context,
                     metadata_filters=metadata_filters,
-                    user_id=user_id,
+                    user_id=conversation.conv_metadata.get("user_id"),
                     use_rag=query.use_rag
                 )
                 
@@ -501,7 +503,7 @@ async def langgraph_query_chat(
                 model_parameters=query.model_parameters,
                 conversation_context=conversation_context,
                 metadata_filters=metadata_filters,
-                user_id=user_id,
+                user_id=conversation.conv_metadata.get("user_id"),
                 use_rag=query.use_rag
             )
             
@@ -652,7 +654,7 @@ async def enhanced_langgraph_query_chat(
                     model_parameters=query.model_parameters,
                     conversation_context=conversation_context,
                     metadata_filters=metadata_filters,
-                    user_id=user_id,
+                    user_id=conversation.conv_metadata.get("user_id"),
                     use_rag=query.use_rag
                 )
                 
@@ -699,7 +701,7 @@ async def enhanced_langgraph_query_chat(
                 model_parameters=query.model_parameters,
                 conversation_context=conversation_context,
                 metadata_filters=metadata_filters,
-                user_id=user_id,
+                user_id=conversation.conv_metadata.get("user_id"),
                 use_rag=query.use_rag
             )
             
@@ -790,3 +792,75 @@ async def list_conversations(
             "total": total_count
         }
     }
+
+@router.get("/memory/diagnostics")
+async def memory_diagnostics(
+    conversation_id: UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get memory diagnostics for a conversation
+    
+    This endpoint provides detailed information about the memory state
+    for a specific conversation, including stored memories and messages.
+    It's useful for debugging memory-related issues.
+    
+    Args:
+        conversation_id: The conversation ID to get diagnostics for
+        request: The request object
+        db: The database session
+        current_user: The current authenticated user
+        
+    Returns:
+        A dictionary containing memory diagnostics information
+    """
+    try:
+        # Import memory buffer functions
+        from app.rag.memory_buffer import get_memory_buffer
+        
+        # Get memories for the conversation
+        memories = await get_memory_buffer(
+            conversation_id=conversation_id,
+            db=db
+        )
+        
+        # Get conversation messages
+        conversation_repository = ConversationRepository(db, current_user.id)
+        messages = await conversation_repository.get_conversation_messages(
+            conversation_id=conversation_id
+        )
+        
+        # Get conversation metadata
+        conversation = await conversation_repository.get_by_id(conversation_id)
+        
+        # Return diagnostics
+        return {
+            "conversation_id": str(conversation_id),
+            "user_id": str(current_user.id),
+            "conversation_metadata": conversation.conv_metadata if conversation else None,
+            "memory_count": len(memories),
+            "memories": [
+                {
+                    "id": str(memory.id),
+                    "content": memory.content,
+                    "label": memory.label,
+                    "created_at": memory.created_at
+                }
+                for memory in memories
+            ],
+            "message_count": len(messages),
+            "messages": [
+                {
+                    "id": message.id,
+                    "role": message.role,
+                    "content": message.content[:100] + "..." if len(message.content) > 100 else message.content,
+                    "timestamp": message.timestamp
+                }
+                for message in messages
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error getting memory diagnostics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting memory diagnostics: {str(e)}")
