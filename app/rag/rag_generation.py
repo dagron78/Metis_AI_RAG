@@ -64,7 +64,7 @@ class GenerationMixin:
                                model: str,
                                use_rag: bool,
                                response_time_ms: float,
-                               document_ids: List[str],
+                               document_id_list: List[str],  # Changed from document_ids to document_id_list
                                token_count: int) -> None:
         """
         Record query analytics asynchronously
@@ -77,7 +77,7 @@ class GenerationMixin:
                 "use_rag": use_rag,
                 "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "response_time_ms": response_time_ms,
-                "document_ids": document_ids,
+                "document_id_list": document_id_list,  # Changed from document_ids to document_id_list
                 "token_count": token_count
             }
             
@@ -86,7 +86,7 @@ class GenerationMixin:
             
             # Get API endpoint from environment or config
             from app.core.config import SETTINGS
-            api_base_url = SETTINGS.api_base_url or "http://localhost:8000"
+            api_base_url = getattr(SETTINGS, 'base_url', "http://localhost:8000")
             api_endpoint = f"{api_base_url}/api/analytics/record_query"
             
             # Send analytics data to the API with authentication

@@ -335,8 +335,32 @@ async def process_query(
         # Check for explicit recall command with improved pattern
         recall_match = re.search(r"(?:recall|remember)(?:\s+(?:the|my|what|about))?\s*(.*)", query, re.IGNORECASE)
         
-        # Check for implicit memory-related queries
-        implicit_memory_match = re.search(r"(?:what is|what's|what are|tell me|do you know|do you remember) (?:my|our|the) (favorite|preferred|best|chosen|selected|liked|loved|hated|disliked|color|food|movie|book|song|hobby|interest|name|birthday|address|phone|email|contact|information|preference|choice|option|selection)", query, re.IGNORECASE)
+        # Check for implicit memory-related queries - simplified pattern
+        try:
+            # Use a simpler pattern to avoid regex errors
+            implicit_memory_match = re.search(r"(?:what is|what's|what are|tell me about|do you know|do you remember) (?:my|our|the) (favorite|color|food|movie|book|song|hobby|name|birthday|address|phone|email)", query, re.IGNORECASE)
+            
+            # Log the pattern match result for debugging
+            if implicit_memory_match:
+                logger.debug(f"Implicit memory match found: {implicit_memory_match.group(0)}")
+            else:
+                logger.debug("No implicit memory match found")
+                
+        except Exception as e:
+            # Log any regex errors and continue without a match
+            logger.error(f"Error in implicit memory regex: {str(e)}")
+            implicit_memory_match = None
+        
+        # If we have a match, check if this is likely a content generation request rather than memory recall
+        if implicit_memory_match:
+            # Check if this is likely a request for story/content generation
+            content_generation_indicators = [
+                "story", "fiction", "tale", "character", "write", "create", "generate", "make up"
+            ]
+            if any(indicator in query.lower() for indicator in content_generation_indicators):
+                # This is likely a content generation request, not a memory recall
+                implicit_memory_match = None
+                logger.info(f"Detected content generation request, not treating as implicit memory query")
         
         if (recall_match and not memory_match) or implicit_memory_match:  # Avoid conflict with "remember this" command
             # Get search term from either explicit or implicit match
@@ -364,10 +388,27 @@ async def process_query(
                 memory_response = "Here's what I remember:\n" + "\n".join(memory_items)
                 logger.info(f"Retrieved {len(memories)} memories for recall operation")
                 
-                # For implicit queries, we want to continue with the original query
-                # but include the memory information in the response
+                # For implicit queries, implement a confidence-based approach
                 if implicit_memory_match:
-                    return query, memory_response, "recall"
+                    # Check if this is a high-confidence memory recall request
+                    high_confidence_patterns = [
+                        r"what did I tell you (about|regarding) my",
+                        r"what is my (name|birthday|address|phone|email)",
+                        r"do you remember (what|when|where|who) I",
+                        r"recall what I said about"
+                    ]
+                    
+                    is_high_confidence = any(re.search(pattern, query, re.IGNORECASE) for pattern in high_confidence_patterns)
+                    
+                    if is_high_confidence and memories:
+                        # For high-confidence recalls with matching memories, return directly
+                        logger.info(f"High-confidence memory recall detected, returning memory response")
+                        return query, memory_response, "recall"
+                    else:
+                        # For lower confidence or no matching memories, continue with normal processing
+                        # but include the memory information as context
+                        logger.info(f"Low-confidence memory recall or no matching memories, continuing with normal processing")
+                        return query, None, None
             else:
                 memory_response = "I don't have any memories stored about that."
                 logger.info("No memories found for recall operation")

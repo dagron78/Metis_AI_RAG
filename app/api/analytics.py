@@ -37,7 +37,7 @@ async def record_query(
             use_rag=query_data.get("use_rag", False),
             response_time_ms=query_data.get("response_time_ms", 0),
             token_count=query_data.get("token_count", 0),
-            document_ids=query_data.get("document_ids", []),
+            document_id_list=query_data.get("document_id_list", query_data.get("document_ids", [])),  # Support both parameter names for backward compatibility
             query_type=query_data.get("query_type", "standard"),
             successful=query_data.get("successful", True)
         )
@@ -97,7 +97,7 @@ async def get_query_stats(
                     "timestamp": q.timestamp.isoformat() if q.timestamp else None,
                     "response_time_ms": q.response_time_ms,
                     "token_count": q.token_count,
-                    "document_ids": q.document_ids,
+                    "document_ids": q.document_id_list,  # Changed from document_ids to document_id_list
                     "query_type": q.query_type,
                     "successful": q.successful
                 }

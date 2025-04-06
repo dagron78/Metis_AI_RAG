@@ -212,13 +212,25 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     db=db  # Pass the provided session
                 )
                 
-                # If it's a recall operation with a response, return immediately
+                # If it's a recall operation with a response, evaluate whether to return immediately
                 if memory_operation == "recall" and memory_response:
-                    return {
-                        "query": query,
-                        "answer": memory_response,
-                        "sources": []
-                    }
+                    # Check if this is a pure memory recall or if it should be augmented with LLM
+                    if "Here's what I remember:" in memory_response and len(memory_response.split('\n')) <= 2:
+                        # This is likely just returning minimal information, augment with LLM
+                        logger.info(f"Memory recall contains minimal information, augmenting with LLM")
+                        # Continue with normal processing but include memory in context
+                        if not context:
+                            context = f"User previously mentioned: {memory_response}"
+                        else:
+                            context = f"User previously mentioned: {memory_response}\n\n{context}"
+                    else:
+                        # This is a substantial memory recall, return directly
+                        logger.info(f"Substantial memory recall detected, returning directly")
+                        return {
+                            "query": query,
+                            "answer": memory_response,
+                            "sources": []
+                        }
             
             # Use the processed query for RAG
             query = processed_query
@@ -493,7 +505,7 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     model=model,
                     use_rag=use_rag,
                     response_time_ms=response_time_ms,
-                    document_ids=document_ids,
+                    document_id_list=document_ids,  # Changed from document_ids to document_id_list
                     token_count=len(query.split())  # Approximate token count
                 )
                 # Perform memory cleanup to reduce memory usage
@@ -553,7 +565,7 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                     model=model,
                     use_rag=use_rag,
                     response_time_ms=response_time_ms,
-                    document_ids=document_ids,
+                    document_id_list=document_ids,  # Changed from document_ids to document_id_list
                     token_count=len(query.split()) + len(response_text.split())  # Approximate token count
                 )
                 # Perform memory cleanup to reduce memory usage
@@ -572,66 +584,66 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
         except Exception as e:
             logger.error(f"Error querying RAG engine: {str(e)}")
             raise
-            async def _cleanup_memory(self) -> None:
-                """
-                Perform memory cleanup to reduce memory usage
-                """
-                try:
-                    # Import necessary modules
-                    import gc
-                    import psutil
-                    import sys
-                    
-                    # Get current memory usage before cleanup
-                    process = psutil.Process()
-                    memory_before = process.memory_info().rss / (1024 * 1024)  # Convert to MB
-                    
-                    # Force garbage collection with more aggressive settings
-                    gc.collect(2)  # Full collection with the highest generation
-                    
-                    # Clear any cached data
-                    if hasattr(self, '_context_cache'):
-                        self._context_cache = {}
-                    
-                    # Clear any large temporary variables
-                    context = None
-                    sources = None
-                    
-                    # Clear any other large objects that might be in memory
-                    if hasattr(self, '_last_query_data'):
-                        self._last_query_data = None
-                        
-                    if hasattr(self, '_last_response'):
-                        self._last_response = None
-                    
-                    # Get memory usage after cleanup
-                    memory_after = process.memory_info().rss / (1024 * 1024)  # Convert to MB
-                    memory_freed = memory_before - memory_after
-                    
-                    # Log memory usage statistics
-                    logger.info(f"Memory cleanup performed: {memory_freed:.2f} MB freed")
-                    logger.info(f"Current memory usage: {memory_after:.2f} MB")
-                    
-                    # Check if memory usage is still high
-                    memory_percent = process.memory_percent()
-                    if memory_percent > 80.0:
-                        # More aggressive cleanup if memory usage is still high
-                        logger.warning(f"Memory usage still high after cleanup: {memory_percent:.1f}%")
-                        
-                        # Clear more caches
-                        if hasattr(self.vector_store, 'clear_cache'):
-                            self.vector_store.clear_cache()
-                        
-                        # Clear Python's internal caches
-                        sys.intern.clear()  # Clear string interning cache
-                        
-                        # Run garbage collection again
-                        gc.collect(2)
-                        
-                        # Log memory usage after aggressive cleanup
-                        memory_after_aggressive = process.memory_info().rss / (1024 * 1024)
-                        logger.info(f"Memory after aggressive cleanup: {memory_after_aggressive:.2f} MB")
-                    
-                except Exception as e:
-                    logger.warning(f"Error during memory cleanup: {str(e)}")
+            
+    async def _cleanup_memory(self) -> None:
+        """
+        Perform memory cleanup to reduce memory usage
+        """
+        try:
+            # Import necessary modules
+            import gc
+            import psutil
+            import sys
+            
+            # Get current memory usage before cleanup
+            process = psutil.Process()
+            memory_before = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+            
+            # Force garbage collection with more aggressive settings
+            gc.collect(2)  # Full collection with the highest generation
+            
+            # Clear any cached data
+            if hasattr(self, '_context_cache'):
+                self._context_cache = {}
+            
+            # Clear any large temporary variables
+            context = None
+            sources = None
+            
+            # Clear any other large objects that might be in memory
+            if hasattr(self, '_last_query_data'):
+                self._last_query_data = None
+                
+            if hasattr(self, '_last_response'):
+                self._last_response = None
+            
+            # Get memory usage after cleanup
+            memory_after = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+            memory_freed = memory_before - memory_after
+            
+            # Log memory usage statistics
+            logger.info(f"Memory cleanup performed: {memory_freed:.2f} MB freed")
+            logger.info(f"Current memory usage: {memory_after:.2f} MB")
+            
+            # Check if memory usage is still high
+            memory_percent = process.memory_percent()
+            if memory_percent > 80.0:
+                # More aggressive cleanup if memory usage is still high
+                logger.warning(f"Memory usage still high after cleanup: {memory_percent:.1f}%")
+                
+                # Clear more caches
+                if hasattr(self.vector_store, 'clear_cache'):
+                    self.vector_store.clear_cache()
+                
+                # Clear Python's internal caches
+                sys.intern.clear()  # Clear string interning cache
+                
+                # Run garbage collection again
+                gc.collect(2)
+                
+                # Log memory usage after aggressive cleanup
+                memory_after_aggressive = process.memory_info().rss / (1024 * 1024)
+                logger.info(f"Memory after aggressive cleanup: {memory_after_aggressive:.2f} MB")
+            
+        except Exception as e:
             logger.warning(f"Error during memory cleanup: {str(e)}")

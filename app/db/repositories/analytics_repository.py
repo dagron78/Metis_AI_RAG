@@ -20,8 +20,8 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
                  model: Optional[str] = None, 
                  use_rag: bool = True, 
                  response_time_ms: Optional[float] = None, 
-                 token_count: Optional[int] = None, 
-                 document_ids: Optional[List[str]] = None, 
+                 token_count: Optional[int] = None,
+                 document_id_list: Optional[List[str]] = None,  # Changed from document_ids to document_id_list
                  query_type: Optional[str] = None, 
                  successful: bool = True) -> AnalyticsQuery:
         """
@@ -33,7 +33,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
             use_rag: Whether RAG was used
             response_time_ms: Response time in milliseconds
             token_count: Token count
-            document_ids: List of document IDs used
+            document_id_list: List of document IDs used
             query_type: Query type (simple, complex, agentic)
             successful: Whether the query was successful
             
@@ -47,7 +47,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsQuery]):
             timestamp=datetime.utcnow(),
             response_time_ms=response_time_ms,
             token_count=token_count,
-            document_ids=document_ids or [],
+            document_id_list=document_id_list or [],  # Changed from document_ids to document_id_list
             query_type=query_type,
             successful=successful
         )
