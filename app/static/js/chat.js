@@ -1,11 +1,28 @@
-// Chat functionality
+// File: app/static/js/chat.js
+
+// Ensure MetisMarkdown is loaded (assuming markdown-parser.js is included before this)
+if (typeof window.MetisMarkdown === 'undefined') {
+    console.error("Error: markdown-parser.js must be loaded before chat.js");
+    // Define dummy functions to prevent errors later if the script failed to load
+    window.MetisMarkdown = {
+        processResponse: (text) => {
+            const el = document.createElement('div');
+            el.textContent = text; // Basic fallback
+            return el.innerHTML;
+        },
+        // Add dummy initializeHighlighting and addCopyButtons if needed by addMessage fallback
+        initializeHighlighting: () => {},
+        addCopyButtons: () => {}
+    };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Elements
+    // --- Elements ---
     const chatContainer = document.getElementById('chat-container');
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
     const clearButton = document.getElementById('clear-chat');
-    const saveButton = document.getElementById('save-chat');
+    const saveButton = document.getElementById('save-chat'); // Assuming this exists
     const modelSelect = document.getElementById('model');
     const ragToggle = document.getElementById('rag-toggle');
     const streamToggle = document.getElementById('stream-toggle');
@@ -13,152 +30,183 @@ document.addEventListener('DOMContentLoaded', function() {
     const maxResults = document.getElementById('max-results');
     const temperature = document.getElementById('temperature');
     const metadataFilters = document.getElementById('metadata-filters');
-    
-    // Store conversation ID for maintaining context between messages
+
+    if (!chatContainer || !userInput || !sendButton || !modelSelect || !ragToggle || !streamToggle || !loadingIndicator || !maxResults || !temperature || !metadataFilters) {
+        console.error("Chat UI elements not found. Chat functionality may be limited.");
+        // return; // Optionally return if core elements are missing
+    }
+
+    // --- State ---
     let currentConversationId = null;
-    
-    // Function to update and store conversation ID in localStorage
+
+    // --- Initialization ---
+    loadInitialState();
+    setupEventListeners();
+
+    // --- Functions ---
+
+    /**
+     * Loads initial state like conversation ID and models.
+     */
+    function loadInitialState() {
+        const storedConversationId = localStorage.getItem('metis_conversation_id');
+        if (storedConversationId) {
+            currentConversationId = storedConversationId;
+            console.log('Retrieved stored conversation ID:', currentConversationId);
+        }
+        loadModels();
+    }
+
+    /**
+     * Updates and stores the current conversation ID.
+     * @param {string | null} id The new conversation ID.
+     */
     function updateConversationId(id) {
         if (!id) return;
-        
-        currentConversationId = id;
-        localStorage.setItem('metis_conversation_id', id);
-        console.log('Conversation ID updated and stored:', id);
+        if (id !== currentConversationId) {
+            currentConversationId = id;
+            localStorage.setItem('metis_conversation_id', id);
+            console.log('Conversation ID updated and stored:', id);
+        }
     }
-    
-    // Retrieve conversation ID from localStorage on page load
-    const storedConversationId = localStorage.getItem('metis_conversation_id');
-    if (storedConversationId) {
-        currentConversationId = storedConversationId;
-        console.log('Retrieved stored conversation ID:', currentConversationId);
-    }
-    
-    // Toggle RAG parameters visibility
-    if (ragToggle) {
-        ragToggle.addEventListener('change', function() {
-            const ragParams = document.querySelectorAll('.rag-param');
-            ragParams.forEach(param => {
-                param.style.display = this.checked ? 'block' : 'none';
-            });
-        });
-    }
-    
-    // Load available models
-    if (modelSelect) {
+
+    /**
+     * Fetches available models and populates the dropdown.
+     */
+    function loadModels() {
+        if (!modelSelect) return;
         console.log('Loading models...');
         authenticatedFetch('/api/system/models')
             .then(response => {
-                console.log('Response status:', response.status);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
             })
             .then(models => {
                 console.log('Models fetched:', models);
-                console.log('Number of models:', models.length);
-                
-                // Clear the dropdown
-                modelSelect.innerHTML = '';
-                
-                if (models && models.length > 0) {
-                    // Add models to dropdown
+                modelSelect.innerHTML = ''; // Clear existing options
+
+                if (Array.isArray(models) && models.length > 0) {
                     models.forEach(model => {
                         const option = document.createElement('option');
                         option.value = model.name;
                         option.textContent = model.name;
                         modelSelect.appendChild(option);
-                        console.log('Added model to dropdown:', model.name);
                     });
+                    // Optionally set a default selection if needed
+                    // modelSelect.value = models[0]?.name || 'gemma3:4b';
                 } else {
-                    // Add a default option if no models are available
+                    console.warn('No models received from API or empty list.');
                     const option = document.createElement('option');
-                    option.value = 'gemma3:4b';
+                    option.value = 'gemma3:4b'; // Fallback default
                     option.textContent = 'gemma3:4b (default)';
                     modelSelect.appendChild(option);
-                    console.log('No models available, added default model');
                 }
             })
             .catch(error => {
                 console.error('Error loading models:', error);
+                modelSelect.innerHTML = '<option value="">Error loading</option>';
             });
     }
-    
-    // Send message
+
+    /**
+     * Sets up event listeners for UI elements.
+     */
+    function setupEventListeners() {
+        if (sendButton) sendButton.addEventListener('click', sendMessage);
+        if (userInput) userInput.addEventListener('keydown', handleInputKeydown);
+        if (clearButton) clearButton.addEventListener('click', handleClearChat);
+        // Add event listener for save button if it exists
+        if (saveButton) saveButton.addEventListener('click', handleSaveChat);
+        if (ragToggle) ragToggle.addEventListener('change', handleRagToggle);
+    }
+
+    /**
+     * Handles keydown events in the user input textarea.
+     * @param {KeyboardEvent} e The keydown event.
+     */
+    function handleInputKeydown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+
+    /**
+     * Handles the clear chat button click.
+     */
+    function handleClearChat() {
+        if (confirm('Are you sure you want to clear the chat history? This will start a new conversation.')) {
+            clearConversationOnServer(); // Call server to clear history if needed
+            currentConversationId = null; // Reset local ID
+            localStorage.removeItem('metis_conversation_id');
+            chatContainer.innerHTML = ''; // Clear UI
+            addWelcomeMessage();
+            console.log('Chat cleared locally and conversation ID reset.');
+        }
+    }
+
+     /**
+     * Handles the save chat button click (placeholder).
+     */
+    function handleSaveChat() {
+        // Implement save functionality here (e.g., save to local file, send to server)
+        showNotification('Save chat functionality not yet implemented.', 'info');
+        console.log('Save chat clicked. Conversation ID:', currentConversationId);
+    }
+
+
+    /**
+     * Handles the RAG toggle change event.
+     */
+    function handleRagToggle() {
+        const ragParams = document.querySelectorAll('.rag-param');
+        ragParams.forEach(param => {
+            param.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+
+    /**
+     * Adds the initial welcome message to the chat.
+     */
+    function addWelcomeMessage() {
+         addMessage(
+            'assistant',
+            "Hello! I'm your Metis RAG assistant. Ask me anything about your uploaded documents or chat with me directly."
+         );
+    }
+
+    /**
+     * Sends the user's message to the backend API.
+     */
     function sendMessage() {
         const message = userInput.value.trim();
         if (!message) return;
-        
-        // Check if user is authenticated
+
         if (!isAuthenticated()) {
-            // Redirect to login page
             window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
             return;
         }
-        
-        // Log the selected model
-        console.log('Selected model for this message:', modelSelect.value);
-        
-        // Add user message to conversation
-        addMessage('user', message);
-        
-        // Clear input
+
+        addMessage('user', message); // Add raw user message
         userInput.value = '';
-        
-        // Show loading indicator
-        loadingIndicator.style.display = 'block';
-        
-        // Prepare query
-        const query = {
-            message: message,
-            model: modelSelect.value || 'gemma3:4b', // Use default model if none selected
-            use_rag: ragToggle.checked,
-            conversation_id: currentConversationId, // Include conversation ID if available
-            model_parameters: {
-                temperature: parseFloat(temperature.value),
-                max_results: ragToggle.checked ? parseInt(maxResults.value) : 0
-            }
-        };
-        
-        // Log the query being sent
-        console.log('Sending query with model:', query.model);
-        
-        // Parse metadata filters if provided
-        if (ragToggle.checked && metadataFilters.value.trim()) {
-            try {
-                query.metadata_filters = JSON.parse(metadataFilters.value);
-            } catch (e) {
-                console.error('Invalid metadata filter JSON:', e);
-                addMessage('assistant', 'Error: Invalid metadata filter format. Please use valid JSON.');
-                loadingIndicator.style.display = 'none';
-                return;
-            }
-        }
-        // Use streaming based on the toggle
-        query.stream = streamToggle.checked;
-        
-        // Create message element for assistant response
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message assistant-message';
-        
-        // Add header
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'message-header';
-        headerDiv.textContent = 'Metis:';
-        messageDiv.appendChild(headerDiv);
-        
-        // Add content div for streaming response
-        const contentDiv = document.createElement('div');
-        contentDiv.id = 'streaming-response';
-        messageDiv.appendChild(contentDiv);
-        
-        // Add to chat container
-        chatContainer.appendChild(messageDiv);
-        
-        // Scroll to bottom
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        
-        // Send to API with a timeout
+        if (loadingIndicator) loadingIndicator.style.display = 'flex'; // Use flex
+
+        const query = buildQuery(message);
+        console.log('Sending query:', query);
+
+        // Create placeholder for assistant response
+        const assistantMessageDiv = addMessage('assistant', '', [], true); // Add placeholder
+        const contentDiv = assistantMessageDiv.querySelector('.message-content'); // Get the content div
+
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-        
+        // Increased timeout to 120 seconds (2 minutes)
+        const timeoutId = setTimeout(() => {
+            console.warn('Request Aborted due to timeout (120s)');
+            controller.abort();
+            handleErrorMessage({ name: 'AbortError', message: 'Request timed out after 120 seconds.' }, contentDiv, message, ragToggle, streamToggle, assistantMessageDiv);
+        }, 120000);
+
+
         authenticatedFetch('/api/chat/query', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -166,457 +214,369 @@ document.addEventListener('DOMContentLoaded', function() {
             signal: controller.signal
         })
         .then(response => {
+            clearTimeout(timeoutId); // Clear timeout on successful response header
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                // Try to read error message from response body
+                return response.json().then(errData => {
+                    throw new Error(errData.detail || `HTTP error! status: ${response.status}`);
+                }).catch(() => {
+                    // Fallback if response body is not JSON or empty
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                });
             }
-            
-            if (query.stream) {
-                // Handle streaming response
-                // Create a new reader for the response
-                const reader = response.body.getReader();
-                let decoder = new TextDecoder();
-                let fullResponse = '';
-                
-                // Variable to track if the previous line was a conversation_id event
-                let previousLineWasConversationIdEvent = false;
-                
-                // Function to process the stream with improved error handling
-                function processStream() {
-                    let streamTimeout;
-                    let lastActivityTime = Date.now();
-                    
-                    // Set a timeout for the stream reading
-                    const setStreamTimeout = () => {
-                        clearTimeout(streamTimeout);
-                        streamTimeout = setTimeout(() => {
-                            // Check if we've had activity in the last 10 seconds
-                            const inactiveTime = Date.now() - lastActivityTime;
-                            if (inactiveTime > 10000) {
-                                console.warn(`Stream reading timeout after ${inactiveTime}ms of inactivity - aborting`);
-                                reader.cancel('Timeout');
-                                
-                                // Try again without streaming
-                                if (streamToggle.checked) {
-                                    // Update UI to show we're retrying
-                                    contentDiv.textContent = 'The streaming response timed out. Retrying without streaming...';
-                                    
-                                    // Disable streaming and retry
-                                    streamToggle.checked = false;
-                                    sendButton.click();
-                                }
-                            } else {
-                                // Reset the timeout
-                                setStreamTimeout();
-                            }
-                        }, 5000); // Check every 5 seconds
-                    };
-                    
-                    // Start the timeout
-                    setStreamTimeout();
-                    
-                    return reader.read().then(({ done, value }) => {
-                        // Update the last activity time
-                        lastActivityTime = Date.now();
-                        
-                        if (done) {
-                            // Clear the timeout when done
-                            clearTimeout(streamTimeout);
-                            
-                            // Hide loading indicator when done
-                            loadingIndicator.style.display = 'none';
-                            return;
-                        }
-                        
-                        // Decode the chunk and append to the response
-                        const chunk = decoder.decode(value, { stream: true });
-                        
-                        // Process the chunk (which may contain multiple SSE events)
-                        const lines = chunk.split('\n');
-                        for (const line of lines) {
-                            // Check for event type
-                            if (line.startsWith('event:')) {
-                                const eventType = line.substring(6).trim();
-                                // Handle conversation_id event
-                                if (eventType === 'conversation_id') {
-                                    // The next line should be the data
-                                    previousLineWasConversationIdEvent = true;
-                                    continue;
-                                }
-                            }
-                            else if (line.startsWith('data:')) {
-                                const data = line.substring(5).trim();
-                                if (data) {
-                                    try {
-                                        // Try to parse as JSON (for newer format)
-                                        try {
-                                            const jsonData = JSON.parse(data);
-                                            
-                                            // Check if this is conversation ID data
-                                            if (previousLineWasConversationIdEvent) {
-                                                try {
-                                                    // The data should be the conversation ID
-                                                    // Remove any quotes if present (in case it's a JSON string)
-                                                    const conversationId = data.replace(/^"|"$/g, '');
-                                                    updateConversationId(conversationId);
-                                                    console.log('Conversation ID received in stream:', conversationId);
-                                                } catch (e) {
-                                                    console.error('Error parsing conversation ID:', e);
-                                                }
-                                                previousLineWasConversationIdEvent = false;
-                                                continue; // Skip adding this to the response
-                                            }
-                                            
-                                            if (jsonData.chunk) {
-                                                fullResponse += jsonData.chunk;
-                                            } else {
-                                                fullResponse += data;
-                                            }
-                                        } catch (e) {
-                                            // Skip if this is the conversation ID data that wasn't properly caught earlier
-                                            if (previousLineWasConversationIdEvent) {
-                                                // The data should be the conversation ID
-                                                const conversationId = data.replace(/^"|"$/g, '');
-                                                updateConversationId(conversationId);
-                                                console.log('Conversation ID received in stream (fallback):', conversationId);
-                                                previousLineWasConversationIdEvent = false;
-                                            } else {
-                                                // If not JSON and not conversation ID, append the data (older format)
-                                                // With streaming tokens from Ollama, we should not add spaces
-                                                // as the model already handles proper spacing
-                                                fullResponse += data;
-                                            }
-                                        }
-                                    } catch (e) {
-                                        console.error('Error processing chunk:', e);
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Update the content div with the current response
-                        // Check if the response starts with a UUID pattern (conversation ID)
-                        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
-                        if (fullResponse.match(uuidPattern)) {
-                            // Remove the UUID from the beginning of the response
-                            contentDiv.textContent = fullResponse.replace(uuidPattern, '');
-                        } else {
-                            contentDiv.textContent = fullResponse;
-                        }
-                        
-                        // Scroll to bottom
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
-                        
-                        // Continue reading
-                        return processStream();
-                    }).catch(error => {
-                        // Clear the timeout
-                        clearTimeout(streamTimeout);
-                        
-                        console.error('Error reading stream:', error);
-                        
-                        // If we already have some response, show it
-                        if (fullResponse.length > 0) {
-                            contentDiv.textContent = fullResponse + "\n\n[Response was cut off due to a connection issue]";
-                            
-                            // Add a note about the error
-                            const noteDiv = document.createElement('div');
-                            noteDiv.className = 'streaming-note';
-                            noteDiv.textContent = '(Note: The response was cut off due to a connection issue)';
-                            noteDiv.style.fontSize = '0.8em';
-                            noteDiv.style.fontStyle = 'italic';
-                            noteDiv.style.marginTop = '10px';
-                            noteDiv.style.color = 'var(--muted-color)';
-                            messageDiv.appendChild(noteDiv);
-                        } else {
-                            // Update the content div with an error message
-                            contentDiv.textContent = 'There was an error processing your request. ' +
-                                'This might be due to a connection issue with the language model. ' +
-                                'Try disabling streaming mode or check if the Ollama server is running properly.';
-                        }
-                        
-                        // Hide loading indicator
-                        loadingIndicator.style.display = 'none';
-                        
-                        // Add a retry button
-                        const retryButton = document.createElement('button');
-                        retryButton.textContent = 'Retry without streaming';
-                        retryButton.className = 'retry-button';
-                        retryButton.onclick = function() {
-                            // Disable streaming and retry
-                            if (streamToggle && streamToggle.checked) {
-                                streamToggle.checked = false;
-                                sendButton.click();
-                            }
-                        };
-                        messageDiv.appendChild(retryButton);
-                    });
-                }
-                
-                // Start processing the stream
-                return processStream();
+
+            if (query.stream && response.body) {
+                 processStream(response.body, contentDiv, assistantMessageDiv);
             } else {
-                // Handle non-streaming response
                 return response.json().then(data => {
-                    // Hide loading indicator
-                    loadingIndicator.style.display = 'none';
-                    
-                    // Store conversation ID for future messages
-                    if (data.conversation_id) {
-                        updateConversationId(data.conversation_id);
-                        console.log('Conversation ID updated from non-streaming response');
-                    }
-                    
-                    // Display the response
-                    // Check if the response starts with a UUID pattern (conversation ID)
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                    updateConversationId(data.conversation_id);
+
+                    // Process the complete message for Markdown rendering
+                    let processedResponse = data.message || '';
                     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
-                    if (data.message && data.message.match(uuidPattern)) {
-                        // Remove the UUID from the beginning of the response
-                        contentDiv.textContent = data.message.replace(uuidPattern, '');
-                    } else {
-                        contentDiv.textContent = data.message;
+                    if (processedResponse.match(uuidPattern)) {
+                        processedResponse = processedResponse.replace(uuidPattern, '');
                     }
-                    
-                    // Scroll to bottom
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                    
-                    // Add citations if available
-                    if (data.citations && data.citations.length > 0) {
-                        const citationsDiv = document.createElement('div');
-                        citationsDiv.className = 'sources-section';
-                        citationsDiv.innerHTML = '<strong>Sources:</strong> ';
-                        
-                        data.citations.forEach(citation => {
-                            const sourceSpan = document.createElement('span');
-                            sourceSpan.className = 'source-item';
-                            sourceSpan.textContent = citation.document_id;
-                            sourceSpan.title = citation.excerpt;
-                            citationsDiv.appendChild(sourceSpan);
-                        });
-                        
-                        messageDiv.appendChild(citationsDiv);
-                    }
+                    contentDiv.innerHTML = window.MetisMarkdown.processResponse(processedResponse);
+
+                    addCitations(assistantMessageDiv, data.citations);
+                    scrollToBottom();
                 });
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            
-            // Check if it's an abort error (timeout)
-            if (error.name === 'AbortError') {
-                console.log('Request timed out, trying again without streaming');
-                
-                // If streaming was enabled, try again without streaming
-                if (streamToggle.checked) {
-                    // Update UI to show we're retrying
-                    contentDiv.textContent = 'The streaming request timed out. Retrying without streaming...';
-                    
-                    // Disable streaming and retry
-                    query.stream = false;
-                    
-                    // Clear the previous timeout
-                    clearTimeout(timeoutId);
-                    
-                    // Send the request again without streaming
-                    authenticatedFetch('/api/chat/query', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(query)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Hide loading indicator
-                        loadingIndicator.style.display = 'none';
-                        
-                        // Store conversation ID for future messages
-                        if (data.conversation_id) {
-                            updateConversationId(data.conversation_id);
-                            console.log('Conversation ID updated from fallback response');
-                        }
-                        
-                        // Display the response
-                        contentDiv.textContent = data.message;
-                        
-                        // Add a note that streaming was disabled
-                        const noteDiv = document.createElement('div');
-                        noteDiv.className = 'streaming-note';
-                        noteDiv.textContent = '(Note: Streaming was disabled due to timeout)';
-                        noteDiv.style.fontSize = '0.8em';
-                        noteDiv.style.fontStyle = 'italic';
-                        noteDiv.style.marginTop = '10px';
-                        noteDiv.style.color = 'var(--muted-color)';
-                        messageDiv.appendChild(noteDiv);
-                        
-                        // Uncheck streaming toggle for future requests
-                        streamToggle.checked = false;
-                    })
-                    .catch(fallbackError => {
-                        console.error('Error in fallback request:', fallbackError);
-                        handleErrorMessage(fallbackError, contentDiv, message, ragToggle, streamToggle);
-                        loadingIndicator.style.display = 'none';
-                    });
-                } else {
-                    // If streaming was already disabled, show a regular error
-                    handleErrorMessage(error, contentDiv, message, ragToggle, streamToggle);
-                    loadingIndicator.style.display = 'none';
-                }
-            } else {
-                // For other types of errors
-                handleErrorMessage(error, contentDiv, message, ragToggle, streamToggle);
-                loadingIndicator.style.display = 'none';
-            }
+            clearTimeout(timeoutId); // Clear timeout on fetch error
+            console.error('Fetch Error:', error);
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+             handleErrorMessage(error, contentDiv, message, ragToggle, streamToggle, assistantMessageDiv);
         });
-        
-        // Helper function to handle error messages
-        function handleErrorMessage(error, contentDiv, message, ragToggle, streamToggle) {
-            // Add error message with more details
-            contentDiv.textContent = 'Sorry, there was an error processing your request. ';
-            
-            // Check if the query is about future events
-            const currentYear = new Date().getFullYear();
-            const queryLower = message.toLowerCase();
-            const yearMatch = queryLower.match(/\b(20\d\d|19\d\d)\b/);
-            
-            if (yearMatch && parseInt(yearMatch[1]) > currentYear) {
-                contentDiv.textContent = `I cannot provide information about events in ${yearMatch[1]} as it's in the future. ` +
-                    `The current year is ${currentYear}. I can only provide information about past or current events.`;
-            }
-            // Check if the query is about speculative future events
-            else if (/what will happen|what is going to happen|predict the future|future events|in the future/.test(queryLower)) {
-                contentDiv.textContent = "I cannot predict future events or provide information about what will happen in the future. " +
-                    "I can only provide information about past or current events based on available data.";
-            }
-            // Add suggestion based on RAG status
-            else if (ragToggle.checked) {
-                contentDiv.textContent += 'This might be because there are no documents available for RAG. ' +
-                    'Try uploading some documents or disabling the RAG feature.';
-            }
-            // Add suggestion based on streaming status
-            else if (streamToggle.checked) {
-                contentDiv.textContent += 'You might try disabling streaming mode for better error handling. ';
-                
-                // Add a retry button
-                const retryButton = document.createElement('button');
-                retryButton.textContent = 'Retry without streaming';
-                retryButton.className = 'retry-button';
-                retryButton.onclick = function() {
-                    // Disable streaming and retry
-                    streamToggle.checked = false;
-                    sendButton.click();
-                };
-                messageDiv.appendChild(retryButton);
-            }
-            else {
-                contentDiv.textContent += 'Please try again later or with different parameters.';
+    }
+
+    /**
+     * Builds the query object for the API request.
+     * @param {string} message The user's message.
+     * @returns {object} The query object.
+     */
+    function buildQuery(message) {
+        const query = {
+            message: message,
+            model: modelSelect?.value || 'gemma3:4b',
+            use_rag: ragToggle?.checked ?? true,
+            conversation_id: currentConversationId,
+            model_parameters: {},
+            stream: streamToggle?.checked ?? false // Default to false if toggle not found
+        };
+
+        // Safely access values only if elements exist
+        if (temperature) query.model_parameters.temperature = parseFloat(temperature.value);
+        if (ragToggle?.checked && maxResults) query.model_parameters.max_results = parseInt(maxResults.value);
+
+        if (ragToggle?.checked && metadataFilters?.value.trim()) {
+            try {
+                query.metadata_filters = JSON.parse(metadataFilters.value);
+            } catch (e) {
+                console.error('Invalid metadata filter JSON:', e);
+                // Don't send invalid filters, maybe notify user later
             }
         }
+        return query;
     }
-    
-    // Clear chat
-    if (clearButton) {
-        clearButton.addEventListener('click', function() {
-            if (confirm('Are you sure you want to clear the chat history?')) {
-                clearConversation();
-                chatContainer.innerHTML = '';
-                
-                // Add welcome message
-                const welcomeMessage = document.createElement('div');
-                welcomeMessage.className = 'message bot-message';
-                welcomeMessage.innerHTML = `
-                    <div class="message-header">Metis:</div>
-                    Hello! I'm your Metis RAG assistant. Ask me anything about your uploaded documents or chat with me directly.
-                `;
-                chatContainer.appendChild(welcomeMessage);
+
+    /**
+     * Processes the streaming response from the API.
+     * @param {ReadableStream} body The response body stream.
+     * @param {HTMLElement} contentDiv The div where content will be rendered.
+     * @param {HTMLElement} messageDiv The main message container div.
+     */
+    async function processStream(body, contentDiv, messageDiv) {
+        const reader = body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        let buffer = '';
+        let conversationIdReceived = false;
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    console.log("Stream finished.");
+                    break;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+
+                // Process buffer line by line (SSE events end with \n\n)
+                let eventBoundary = buffer.indexOf('\n\n');
+                while (eventBoundary !== -1) {
+                    const eventData = buffer.substring(0, eventBoundary);
+                    buffer = buffer.substring(eventBoundary + 2);
+
+                    let currentEventType = null;
+                    let dataLines = [];
+
+                    eventData.split('\n').forEach(line => {
+                        if (line.startsWith('event:')) {
+                            currentEventType = line.substring(6).trim();
+                        } else if (line.startsWith('data:')) {
+                            dataLines.push(line.substring(5).trim());
+                        }
+                    });
+
+                    const data = dataLines.join('\n'); // Re-join if data spans multiple lines
+
+                    if (currentEventType === 'conversation_id' && data) {
+                         if (!conversationIdReceived) {
+                            try {
+                                // Remove potential quotes if data is a JSON string
+                                const conversationId = data.replace(/^"|"$/g, '');
+                                updateConversationId(conversationId);
+                                console.log('Conversation ID received in stream:', conversationId);
+                                conversationIdReceived = true; // Ensure ID is processed only once
+                            } catch (e) {
+                                console.error('Error parsing conversation ID from stream:', e, 'Data:', data);
+                            }
+                         }
+                    } else if (data) { // Process regular message data
+                        try {
+                            // Attempt to parse as JSON (newer format might send {"chunk": "..."})
+                            let token = "";
+                            try {
+                                const jsonData = JSON.parse(data);
+                                token = jsonData.chunk || data; // Fallback to raw data if no 'chunk' field
+                            } catch (jsonError) {
+                                token = data; // Assume older raw text format if JSON parse fails
+                            }
+                            fullResponse += token;
+
+                            // Update UI with RAW accumulated text during stream
+                            let displayResponse = fullResponse;
+                            const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
+                            if (displayResponse.match(uuidPattern)) {
+                                displayResponse = displayResponse.replace(uuidPattern, '');
+                            }
+                            contentDiv.textContent = displayResponse; // Use textContent for raw text
+                            scrollToBottom();
+
+                        } catch (e) {
+                            console.error('Error processing stream data chunk:', e, 'Data:', data);
+                        }
+                    }
+                    currentEventType = null; // Reset event type for next event
+                    eventBoundary = buffer.indexOf('\n\n');
+                }
             }
-        });
+
+             // --- FINAL PROCESSING after stream ends ---
+             console.log("Stream complete. Processing final response for Markdown.");
+             let finalProcessedResponse = fullResponse;
+             const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
+             if (finalProcessedResponse.match(uuidPattern)) {
+                 finalProcessedResponse = finalProcessedResponse.replace(uuidPattern, '');
+             }
+             // Process the complete response for Markdown, highlighting, and copy buttons
+             contentDiv.innerHTML = window.MetisMarkdown.processResponse(finalProcessedResponse);
+             scrollToBottom();
+             // --- End Final Processing ---
+
+        } catch (error) {
+            console.error('Error reading stream:', error);
+            // Handle error display in the UI
+            if (fullResponse) { // Show partial response if any
+                 contentDiv.innerHTML = window.MetisMarkdown.processResponse(fullResponse + "\n\n[Error processing stream]");
+            } else {
+                 contentDiv.textContent = 'Error processing response stream.';
+            }
+        } finally {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            // Release the lock
+             try {
+                 reader.releaseLock();
+             } catch (e) {
+                 console.warn("Could not release stream reader lock:", e);
+             }
+        }
     }
-    
-    // Add message to chat
-    function addMessage(role, content, citations = null) {
-        // Create message element
+
+
+    /**
+     * Adds a message (user or assistant) to the chat interface.
+     * @param {string} role 'user' or 'assistant'.
+     * @param {string} content The message content (raw text).
+     * @param {Array | null} citations List of citations for assistant messages.
+     * @param {boolean} isPlaceholder If true, creates an empty structure for population later.
+     * @returns {HTMLElement} The created message element.
+     */
+    function addMessage(role, content, citations = null, isPlaceholder = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}-message`;
-        
-        // Add header
+
         const headerDiv = document.createElement('div');
         headerDiv.className = 'message-header';
         headerDiv.textContent = role === 'user' ? 'You:' : 'Metis:';
         messageDiv.appendChild(headerDiv);
-        
-        // Add content
+
         const contentDiv = document.createElement('div');
-        contentDiv.textContent = content;
-        messageDiv.appendChild(contentDiv);
-        
-        // Add citations if available
-        if (citations && citations.length > 0) {
-            const citationsDiv = document.createElement('div');
-            citationsDiv.className = 'sources-section';
-            citationsDiv.innerHTML = '<strong>Sources:</strong> ';
-            
-            citations.forEach(citation => {
-                const sourceSpan = document.createElement('span');
-                sourceSpan.className = 'source-item';
-                sourceSpan.textContent = citation.document_id;
-                sourceSpan.title = citation.excerpt;
-                citationsDiv.appendChild(sourceSpan);
-            });
-            
-            messageDiv.appendChild(citationsDiv);
+        contentDiv.className = 'message-content'; // Add class for easier selection
+
+        if (!isPlaceholder) {
+             if (role === 'user') {
+                 contentDiv.textContent = content; // User messages as plain text
+             } else {
+                 // Let the caller handle processing for assistant messages later
+                 contentDiv.innerHTML = "Processing..."; // Or leave empty
+             }
         }
-        
-        // Add to chat container
-        chatContainer.appendChild(messageDiv);
-        
-        // Scroll to bottom
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        // For placeholders, contentDiv remains empty initially
+
+        messageDiv.appendChild(contentDiv);
+
+        // Placeholder for citations if needed later (only for assistant)
+        if (role === 'assistant') {
+             const citationsContainer = document.createElement('div');
+             citationsContainer.className = 'sources-section';
+             citationsContainer.style.display = 'none'; // Hide initially
+             messageDiv.appendChild(citationsContainer);
+        }
+
+        if (chatContainer) {
+             chatContainer.appendChild(messageDiv);
+             scrollToBottom();
+        } else {
+            console.error("Chat container not found, cannot add message.");
+        }
+        return messageDiv; // Return the main message element
     }
-    
-    // Clear conversation
-    function clearConversation() {
-        // Reset conversation ID
-        currentConversationId = null;
-        localStorage.removeItem('metis_conversation_id');
-        console.log('Conversation ID reset and removed from localStorage');
-        
-        // Clear conversation from local storage or API
-        authenticatedFetch('/api/chat/clear', {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Conversation cleared:', data);
-            // Use the globally exposed clearConversation function from main.js
-            // This ensures proper clearing of localStorage and updating the UI
-            if (window.clearConversation) {
-                window.clearConversation();
-            } else {
-                // Fallback if the global function isn't available
-                localStorage.removeItem('metis_conversation');
-                localStorage.removeItem('metis_conversation_id');
-                console.warn('window.clearConversation not found, using fallback clear method');
-            }
-        })
-        .catch(error => {
-            console.error('Error clearing conversation:', error);
+
+
+    /**
+    * Adds citations to an existing assistant message div.
+    * @param {HTMLElement} messageDiv The main assistant message element.
+    * @param {Array | null} citations List of citation objects.
+    */
+    function addCitations(messageDiv, citations) {
+        if (!citations || citations.length === 0) return;
+
+        const citationsContainer = messageDiv.querySelector('.sources-section');
+        if (!citationsContainer) return; // Should exist from addMessage
+
+        citationsContainer.innerHTML = '<strong>Sources:</strong> '; // Clear previous/placeholder content
+
+        citations.forEach((citation, index) => {
+            const sourceSpan = document.createElement('span');
+            sourceSpan.className = 'source-item';
+            // Display filename if available, otherwise document_id
+            const displayName = citation.filename || citation.document_id || `Source ${index + 1}`;
+            sourceSpan.textContent = `[${index + 1}] ${displayName}`;
+            sourceSpan.title = citation.excerpt || 'No excerpt available';
+            citationsContainer.appendChild(sourceSpan);
         });
+
+        citationsContainer.style.display = 'block'; // Make visible
     }
-    
-    // Event listeners
-    if (sendButton) {
-        sendButton.addEventListener('click', sendMessage);
+
+
+    /**
+     * Scrolls the chat container to the bottom.
+     */
+    function scrollToBottom() {
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
     }
-    
-    if (userInput) {
-        userInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
+
+    /**
+     * Sends a request to the server to clear the conversation history.
+     */
+    function clearConversationOnServer() {
+        authenticatedFetch('/api/chat/clear', { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => console.log('Server conversation cleared:', data))
+            .catch(error => console.error('Error clearing server conversation:', error));
     }
-});
+
+    /**
+     * Handles and displays error messages in the chat.
+     * @param {Error} error The error object.
+     * @param {HTMLElement} contentDiv The div where the error message should be displayed.
+     * @param {string} originalMessage The original user message that caused the error.
+     * @param {HTMLInputElement} ragToggle RAG toggle element.
+     * @param {HTMLInputElement} streamToggle Streaming toggle element.
+     * @param {HTMLElement} messageDiv The main message container div.
+     */
+    function handleErrorMessage(error, contentDiv, originalMessage, ragToggle, streamToggle, messageDiv) {
+        let errorText = 'Sorry, there was an error processing your request. ';
+        console.error("Handling error message:", error); // Log the full error
+
+        if (error.name === 'AbortError') {
+             errorText = 'The request timed out. The server might be overloaded or the request took too long. ';
+             if (streamToggle?.checked) {
+                 errorText += 'Try disabling streaming mode.';
+                 // No automatic retry here, let user decide.
+             } else {
+                 errorText += 'Please try again later.';
+             }
+        } else if (error.message.includes('Failed to fetch')) {
+             errorText = 'Could not connect to the server. Please ensure the Metis RAG application is running.';
+        } else {
+             // Check for specific error patterns from the user query analysis
+             const currentYear = new Date().getFullYear();
+             const queryLower = originalMessage.toLowerCase();
+             const yearMatch = queryLower.match(/\b(20\d\d|19\d\d)\b/);
+
+             if (yearMatch && parseInt(yearMatch[1]) > currentYear) {
+                 errorText = `I cannot provide information about events in ${yearMatch[1]} as it's in the future. The current year is ${currentYear}. I can only provide information about past or current events.`;
+             } else if (/what will happen|what is going to happen|predict the future|future events|in the future/.test(queryLower)) {
+                 errorText = "I cannot predict future events or provide information about what will happen in the future. I can only provide information about past or current events based on available data.";
+             } else if (ragToggle?.checked) {
+                 errorText += 'This might be because there are no documents available for RAG or an issue occurred during retrieval. Try uploading documents or disabling RAG.';
+             } else {
+                 errorText += 'Please check your query or try again later.';
+             }
+        }
+
+        // Display the error in the designated content div
+        if (contentDiv) {
+             contentDiv.textContent = errorText;
+        } else if (messageDiv) {
+             // Fallback if contentDiv wasn't found (shouldn't happen ideally)
+             messageDiv.innerHTML += `<div class="message-content error">${errorText}</div>`;
+        }
+
+
+        // Optionally add retry button for streaming timeouts if stream toggle exists
+        if (error.name === 'AbortError' && streamToggle) {
+             const retryButton = document.createElement('button');
+             retryButton.textContent = 'Retry without streaming';
+             retryButton.className = 'retry-button'; // Add class for styling
+             retryButton.onclick = function() {
+                 streamToggle.checked = false; // Disable streaming
+                 // Resend the original message
+                 if(userInput && sendButton) {
+                     userInput.value = originalMessage; // Put message back for resend
+                     sendButton.click();
+                     // Remove the retry button after click
+                     if(messageDiv && retryButton.parentNode === messageDiv) {
+                         messageDiv.removeChild(retryButton);
+                     }
+                 }
+             };
+             // Append button to the messageDiv if it exists
+             if (messageDiv) {
+                 messageDiv.appendChild(retryButton);
+             }
+        }
+    }
+
+    /**
+     * Shows a notification message to the user.
+     * @param {string} message The message to display.
+     * @param {string} type The type of notification ('info', 'error', 'success').
+     */
+    function showNotification(message, type = 'info') {
+        console.log(`Notification (${type}): ${message}`);
+        // Implement UI notification if needed
+        // For now, just log to console
+    }
+
+}); // End DOMContentLoaded

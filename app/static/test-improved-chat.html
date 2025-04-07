@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Improved Chat.js Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .input-container {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: 20%;
+        }
+        .assistant-message {
+            background-color: #f1f8e9;
+            margin-right: 20%;
+        }
+        .message-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .message-content {
+            white-space: pre-wrap;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .copy-code-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .code-block-container {
+            position: relative;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .control-group {
+            margin-right: 15px;
+        }
+        #loading {
+            display: none;
+            margin-left: 10px;
+            color: #666;
+        }
+        .sources-section {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .source-item {
+            margin-right: 10px;
+            background-color: #eee;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: help;
+        }
+        .retry-button {
+            margin-top: 10px;
+            background-color: #ff9800;
+        }
+        .rag-param {
+            display: none;
+            margin-top: 5px;
+        }
+    </style>
+    <!-- Include highlight.js and marked.js for markdown parsing -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <h1>Improved Chat.js Test</h1>
+    <p>This page demonstrates the improved chat.js implementation with proper code formatting during streaming.</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="model">Model:</label>
+            <select id="model">
+                <option value="gemma3:4b">gemma3:4b</option>
+                <option value="llama3:8b">llama3:8b</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="stream-toggle">Stream:</label>
+            <input type="checkbox" id="stream-toggle" checked>
+        </div>
+        
+        <div class="control-group">
+            <label for="rag-toggle">RAG:</label>
+            <input type="checkbox" id="rag-toggle">
+        </div>
+        
+        <div class="control-group rag-param">
+            <label for="max-results">Max Results:</label>
+            <input type="number" id="max-results" value="5" min="1" max="20">
+        </div>
+        
+        <div class="control-group">
+            <label for="temperature">Temperature:</label>
+            <input type="number" id="temperature" value="0.7" min="0" max="2" step="0.1">
+        </div>
+        
+        <div class="control-group rag-param">
+            <label for="metadata-filters">Metadata Filters (JSON):</label>
+            <input type="text" id="metadata-filters" placeholder='{"key": "value"}'>
+        </div>
+        
+        <button id="clear-chat">Clear Chat</button>
+        <span id="loading">Processing...</span>
+    </div>
+    
+    <div class="container">
+        <div id="chat-container">
+            <!-- Messages will be added here -->
+            <div class="message assistant-message">
+                <div class="message-header">Metis:</div>
+                <div class="message-content">Hello! I'm your Metis RAG assistant. Ask me anything about your uploaded documents or chat with me directly.</div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <textarea id="user-input" placeholder="Type your message here..." rows="3"></textarea>
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    
+    <!-- Include the markdown parser and chat.js -->
+    <script>
+        // Mock the authenticatedFetch function for testing
+        function authenticatedFetch(url, options = {}) {
+            console.log('Authenticated fetch to:', url, options);
+            
+            // Simulate a streaming response for testing
+            if (url === '/api/chat/query' && options.method === 'POST') {
+                const body = JSON.parse(options.body);
+                
+                if (body.stream) {
+                    // Return a mock streaming response
+                    return Promise.resolve({
+                        ok: true,
+                        body: createMockStream(body.message)
+                    });
+                } else {
+                    // Return a mock JSON response
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve({
+                            message: createMockResponse(body.message),
+                            conversation_id: 'mock-conversation-id'
+                        })
+                    });
+                }
+            }
+            
+            // For other requests, return a mock response
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve([
+                    { name: 'gemma3:4b' },
+                    { name: 'llama3:8b' }
+                ])
+            });
+        }
+        
+        // Mock the isAuthenticated function
+        function isAuthenticated() {
+            return true;
+        }
+        
+        // Create a mock stream for testing
+        function createMockStream(message) {
+            const mockResponse = createMockResponse(message);
+            const chunks = [];
+            
+            // Split the response into chunks of 10 characters
+            for (let i = 0; i < mockResponse.length; i += 10) {
+                chunks.push(mockResponse.substring(i, i + 10));
+            }
+            
+            // Create a ReadableStream that emits the chunks
+            return new ReadableStream({
+                start(controller) {
+                    let chunkIndex = 0;
+                    
+                    // First, send the conversation ID event
+                    const conversationIdEvent = 'event: conversation_id\ndata: "mock-conversation-id"\n\n';
+                    controller.enqueue(new TextEncoder().encode(conversationIdEvent));
+                    
+                    // Function to emit the next chunk
+                    function emitNextChunk() {
+                        if (chunkIndex < chunks.length) {
+                            const chunk = chunks[chunkIndex++];
+                            const event = `data: ${JSON.stringify({ chunk })}\n\n`;
+                            controller.enqueue(new TextEncoder().encode(event));
+                            setTimeout(emitNextChunk, 100); // Emit a chunk every 100ms
+                        } else {
+                            controller.close();
+                        }
+                    }
+                    
+                    // Start emitting chunks
+                    setTimeout(emitNextChunk, 500);
+                }
+            });
+        }
+        
+        // Create a mock response based on the user's message
+        function createMockResponse(message) {
+            // Check if the message is asking for code
+            if (message.toLowerCase().includes('code') || 
+                message.toLowerCase().includes('example') || 
+                message.toLowerCase().includes('function')) {
+                return `Here's a Python function to calculate the factorial of a number:
+
+\`\`\`python
+def factorial(n):
+    """Calculate the factorial of a number."""
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return n * factorial(n-1)
+
+# Example usage
+print(factorial(5))  # Output: 120
+\`\`\`
+
+The factorial function is a classic example of recursion in programming. It calculates the product of all positive integers less than or equal to n.`;
+            } else {
+                return `I'm a mock assistant response to your message: "${message}". 
+
+I can demonstrate formatting like **bold text**, *italic text*, and \`inline code\`.
+
+Here's a list:
+1. First item
+2. Second item
+3. Third item`;
+            }
+        }
+    </script>
+    
+    <script>
+        // Simplified markdown-parser.js for testing
+        // Configure marked.js options
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+                try {
+                    return hljs.highlight(code, { language, ignoreIllegals: true }).value;
+                } catch (e) {
+                    console.error('Error highlighting code:', e);
+                    const temp = document.createElement('div');
+                    temp.textContent = code;
+                    return temp.innerHTML;
+                }
+            },
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            mangle: false
+        });
+
+        function sanitizeHTML(html) {
+            const scriptTagRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+            const eventHandlerRegex = / on\w+="[^"]*"/gi;
+            const inlineJSRegex = /javascript:/gi;
+            
+            let sanitized = html.replace(scriptTagRegex, '')
+                                .replace(eventHandlerRegex, '')
+                                .replace(inlineJSRegex, 'void:');
+            
+            return sanitized;
+        }
+
+        function preprocessCodeBlocks(text) {
+            if (!text) return text;
+            
+            // Fix duplicate language tags at the beginning
+            let step1 = text.replace(/```(\w+)\s+\1/g, '```$1');
+            
+            // Fix code blocks with incorrect closing tags
+            let step2 = step1.replace(/```(\w+)([\s\S]*?)```(\w+)?/g, function(match, lang, code, closingLang) {
+                if (closingLang) {
+                    return '```' + lang + code + '```';
+                }
+                return match;
+            });
+            
+            // Fix for cases where language tag is repeated after newline
+            let step3 = step2.replace(/```(\w+)\n\1\b/g, function(match, lang) {
+                return '```' + lang + '\n';
+            });
+            
+            // Fix for newline between language tag and code
+            let step4 = step3.replace(/```(\w+)(\s*\n\s*)/g, function(match, lang, spacing) {
+                return '```' + lang + '\n';
+            });
+            
+            return step4;
+        }
+
+        function parseMarkdown(text) {
+            text = preprocessCodeBlocks(text);
+            try {
+                const rawHtml = marked.parse(text);
+                const sanitizedHtml = sanitizeHTML(rawHtml);
+                return sanitizedHtml;
+            } catch (error) {
+                console.error("ERROR IN MARKED.PARSE:", error);
+                return `<div class="error">Error parsing markdown: ${error.message}</div>
+                        <pre>${text}</pre>`;
+            }
+        }
+
+        function processResponse(response) {
+            // Check if the response starts with a UUID pattern
+            const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
+            if (response && response.match && response.match(uuidPattern)) {
+                response = response.replace(uuidPattern, '');
+            }
+            
+            // Parse markdown and return the HTML
+            const html = parseMarkdown(response);
+            
+            // Use requestAnimationFrame to ensure DOM is ready
+            requestAnimationFrame(() => {
+                addCopyButtons();
+                initializeCodeHighlighting();
+            });
+            
+            return html;
+        }
+
+        function addCopyButtons() {
+            document.querySelectorAll('pre code').forEach((codeBlock) => {
+                let container = codeBlock.closest('.code-block-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'code-block-container';
+                    const preElement = codeBlock.parentNode;
+                    preElement.parentNode.replaceChild(container, preElement);
+                    container.appendChild(preElement);
+                }
+                
+                if (container.querySelector('.copy-code-button')) {
+                    return;
+                }
+                
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-code-button';
+                copyButton.innerHTML = 'Copy';
+                
+                copyButton.addEventListener('click', () => {
+                    const code = codeBlock.textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        copyButton.innerHTML = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.innerHTML = 'Copy';
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy code:', err);
+                        copyButton.textContent = 'Failed';
+                        setTimeout(() => {
+                            copyButton.innerHTML = 'Copy';
+                        }, 2000);
+                    });
+                });
+                
+                container.appendChild(copyButton);
+            });
+        }
+
+        function initializeCodeHighlighting() {
+            document.querySelectorAll('pre code').forEach((block) => {
+                if (!block.classList.contains('hljs')) {
+                    hljs.highlightElement(block);
+                }
+            });
+        }
+
+        // Export the functions for use in chat.js
+        window.MetisMarkdown = {
+            processResponse: processResponse,
+            initializeHighlighting: initializeCodeHighlighting,
+            addCopyButtons: addCopyButtons
+        };
+    </script>
+    
+    <!-- Include the improved chat.js -->
+    <script src="js/chat.js"></script>
+</body>
+</html>
