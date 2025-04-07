@@ -154,6 +154,12 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
   - [x] Test copy button functionality
   - [x] Verify proper rendering in browser
 
+- [x] **Fix Streaming Code Formatting Issues** (April 7, 2025)
+  - [x] Fix issue with parsing incomplete markdown during streaming
+  - [x] Use textContent during streaming and only process markdown once at the end
+  - [x] Implement improved chat.js with better code organization and error handling
+  - [x] Create test files to demonstrate and verify the fix
+
 ## Testing Plan
 
 - [ ] **Memory Functionality Tests**
@@ -212,6 +218,9 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
   - [x] Implement syntax highlighting for different languages
   - [x] Add proper HTML sanitization to prevent XSS attacks
   - [x] Add copy button for easy code reuse
+  - [x] Fix streaming code formatting issues by using textContent during streaming
+  - [x] Implement improved chat.js with better code organization and error handling
+  - [x] Create test files to demonstrate and verify the fix
 
 ## Documentation Updates
 
@@ -363,6 +372,13 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
 3. **Load Tests**:
    - Test memory usage under load
    - Verify the system can handle multiple concurrent requests
+
+4. **Testing**:
+   - Test system prompts directly with the LLM
+   - Test backend processing with various edge cases
+   - Test the full flow from user query to rendered response
+   - Test streaming responses to ensure proper formatting
+   - Test with various code examples in different languages
 
 ## Completed Implementation Tasks
 
@@ -566,6 +582,9 @@ This document outlines the current tasks, priorities, and TODOs for the Metis RA
     - [x] Enhance system prompts to explicitly instruct the LLM on proper code block formatting
     - [x] Improve backend processing to handle edge cases where the LLM doesn't follow instructions
     - [x] Simplify frontend rendering to focus solely on rendering and highlighting
+    - [x] Fix streaming code formatting issues by using textContent during streaming
+    - [x] Replace chat.js with improved implementation for better code organization and error handling
+    - [x] Create test files to demonstrate and verify the streaming fix
 
 ### Code Formatting Implementation Progress (April 7, 2025)
 
@@ -634,3 +653,5 @@ Despite the LLM claiming it formats code properly when directly asked, actual ou
    - Test system prompts directly with the LLM
    - Test backend processing with various edge cases
    - Test the full flow from user query to rendered response
+   - Test streaming responses to ensure proper formatting
+   - Test with various code examples in different languages
