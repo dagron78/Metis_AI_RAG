@@ -383,6 +383,4 @@ class GenerationMixin:
         
         # Format code blocks
         formatted_text = format_code_blocks(normalized_text)
-        
         return formatted_text
-        return response_text
