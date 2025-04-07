@@ -275,6 +275,13 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Highlight.js and Marked.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js" integrity="sha512-bgHRAiTjGrzHzLyKOnpFvaEpGzJet3z4tZnXGjpsCcqOnAH6VGUx9frc5bcIhKTVLEiCO6vEhNAgx5jtLUYrfA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js" integrity="sha512-zAs8dHhwlTbfcVGRX1x0EZAH/L99NjAx6DvZ0f+86YXJ2033hiCT6VWJJzhHRJ4VYdNqQvvToEJx7/RsQCJfrw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- Custom markdown parser for code block handling -->
+<script src="{{ url_for('static', path='js/markdown-parser.js') }}"></script>
+
 <script src="{{ url_for('static', path='js/document-manager.js') }}"></script>
 <script src="{{ url_for('static', path='js/chat.js') }}"></script>
 {% endblock %}

@@ -80,6 +80,19 @@ class BaseRAGEngine:
         # Convert to lowercase for case-insensitive matching
         query_lower = query.lower()
         
+        # Check if this is a text formatting related query
+        # These should also use structured output
+        text_formatting_indicators = [
+            "format text", "text formatting", "paragraph structure",
+            "preserve paragraphs", "code block formatting", "markdown formatting",
+            "format paragraphs", "format code blocks", "structured output"
+        ]
+        
+        for indicator in text_formatting_indicators:
+            if indicator in query_lower:
+                logger.info(f"Query matched text formatting indicator: '{indicator}'")
+                return True
+        
         # First, check for creative/narrative content indicators
         # These take precedence over code indicators
         creative_content_indicators = [

@@ -390,7 +390,7 @@ class GenerationMixin:
         # Check if this is a structured output response (JSON)
         try:
             # Try to parse as JSON
-            from app.models.structured_output import FormattedResponse
+            from app.models.structured_output import FormattedResponse, TextBlock
             import json
             
             # Check if the response looks like JSON
@@ -403,7 +403,27 @@ class GenerationMixin:
                     formatted_response = FormattedResponse.model_validate(structured_data)
                     
                     # Process the structured response
-                    main_text = formatted_response.text
+                    if formatted_response.text_blocks:
+                        # Use the structured text blocks if provided
+                        logger.info(f"Processing structured response with {len(formatted_response.text_blocks)} text blocks")
+                        
+                        # Combine text blocks into a single text with proper paragraph structure
+                        text_parts = []
+                        for block in formatted_response.text_blocks:
+                            if block.format_type == "paragraph":
+                                text_parts.append(block.content)
+                            elif block.format_type == "heading":
+                                text_parts.append(f"## {block.content}")
+                            elif block.format_type == "list_item":
+                                text_parts.append(f"- {block.content}")
+                            else:
+                                text_parts.append(block.content)
+                        
+                        # Join with double newlines to preserve paragraph structure
+                        main_text = "\n\n".join(text_parts)
+                    else:
+                        # Use the main text field
+                        main_text = formatted_response.text
                     
                     # Replace code block placeholders with properly formatted code blocks
                     for i, code_block in enumerate(formatted_response.code_blocks):
@@ -413,8 +433,12 @@ class GenerationMixin:
                     
                     logger.info(f"Successfully processed structured output response with {len(formatted_response.code_blocks)} code blocks")
                     
-                    # Apply text normalization to the processed text
-                    return self.process_complete_response(main_text)
+                    # Apply text normalization to the processed text if preserve_paragraphs is True
+                    if formatted_response.preserve_paragraphs:
+                        return self.process_complete_response(main_text)
+                    else:
+                        # Skip normalization to preserve the exact structure
+                        return main_text
                 except (json.JSONDecodeError, ValueError) as e:
                     logger.warning(f"Failed to parse structured output: {str(e)}")
                     # Fall back to normal processing

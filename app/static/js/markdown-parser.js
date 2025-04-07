@@ -47,15 +47,34 @@ marked.setOptions({
       console.log("RENDERING CODE BLOCK WITH LANGUAGE:", validLanguage);
       try {
         const highlighted = hljs.highlight(code, { language: validLanguage, ignoreIllegals: true }).value;
-        return `<pre><code class="hljs language-${validLanguage}">${highlighted}</code></pre>`;
+        return `<div class="structured-code-block">
+                  <div class="code-block-header">${validLanguage}</div>
+                  <pre><code class="hljs language-${validLanguage}">${highlighted}</code></pre>
+                </div>`;
       } catch (e) {
         console.error('Error in custom code renderer:', e);
-        return `<pre><code class="hljs language-${validLanguage}">${code}</code></pre>`;
+        return `<div class="structured-code-block">
+                  <div class="code-block-header">${validLanguage}</div>
+                  <pre><code class="hljs language-${validLanguage}">${code}</code></pre>
+                </div>`;
       }
     },
     paragraph: function(text) {
       console.log("RENDERING PARAGRAPH:", text.substring(0, 50) + "...");
-      return `<p>${text}</p>`;
+      return `<p class="structured-paragraph">${text}</p>`;
+    },
+    heading: function(text, level) {
+      // Only apply our custom styling to h2 (##) headings
+      if (level === 2) {
+        return `<h${level} class="structured-heading">${text}</h${level}>`;
+      }
+      return `<h${level}>${text}</h${level}>`;
+    },
+    listitem: function(text) {
+      return `<li class="structured-list-item">${text}</li>`;
+    },
+    blockquote: function(text) {
+      return `<blockquote class="structured-quote">${text}</blockquote>`;
     }
   }
 });
@@ -214,6 +233,62 @@ function processResponse(response) {
     // Remove the UUID from the beginning of the response
     console.log("UUID PATTERN FOUND, REMOVING");
     response = response.replace(uuidPattern, '');
+  }
+  
+  // Check if the response is a JSON string (structured output)
+  if (response.trim().startsWith('{') && response.trim().endsWith('}')) {
+    try {
+      console.log("DETECTED POTENTIAL JSON RESPONSE, ATTEMPTING TO PARSE");
+      const jsonData = JSON.parse(response);
+      
+      // Check if this is our structured output format
+      if (jsonData.text && (jsonData.code_blocks || jsonData.text_blocks)) {
+        console.log("DETECTED STRUCTURED OUTPUT FORMAT");
+        
+        let processedText = jsonData.text;
+        
+        // Process text blocks if available
+        if (jsonData.text_blocks && jsonData.text_blocks.length > 0) {
+          console.log(`PROCESSING ${jsonData.text_blocks.length} TEXT BLOCKS`);
+          
+          // Combine text blocks into a single text with proper paragraph structure
+          const textParts = jsonData.text_blocks.map(block => {
+            if (block.format_type === "paragraph") {
+              return block.content;
+            } else if (block.format_type === "heading") {
+              return `## ${block.content}`;
+            } else if (block.format_type === "list_item") {
+              return `- ${block.content}`;
+            } else if (block.format_type === "quote") {
+              return `> ${block.content}`;
+            } else {
+              return block.content;
+            }
+          });
+          
+          // Join with double newlines to preserve paragraph structure
+          processedText = textParts.join("\n\n");
+        }
+        
+        // Process code blocks
+        if (jsonData.code_blocks && jsonData.code_blocks.length > 0) {
+          console.log(`PROCESSING ${jsonData.code_blocks.length} CODE BLOCKS`);
+          
+          // Replace code block placeholders with properly formatted code blocks
+          jsonData.code_blocks.forEach((codeBlock, index) => {
+            const placeholder = `{CODE_BLOCK_${index}}`;
+            const formattedBlock = `\`\`\`${codeBlock.language}\n${codeBlock.code}\n\`\`\``;
+            processedText = processedText.replace(placeholder, formattedBlock);
+          });
+        }
+        
+        console.log("STRUCTURED OUTPUT PROCESSED SUCCESSFULLY");
+        response = processedText;
+      }
+    } catch (e) {
+      console.warn("FAILED TO PARSE JSON RESPONSE:", e);
+      // Continue with normal processing
+    }
   }
   
   // Check for code blocks before preprocessing

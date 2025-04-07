@@ -290,13 +290,23 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {HTMLElement} messageDiv The main message container div.
      */
     async function processStream(body, contentDiv, messageDiv) {
+        console.log("STREAM PROCESSING STARTED");
         const reader = body.getReader();
         const decoder = new TextDecoder();
         let fullResponse = '';
         let buffer = '';
         let conversationIdReceived = false;
+        
+        // Track paragraph structure during streaming
+        let paragraphCount = 0;
+        let newlineCount = 0;
+        let doubleNewlineCount = 0;
+        
+        // Log streaming start time for performance tracking
+        const streamStartTime = performance.now();
 
         try {
+            console.log("BEGINNING STREAM READING LOOP");
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) {
@@ -348,6 +358,21 @@ document.addEventListener('DOMContentLoaded', function() {
                                 token = data; // Assume older raw text format if JSON parse fails
                             }
                             fullResponse += token;
+                            
+                            // Update paragraph structure tracking
+                            newlineCount = (fullResponse.match(/\n/g) || []).length;
+                            doubleNewlineCount = (fullResponse.match(/\n\n/g) || []).length;
+                            paragraphCount = doubleNewlineCount + 1;
+                            
+                            // Log streaming progress periodically (every 500 chars)
+                            if (fullResponse.length % 500 === 0) {
+                                console.log("STREAMING PROGRESS:", {
+                                    length: fullResponse.length,
+                                    paragraphs: paragraphCount,
+                                    newlines: newlineCount,
+                                    doubleNewlines: doubleNewlineCount
+                                });
+                            }
 
                             // Update UI with RAW accumulated text during stream
                             let displayResponse = fullResponse;
@@ -355,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (displayResponse.match(uuidPattern)) {
                                 displayResponse = displayResponse.replace(uuidPattern, '');
                             }
-                            contentDiv.textContent = displayResponse; // Use textContent for raw text
+                            contentDiv.textContent = displayResponse; // Use textContent for raw text during streaming
                             scrollToBottom();
 
                         } catch (e) {
@@ -367,17 +392,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-             // --- FINAL PROCESSING after stream ends ---
-             console.log("Stream complete. Processing final response for Markdown.");
-             let finalProcessedResponse = fullResponse;
-             const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
-             if (finalProcessedResponse.match(uuidPattern)) {
-                 finalProcessedResponse = finalProcessedResponse.replace(uuidPattern, '');
-             }
-             // Process the complete response for Markdown, highlighting, and copy buttons
-             contentDiv.innerHTML = window.MetisMarkdown.processResponse(finalProcessedResponse);
-             scrollToBottom();
-             // --- End Final Processing ---
+            // --- FINAL PROCESSING after stream ends ---
+            const streamEndTime = performance.now();
+            const streamDuration = streamEndTime - streamStartTime;
+            console.log(`Stream complete in ${streamDuration.toFixed(2)}ms. Processing final response for Markdown.`);
+            
+            // Log final paragraph structure before markdown processing
+            console.log("FINAL STREAM PARAGRAPH STRUCTURE:", {
+                paragraphs: paragraphCount,
+                newlines: newlineCount,
+                doubleNewlines: doubleNewlineCount,
+                totalLength: fullResponse.length
+            });
+            
+            let finalProcessedResponse = fullResponse;
+            const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
+            if (finalProcessedResponse.match(uuidPattern)) {
+                finalProcessedResponse = finalProcessedResponse.replace(uuidPattern, '');
+            }
+            
+            console.log("SWITCHING FROM textContent TO innerHTML WITH MARKDOWN PROCESSING");
+            // Process the complete response for Markdown, highlighting, and copy buttons
+            const markdownStartTime = performance.now();
+            contentDiv.innerHTML = window.MetisMarkdown.processResponse(finalProcessedResponse);
+            const markdownEndTime = performance.now();
+            console.log(`Markdown processing completed in ${(markdownEndTime - markdownStartTime).toFixed(2)}ms`);
+            
+            scrollToBottom();
+            // --- End Final Processing ---
 
         } catch (error) {
             console.error('Error reading stream:', error);
@@ -417,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.appendChild(headerDiv);
 
         const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content'; // Add class for easier selection
+        contentDiv.className = 'message-content preserve-paragraphs'; // Add classes for styling
 
         if (!isPlaceholder) {
              if (role === 'user') {

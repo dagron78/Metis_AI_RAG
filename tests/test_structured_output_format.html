@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structured Output Format Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="../app/static/css/structured-output.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .test-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .test-description {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .test-input {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            border: 1px solid #e9ecef;
+        }
+        
+        .test-output {
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .message-content {
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .preserve-paragraphs p {
+            margin-bottom: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Structured Output Format Test</h1>
+    
+    <div class="test-section">
+        <div class="test-title">Test 1: Basic Text Blocks</div>
+        <div class="test-description">Testing basic text blocks with paragraphs and headings</div>
+        <div class="test-input">
+            {
+                "text": "This is a fallback text that shouldn't be used when text_blocks are provided.",
+                "text_blocks": [
+                    {
+                        "content": "Structured Output Format",
+                        "format_type": "heading"
+                    },
+                    {
+                        "content": "This is the first paragraph in the structured output format. It should be properly formatted with the right spacing and styling.",
+                        "format_type": "paragraph"
+                    },
+                    {
+                        "content": "This is the second paragraph that should be separated from the first one with proper spacing.",
+                        "format_type": "paragraph"
+                    }
+                ],
+                "preserve_paragraphs": true
+            }
+        </div>
+        <button onclick="processTest(1)">Process</button>
+        <div id="output1" class="test-output">
+            <div class="message-content preserve-paragraphs"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Test 2: Code Blocks</div>
+        <div class="test-description">Testing code blocks with different languages</div>
+        <div class="test-input">
+            {
+                "text": "Here are some code examples in different languages: {CODE_BLOCK_0} {CODE_BLOCK_1}",
+                "code_blocks": [
+                    {
+                        "language": "python",
+                        "code": "def hello_world():\n    print('Hello, world!')\n\nhello_world()"
+                    },
+                    {
+                        "language": "javascript",
+                        "code": "function helloWorld() {\n    console.log('Hello, world!');\n}\n\nhelloWorld();"
+                    }
+                ],
+                "preserve_paragraphs": true
+            }
+        </div>
+        <button onclick="processTest(2)">Process</button>
+        <div id="output2" class="test-output">
+            <div class="message-content preserve-paragraphs"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Test 3: Mixed Content</div>
+        <div class="test-description">Testing mixed content with text blocks and code blocks</div>
+        <div class="test-input">
+            {
+                "text": "This is a fallback text that shouldn't be used when text_blocks are provided.",
+                "code_blocks": [
+                    {
+                        "language": "python",
+                        "code": "def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n-1)"
+                    },
+                    {
+                        "language": "javascript",
+                        "code": "function factorial(n) {\n    if (n <= 1) {\n        return 1;\n    }\n    return n * factorial(n-1);\n}"
+                    }
+                ],
+                "text_blocks": [
+                    {
+                        "content": "Factorial Function Implementation",
+                        "format_type": "heading"
+                    },
+                    {
+                        "content": "The factorial function is a mathematical operation that multiplies a number by all positive integers less than it.",
+                        "format_type": "paragraph"
+                    },
+                    {
+                        "content": "Here's a Python implementation: {CODE_BLOCK_0}",
+                        "format_type": "paragraph"
+                    },
+                    {
+                        "content": "And here's the same function in JavaScript: {CODE_BLOCK_1}",
+                        "format_type": "paragraph"
+                    },
+                    {
+                        "content": "Both implementations use recursion to calculate the factorial.",
+                        "format_type": "paragraph"
+                    }
+                ],
+                "preserve_paragraphs": true
+            }
+        </div>
+        <button onclick="processTest(3)">Process</button>
+        <div id="output3" class="test-output">
+            <div class="message-content preserve-paragraphs"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Test 4: List Items and Quotes</div>
+        <div class="test-description">Testing list items and quotes in structured output</div>
+        <div class="test-input">
+            {
+                "text": "This is a fallback text that shouldn't be used when text_blocks are provided.",
+                "text_blocks": [
+                    {
+                        "content": "Lists and Quotes",
+                        "format_type": "heading"
+                    },
+                    {
+                        "content": "Here are some benefits of structured output:",
+                        "format_type": "paragraph"
+                    },
+                    {
+                        "content": "Better paragraph preservation",
+                        "format_type": "list_item"
+                    },
+                    {
+                        "content": "Improved code block formatting",
+                        "format_type": "list_item"
+                    },
+                    {
+                        "content": "More consistent styling",
+                        "format_type": "list_item"
+                    },
+                    {
+                        "content": "Enhanced readability",
+                        "format_type": "list_item"
+                    },
+                    {
+                        "content": "As the documentation states:",
+                        "format_type": "paragraph"
+                    },
+                    {
+                        "content": "Structured output provides a more robust solution for formatting both text and code blocks.",
+                        "format_type": "quote"
+                    }
+                ],
+                "preserve_paragraphs": true
+            }
+        </div>
+        <button onclick="processTest(4)">Process</button>
+        <div id="output4" class="test-output">
+            <div class="message-content preserve-paragraphs"></div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script>
+        // Configure marked.js options
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+                try {
+                    return hljs.highlight(code, { language, ignoreIllegals: true }).value;
+                } catch (e) {
+                    console.error('Error highlighting code:', e);
+                    const temp = document.createElement('div');
+                    temp.textContent = code;
+                    return temp.innerHTML;
+                }
+            },
+            breaks: false,
+            gfm: true,
+            headerIds: false,
+            mangle: false,
+            renderer: {
+                ...new marked.Renderer(),
+                code: function(code, language) {
+                    const validLanguage = language && hljs.getLanguage(language) ? language : 'plaintext';
+                    try {
+                        const highlighted = hljs.highlight(code, { language: validLanguage, ignoreIllegals: true }).value;
+                        return `<div class="structured-code-block">
+                                  <div class="code-block-header">${validLanguage}</div>
+                                  <pre><code class="hljs language-${validLanguage}">${highlighted}</code></pre>
+                                </div>`;
+                    } catch (e) {
+                        console.error('Error in custom code renderer:', e);
+                        return `<div class="structured-code-block">
+                                  <div class="code-block-header">${validLanguage}</div>
+                                  <pre><code class="hljs language-${validLanguage}">${code}</code></pre>
+                                </div>`;
+                    }
+                },
+                paragraph: function(text) {
+                    return `<p class="structured-paragraph">${text}</p>`;
+                },
+                heading: function(text, level) {
+                    if (level === 2) {
+                        return `<h${level} class="structured-heading">${text}</h${level}>`;
+                    }
+                    return `<h${level}>${text}</h${level}>`;
+                },
+                listitem: function(text) {
+                    return `<li class="structured-list-item">${text}</li>`;
+                },
+                blockquote: function(text) {
+                    return `<blockquote class="structured-quote">${text}</blockquote>`;
+                }
+            }
+        });
+
+        function parseMarkdown(text) {
+            return marked.parse(text);
+        }
+
+        function processResponse(response) {
+            // Check if the response is a JSON string
+            if (response.trim().startsWith('{') && response.trim().endsWith('}')) {
+                try {
+                    console.log("Detected potential JSON response, attempting to parse");
+                    const jsonData = JSON.parse(response);
+                    
+                    // Check if this is our structured output format
+                    if (jsonData.text && (jsonData.code_blocks || jsonData.text_blocks)) {
+                        console.log("Detected structured output format");
+                        
+                        let processedText = jsonData.text;
+                        
+                        // Process text blocks if available
+                        if (jsonData.text_blocks && jsonData.text_blocks.length > 0) {
+                            console.log(`Processing ${jsonData.text_blocks.length} text blocks`);
+                            
+                            // Combine text blocks into a single text with proper paragraph structure
+                            const textParts = jsonData.text_blocks.map(block => {
+                                if (block.format_type === "paragraph") {
+                                    return block.content;
+                                } else if (block.format_type === "heading") {
+                                    return `## ${block.content}`;
+                                } else if (block.format_type === "list_item") {
+                                    return `- ${block.content}`;
+                                } else if (block.format_type === "quote") {
+                                    return `> ${block.content}`;
+                                } else {
+                                    return block.content;
+                                }
+                            });
+                            
+                            // Join with double newlines to preserve paragraph structure
+                            processedText = textParts.join("\n\n");
+                        }
+                        
+                        // Process code blocks
+                        if (jsonData.code_blocks && jsonData.code_blocks.length > 0) {
+                            console.log(`Processing ${jsonData.code_blocks.length} code blocks`);
+                            
+                            // Replace code block placeholders with properly formatted code blocks
+                            jsonData.code_blocks.forEach((codeBlock, index) => {
+                                const placeholder = `{CODE_BLOCK_${index}}`;
+                                const formattedBlock = `\`\`\`${codeBlock.language}\n${codeBlock.code}\n\`\`\``;
+                                processedText = processedText.replace(placeholder, formattedBlock);
+                            });
+                        }
+                        
+                        console.log("Structured output processed successfully");
+                        return parseMarkdown(processedText);
+                    }
+                } catch (e) {
+                    console.warn("Failed to parse JSON response:", e);
+                    // Continue with normal processing
+                }
+            }
+            
+            // Default processing for non-structured output
+            return parseMarkdown(response);
+        }
+
+        function processTest(testNumber) {
+            const inputElement = document.querySelector(`.test-section:nth-child(${testNumber}) .test-input`);
+            const outputElement = document.querySelector(`#output${testNumber} .message-content`);
+            
+            const inputText = inputElement.textContent.trim();
+            const processedHtml = processResponse(inputText);
+            
+            outputElement.innerHTML = processedHtml;
+            
+            // Add copy buttons to code blocks
+            outputElement.querySelectorAll('pre code').forEach((block) => {
+                const container = document.createElement('div');
+                container.className = 'code-block-container';
+                const parent = block.parentNode;
+                parent.parentNode.replaceChild(container, parent);
+                container.appendChild(parent);
+                
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-code-button';
+                copyButton.innerHTML = 'Copy';
+                copyButton.style.position = 'absolute';
+                copyButton.style.top = '5px';
+                copyButton.style.right = '5px';
+                copyButton.style.padding = '3px 8px';
+                copyButton.style.fontSize = '12px';
+                
+                copyButton.addEventListener('click', () => {
+                    const code = block.textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        copyButton.innerHTML = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.innerHTML = 'Copy';
+                        }, 2000);
+                    });
+                });
+                
+                container.appendChild(copyButton);
+            });
+            
+            // Apply syntax highlighting
+            outputElement.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+    </script>
+</body>
+</html>

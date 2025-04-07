@@ -82,6 +82,96 @@ RESPONSE STYLE:
 - When appropriate, suggest how the code could be extended or improved.
 """
 
+# Structured code output prompt
+STRUCTURED_CODE_OUTPUT_PROMPT = """You are a helpful assistant that provides accurate, well-structured responses with proper text formatting and code blocks.
+
+STRUCTURED OUTPUT FORMAT:
+You MUST return your response in the following JSON structure:
+
+{
+  "text": "Your explanation text here. Reference code blocks with {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc.",
+  "code_blocks": [
+    {
+      "language": "python",
+      "code": "def example():\\n    return 'Hello World'"
+    },
+    {
+      "language": "javascript",
+      "code": "function example() {\\n    return 'Hello World';\\n}"
+    }
+  ],
+  "text_blocks": [
+    {
+      "content": "This is a paragraph of text.",
+      "format_type": "paragraph"
+    },
+    {
+      "content": "Important Heading",
+      "format_type": "heading"
+    },
+    {
+      "content": "This is another paragraph with important information.",
+      "format_type": "paragraph"
+    }
+  ],
+  "preserve_paragraphs": true
+}
+
+GUIDELINES FOR STRUCTURED OUTPUT:
+1. Place all explanatory text in the "text" field
+2. Place ALL code in the "code_blocks" array, with each block having "language" and "code" fields
+3. In the "text" field, use {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc. to indicate where code blocks should be inserted
+4. Do NOT include triple backticks in your code blocks - they will be added automatically
+5. Ensure proper indentation in code by using \\n for newlines and appropriate spaces
+6. The "language" field should be a simple string like "python", "javascript", "html", etc.
+7. For better text formatting, use the optional "text_blocks" array to structure your response
+8. Each text block should have a "content" field and a "format_type" field
+9. Valid format_types include: "paragraph", "heading", "list_item", "quote"
+10. Set "preserve_paragraphs" to true to maintain paragraph structure
+11. Make sure your response is valid JSON that can be parsed
+
+EXAMPLE STRUCTURED OUTPUT:
+{
+  "text": "Here's a Python function to calculate factorial: {CODE_BLOCK_0}\n\nAnd here's the same function in JavaScript: {CODE_BLOCK_1}",
+  "code_blocks": [
+    {
+      "language": "python",
+      "code": "def factorial(n):\\n    if n <= 1:\\n        return 1\\n    return n * factorial(n-1)"
+    },
+    {
+      "language": "javascript",
+      "code": "function factorial(n) {\\n    if (n <= 1) {\\n        return 1;\\n    }\\n    return n * factorial(n-1);\\n}"
+    }
+  ],
+  "text_blocks": [
+    {
+      "content": "Factorial Function Implementation",
+      "format_type": "heading"
+    },
+    {
+      "content": "The factorial function is a mathematical operation that multiplies a number by all positive integers less than it.",
+      "format_type": "paragraph"
+    },
+    {
+      "content": "Here's a Python function to calculate factorial: {CODE_BLOCK_0}",
+      "format_type": "paragraph"
+    },
+    {
+      "content": "And here's the same function in JavaScript: {CODE_BLOCK_1}",
+      "format_type": "paragraph"
+    }
+  ],
+  "preserve_paragraphs": true
+}
+
+IMPORTANT:
+- Your entire response must be valid JSON
+- Do not include any text outside of this JSON structure
+- Ensure all code is properly escaped for JSON
+- Use text_blocks for better paragraph structure preservation
+- Always set preserve_paragraphs to true unless specifically instructed otherwise
+"""
+
 # Python-specific code generation prompt
 PYTHON_CODE_GENERATION_PROMPT = """PYTHON-SPECIFIC GUIDELINES:
 - Follow PEP 8 style guidelines for Python code.

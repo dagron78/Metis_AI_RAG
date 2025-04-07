@@ -1,0 +1,100 @@
+/**
+ * Structured Output CSS
+ * Styles for the structured output format
+ */
+
+/* Paragraph styling */
+.structured-paragraph {
+  margin-bottom: 1.2em;
+  line-height: 1.6;
+  text-align: justify;
+}
+
+/* Heading styling */
+.structured-heading {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.3em;
+}
+
+/* List item styling */
+.structured-list-item {
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+  position: relative;
+}
+
+.structured-list-item::before {
+  content: "•";
+  position: absolute;
+  left: 0.5em;
+  color: #3498db;
+}
+
+/* Quote styling */
+.structured-quote {
+  border-left: 4px solid #3498db;
+  padding-left: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: #555;
+}
+
+/* Code block container */
+.structured-code-block {
+  margin: 1.5em 0;
+  position: relative;
+}
+
+/* Code block header with language */
+.code-block-header {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  padding: 0.3em 0.8em;
+  font-family: monospace;
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+/* Enhanced code block styling */
+.message-content pre {
+  margin: 0;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #e9ecef;
+  background-color: #f8f9fa;
+}
+
+.message-content pre code {
+  padding: 1em;
+  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* Paragraph preservation */
+.preserve-paragraphs p {
+  margin-bottom: 1.2em;
+}
+
+/* Ensure proper spacing between elements */
+.message-content > * {
+  margin-bottom: 1em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .structured-heading {
+    font-size: 1.3em;
+  }
+  
+  .message-content pre code {
+    font-size: 0.8em;
+  }
+}

@@ -442,10 +442,25 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             # Create system prompt and user prompt if not provided
             if not system_prompt:
                 if self._is_code_related_query(query):
-                    # For code queries, use the existing system prompt
+                    # For code queries, use the structured output system prompt
                     system_prompt = self._create_system_prompt(query)
                     # Create a simple user prompt for code queries
                     full_prompt = f"User Question: {query}"
+                    
+                    # Import the FormattedResponse model for the schema
+                    from app.models.structured_output import FormattedResponse
+                    
+                    # Set the format parameter for structured output
+                    if not model_parameters:
+                        model_parameters = {}
+                    
+                    # Add the format schema to the model parameters
+                    model_parameters["format"] = FormattedResponse.model_json_schema()
+                    
+                    # Set temperature to 0 for more deterministic output
+                    model_parameters["temperature"] = 0.0
+                    
+                    logger.info("Using structured output format for code-related query")
                 else:
                     # For non-code queries, use the PromptManager
                     system_prompt, full_prompt = self._create_full_prompt(
