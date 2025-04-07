@@ -26,6 +26,7 @@ from app.api.document_sharing import router as document_sharing_router
 from app.api.notifications import router as notifications_router
 from app.api.organizations import router as organizations_router
 from app.api.schema import router as schema_router
+from app.api.text_formatting_dashboard import router as text_formatting_dashboard_router
 from app.db.session import init_db, get_session
 from app.rag.tool_initializer import initialize_tools
 
@@ -82,6 +83,7 @@ app.include_router(document_sharing_router, prefix=f"{API_V1_STR}/sharing", tags
 app.include_router(notifications_router, prefix=f"{API_V1_STR}/notifications", tags=["notifications"])
 app.include_router(organizations_router, prefix=f"{API_V1_STR}/organizations", tags=["organizations"])
 app.include_router(schema_router, tags=["schema"])  # Schema router has its own prefix
+app.include_router(text_formatting_dashboard_router, prefix=f"{API_V1_STR}", tags=["text-formatting"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -131,6 +133,13 @@ async def schema_page(request: Request):
     Database schema viewer page
     """
     return templates.TemplateResponse("schema.html", {"request": request})
+
+@app.get("/text-formatting-dashboard", response_class=HTMLResponse)
+async def text_formatting_dashboard_page(request: Request):
+    """
+    Text formatting dashboard page
+    """
+    return templates.TemplateResponse("text_formatting_dashboard.html", {"request": request})
 
 @app.get("/test-models", response_class=HTMLResponse)
 async def test_models_page(request: Request):

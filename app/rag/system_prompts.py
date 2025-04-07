@@ -89,7 +89,7 @@ STRUCTURED OUTPUT FORMAT:
 You MUST return your response in the following JSON structure:
 
 {
-  "text": "Your explanation text here. Reference code blocks with {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc.",
+  "text": "Your explanation text here. Reference code blocks with {CODE_BLOCK_0}, tables with {TABLE_0}, images with {IMAGE_0}, and math with {MATH_0}.",
   "code_blocks": [
     {
       "language": "python",
@@ -114,25 +114,73 @@ You MUST return your response in the following JSON structure:
       "format_type": "paragraph"
     }
   ],
-  "preserve_paragraphs": true
+  "tables": [
+    {
+      "caption": "Sample Data",
+      "rows": [
+        {
+          "cells": [
+            {"content": "Name", "is_header": true, "align": "left"},
+            {"content": "Age", "is_header": true, "align": "center"},
+            {"content": "Score", "is_header": true, "align": "right"}
+          ],
+          "is_header_row": true
+        },
+        {
+          "cells": [
+            {"content": "Alice", "align": "left"},
+            {"content": "25", "align": "center"},
+            {"content": "95", "align": "right"}
+          ],
+          "is_header_row": false
+        }
+      ]
+    }
+  ],
+  "images": [
+    {
+      "url": "https://example.com/image.jpg",
+      "alt_text": "Example image",
+      "caption": "This is an example image"
+    }
+  ],
+  "math_blocks": [
+    {
+      "latex": "E = mc^2",
+      "display_mode": true
+    }
+  ],
+  "preserve_paragraphs": true,
+  "theme": "light",
+  "metadata": {
+    "generated_at": "2025-04-07T14:30:00Z"
+  }
 }
 
 GUIDELINES FOR STRUCTURED OUTPUT:
 1. Place all explanatory text in the "text" field
 2. Place ALL code in the "code_blocks" array, with each block having "language" and "code" fields
-3. In the "text" field, use {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc. to indicate where code blocks should be inserted
+3. In the "text" field, use placeholders to indicate where special content should be inserted:
+   - {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc. for code blocks
+   - {TABLE_0}, {TABLE_1}, etc. for tables
+   - {IMAGE_0}, {IMAGE_1}, etc. for images
+   - {MATH_0}, {MATH_1}, etc. for math expressions
 4. Do NOT include triple backticks in your code blocks - they will be added automatically
 5. Ensure proper indentation in code by using \\n for newlines and appropriate spaces
 6. The "language" field should be a simple string like "python", "javascript", "html", etc.
 7. For better text formatting, use the optional "text_blocks" array to structure your response
 8. Each text block should have a "content" field and a "format_type" field
 9. Valid format_types include: "paragraph", "heading", "list_item", "quote"
-10. Set "preserve_paragraphs" to true to maintain paragraph structure
-11. Make sure your response is valid JSON that can be parsed
+10. For tables, provide rows and cells with proper alignment and header information
+11. For images, provide URL, alt text, and optional caption
+12. For math expressions, provide LaTeX syntax and specify display mode (block or inline)
+13. Set "preserve_paragraphs" to true to maintain paragraph structure
+14. Optionally specify a theme ("light" or "dark") for styling
+15. Make sure your response is valid JSON that can be parsed
 
 EXAMPLE STRUCTURED OUTPUT:
 {
-  "text": "Here's a Python function to calculate factorial: {CODE_BLOCK_0}\n\nAnd here's the same function in JavaScript: {CODE_BLOCK_1}",
+  "text": "Here's a Python function to calculate factorial: {CODE_BLOCK_0}\n\nAnd here's the same function in JavaScript: {CODE_BLOCK_1}\n\nHere's a table comparing performance: {TABLE_0}\n\nThe mathematical formula is: {MATH_0}",
   "code_blocks": [
     {
       "language": "python",
@@ -159,9 +207,52 @@ EXAMPLE STRUCTURED OUTPUT:
     {
       "content": "And here's the same function in JavaScript: {CODE_BLOCK_1}",
       "format_type": "paragraph"
+    },
+    {
+      "content": "Here's a table comparing performance: {TABLE_0}",
+      "format_type": "paragraph"
+    },
+    {
+      "content": "The mathematical formula is: {MATH_0}",
+      "format_type": "paragraph"
     }
   ],
-  "preserve_paragraphs": true
+  "tables": [
+    {
+      "caption": "Performance Comparison",
+      "rows": [
+        {
+          "cells": [
+            {"content": "Language", "is_header": true, "align": "left"},
+            {"content": "Time (ms)", "is_header": true, "align": "right"}
+          ],
+          "is_header_row": true
+        },
+        {
+          "cells": [
+            {"content": "Python", "align": "left"},
+            {"content": "12.5", "align": "right"}
+          ],
+          "is_header_row": false
+        },
+        {
+          "cells": [
+            {"content": "JavaScript", "align": "left"},
+            {"content": "8.3", "align": "right"}
+          ],
+          "is_header_row": false
+        }
+      ]
+    }
+  ],
+  "math_blocks": [
+    {
+      "latex": "n! = n \\times (n-1) \\times (n-2) \\times ... \\times 2 \\times 1",
+      "display_mode": true
+    }
+  ],
+  "preserve_paragraphs": true,
+  "theme": "light"
 }
 
 IMPORTANT:
@@ -170,6 +261,8 @@ IMPORTANT:
 - Ensure all code is properly escaped for JSON
 - Use text_blocks for better paragraph structure preservation
 - Always set preserve_paragraphs to true unless specifically instructed otherwise
+- Only include tables, images, and math blocks when they add value to the response
+- For images, prefer using publicly accessible URLs or data URIs
 """
 
 # Python-specific code generation prompt

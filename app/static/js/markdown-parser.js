@@ -237,54 +237,144 @@ function processResponse(response) {
   
   // Check if the response is a JSON string (structured output)
   if (response.trim().startsWith('{') && response.trim().endsWith('}')) {
-    try {
-      console.log("DETECTED POTENTIAL JSON RESPONSE, ATTEMPTING TO PARSE");
-      const jsonData = JSON.parse(response);
-      
-      // Check if this is our structured output format
-      if (jsonData.text && (jsonData.code_blocks || jsonData.text_blocks)) {
-        console.log("DETECTED STRUCTURED OUTPUT FORMAT");
-        
-        let processedText = jsonData.text;
-        
-        // Process text blocks if available
-        if (jsonData.text_blocks && jsonData.text_blocks.length > 0) {
-          console.log(`PROCESSING ${jsonData.text_blocks.length} TEXT BLOCKS`);
+      try {
+          console.log("DETECTED POTENTIAL JSON RESPONSE, ATTEMPTING TO PARSE");
+          const jsonData = JSON.parse(response);
           
-          // Combine text blocks into a single text with proper paragraph structure
-          const textParts = jsonData.text_blocks.map(block => {
-            if (block.format_type === "paragraph") {
-              return block.content;
-            } else if (block.format_type === "heading") {
-              return `## ${block.content}`;
-            } else if (block.format_type === "list_item") {
-              return `- ${block.content}`;
-            } else if (block.format_type === "quote") {
-              return `> ${block.content}`;
-            } else {
-              return block.content;
-            }
-          });
-          
-          // Join with double newlines to preserve paragraph structure
-          processedText = textParts.join("\n\n");
-        }
-        
-        // Process code blocks
-        if (jsonData.code_blocks && jsonData.code_blocks.length > 0) {
-          console.log(`PROCESSING ${jsonData.code_blocks.length} CODE BLOCKS`);
-          
-          // Replace code block placeholders with properly formatted code blocks
-          jsonData.code_blocks.forEach((codeBlock, index) => {
-            const placeholder = `{CODE_BLOCK_${index}}`;
-            const formattedBlock = `\`\`\`${codeBlock.language}\n${codeBlock.code}\n\`\`\``;
-            processedText = processedText.replace(placeholder, formattedBlock);
-          });
-        }
-        
-        console.log("STRUCTURED OUTPUT PROCESSED SUCCESSFULLY");
-        response = processedText;
-      }
+          // Check if this is our structured output format
+          if (jsonData.text && (jsonData.code_blocks || jsonData.text_blocks || jsonData.tables || jsonData.images || jsonData.math_blocks)) {
+              console.log("DETECTED STRUCTURED OUTPUT FORMAT");
+              
+              let processedText = jsonData.text;
+              
+              // Process text blocks if available
+              if (jsonData.text_blocks && jsonData.text_blocks.length > 0) {
+                  console.log(`PROCESSING ${jsonData.text_blocks.length} TEXT BLOCKS`);
+                  
+                  // Combine text blocks into a single text with proper paragraph structure
+                  const textParts = jsonData.text_blocks.map(block => {
+                      if (block.format_type === "paragraph") {
+                          return block.content;
+                      } else if (block.format_type === "heading") {
+                          return `## ${block.content}`;
+                      } else if (block.format_type === "list_item") {
+                          return `- ${block.content}`;
+                      } else if (block.format_type === "quote") {
+                          return `> ${block.content}`;
+                      } else {
+                          return block.content;
+                      }
+                  });
+                  
+                  // Join with double newlines to preserve paragraph structure
+                  processedText = textParts.join("\n\n");
+              }
+              
+              // Process code blocks
+              if (jsonData.code_blocks && jsonData.code_blocks.length > 0) {
+                  console.log(`PROCESSING ${jsonData.code_blocks.length} CODE BLOCKS`);
+                  
+                  // Replace code block placeholders with properly formatted code blocks
+                  jsonData.code_blocks.forEach((codeBlock, index) => {
+                      const placeholder = `{CODE_BLOCK_${index}}`;
+                      const formattedBlock = `\`\`\`${codeBlock.language}\n${codeBlock.code}\n\`\`\``;
+                      processedText = processedText.replace(placeholder, formattedBlock);
+                  });
+              }
+              
+              // Process tables
+              if (jsonData.tables && jsonData.tables.length > 0) {
+                  console.log(`PROCESSING ${jsonData.tables.length} TABLES`);
+                  
+                  // Replace table placeholders with markdown tables
+                  jsonData.tables.forEach((table, index) => {
+                      const placeholder = `{TABLE_${index}}`;
+                      let tableMarkdown = "";
+                      
+                      // Add caption if available
+                      if (table.caption) {
+                          tableMarkdown += `**${table.caption}**\n\n`;
+                      }
+                      
+                      // Process rows
+                      table.rows.forEach((row, rowIndex) => {
+                          // Create row content
+                          const rowCells = row.cells.map(cell => {
+                              let content = cell.content.trim();
+                              if (cell.align === "center") {
+                                  content = ` ${content} `;
+                              } else if (cell.align === "right") {
+                                  content = ` ${content}`;
+                              } else { // left alignment (default)
+                                  content = `${content} `;
+                              }
+                              return content;
+                          });
+                          
+                          tableMarkdown += `| ${rowCells.join(' | ')} |\n`;
+                          
+                          // Add header separator after first row if it's a header row
+                          if (rowIndex === 0 && (row.is_header_row || row.cells.some(cell => cell.is_header))) {
+                              const separators = row.cells.map(cell => {
+                                  if (cell.align === "center") {
+                                      return ":---:";
+                                  } else if (cell.align === "right") {
+                                      return "---:";
+                                  } else { // left alignment (default)
+                                      return "---";
+                                  }
+                              });
+                              
+                              tableMarkdown += `| ${separators.join(' | ')} |\n`;
+                          }
+                      });
+                      
+                      processedText = processedText.replace(placeholder, tableMarkdown);
+                  });
+              }
+              
+              // Process images
+              if (jsonData.images && jsonData.images.length > 0) {
+                  console.log(`PROCESSING ${jsonData.images.length} IMAGES`);
+                  
+                  // Replace image placeholders with markdown images
+                  jsonData.images.forEach((image, index) => {
+                      const placeholder = `{IMAGE_${index}}`;
+                      let imageMarkdown = `![${image.alt_text}](${image.url})`;
+                      
+                      // Add caption if available
+                      if (image.caption) {
+                          imageMarkdown += `\n*${image.caption}*`;
+                      }
+                      
+                      processedText = processedText.replace(placeholder, imageMarkdown);
+                  });
+              }
+              
+              // Process math blocks
+              if (jsonData.math_blocks && jsonData.math_blocks.length > 0) {
+                  console.log(`PROCESSING ${jsonData.math_blocks.length} MATH BLOCKS`);
+                  
+                  // Replace math block placeholders with LaTeX
+                  jsonData.math_blocks.forEach((mathBlock, index) => {
+                      const placeholder = `{MATH_${index}}`;
+                      let mathMarkdown = "";
+                      
+                      if (mathBlock.display_mode) {
+                          // Display mode (block)
+                          mathMarkdown = `$$\n${mathBlock.latex}\n$$`;
+                      } else {
+                          // Inline mode
+                          mathMarkdown = `$${mathBlock.latex}$`;
+                      }
+                      
+                      processedText = processedText.replace(placeholder, mathMarkdown);
+                  });
+              }
+              
+              console.log("STRUCTURED OUTPUT PROCESSED SUCCESSFULLY");
+              response = processedText;
+          }
     } catch (e) {
       console.warn("FAILED TO PARSE JSON RESPONSE:", e);
       // Continue with normal processing

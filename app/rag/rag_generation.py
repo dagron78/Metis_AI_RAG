@@ -5,7 +5,9 @@ import logging
 import time
 import re
 import asyncio
+import sys
 from typing import Dict, Any, Optional, List, AsyncGenerator
+from app.rag.text_formatting_monitor import get_monitor, FormattingApproach, FormattingEvent
 from uuid import UUID
 
 from app.core.config import DEFAULT_MODEL
@@ -378,10 +380,21 @@ class GenerationMixin:
         Returns:
             Processed response text
         """
+        # Get the monitor
+        monitor = get_monitor()
+        
         # Check if there was an error in the response
         if "error" in response:
             error_message = response.get("error", "Unknown error")
             logger.warning(f"Model returned an error: {error_message}")
+            
+            # Record the error
+            monitor.record_event(
+                approach=FormattingApproach.STRUCTURED_OUTPUT,
+                event=FormattingEvent.ERROR,
+                error_message=error_message
+            )
+            
             return response.get("response", f"Error: {error_message}")
         
         # Get response text
@@ -392,17 +405,40 @@ class GenerationMixin:
             # Try to parse as JSON
             from app.models.structured_output import FormattedResponse, TextBlock
             import json
+            import traceback
             
             # Check if the response looks like JSON
             if response_text.strip().startswith('{') and response_text.strip().endswith('}'):
+                # Track the stage of processing for better error reporting
+                processing_stage = "initial"
                 try:
                     # Parse the JSON response
-                    structured_data = json.loads(response_text)
+                    processing_stage = "json_parsing"
+                    try:
+                        structured_data = json.loads(response_text)
+                    except json.JSONDecodeError as json_err:
+                        # Attempt to fix common JSON formatting issues
+                        logger.warning(f"JSON parsing error: {str(json_err)}. Attempting to fix...")
+                        fixed_json = self._attempt_json_repair(response_text)
+                        if fixed_json:
+                            structured_data = json.loads(fixed_json)
+                            logger.info("Successfully repaired malformed JSON")
+                        else:
+                            raise json_err
                     
                     # Validate against our schema
-                    formatted_response = FormattedResponse.model_validate(structured_data)
+                    processing_stage = "schema_validation"
+                    try:
+                        formatted_response = FormattedResponse.model_validate(structured_data)
+                    except Exception as validation_err:
+                        # Try partial validation if full validation fails
+                        logger.warning(f"Schema validation error: {str(validation_err)}. Attempting partial validation...")
+                        formatted_response = self._attempt_partial_validation(structured_data)
+                        if not formatted_response:
+                            raise validation_err
                     
                     # Process the structured response
+                    processing_stage = "text_block_processing"
                     if formatted_response.text_blocks:
                         # Use the structured text blocks if provided
                         logger.info(f"Processing structured response with {len(formatted_response.text_blocks)} text blocks")
@@ -416,6 +452,8 @@ class GenerationMixin:
                                 text_parts.append(f"## {block.content}")
                             elif block.format_type == "list_item":
                                 text_parts.append(f"- {block.content}")
+                            elif block.format_type == "quote":
+                                text_parts.append(f"> {block.content}")
                             else:
                                 text_parts.append(block.content)
                         
@@ -426,10 +464,69 @@ class GenerationMixin:
                         main_text = formatted_response.text
                     
                     # Replace code block placeholders with properly formatted code blocks
+                    processing_stage = "code_block_processing"
                     for i, code_block in enumerate(formatted_response.code_blocks):
                         placeholder = f"{{CODE_BLOCK_{i}}}"
-                        formatted_block = f"```{code_block.language}\n{code_block.code}\n```"
+                        # Ensure code has proper newlines
+                        code = code_block.code
+                        if code and not code.startswith('\n'):
+                            code = '\n' + code
+                        if code and not code.endswith('\n'):
+                            code = code + '\n'
+                        
+                        formatted_block = f"```{code_block.language}\n{code}\n```"
                         main_text = main_text.replace(placeholder, formatted_block)
+                    
+                    # Process table placeholders
+                    processing_stage = "table_processing"
+                    if hasattr(formatted_response, 'tables') and formatted_response.tables:
+                        logger.info(f"Processing {len(formatted_response.tables)} tables")
+                        for i, table in enumerate(formatted_response.tables):
+                            placeholder = f"{{TABLE_{i}}}"
+                            formatted_table = self._format_table(table)
+                            main_text = main_text.replace(placeholder, formatted_table)
+                    
+                    # Process image placeholders
+                    processing_stage = "image_processing"
+                    if hasattr(formatted_response, 'images') and formatted_response.images:
+                        logger.info(f"Processing {len(formatted_response.images)} images")
+                        for i, image in enumerate(formatted_response.images):
+                            placeholder = f"{{IMAGE_{i}}}"
+                            formatted_image = self._format_image(image)
+                            main_text = main_text.replace(placeholder, formatted_image)
+                    
+                    # Process math block placeholders
+                    processing_stage = "math_processing"
+                    if hasattr(formatted_response, 'math_blocks') and formatted_response.math_blocks:
+                        logger.info(f"Processing {len(formatted_response.math_blocks)} math blocks")
+                        for i, math_block in enumerate(formatted_response.math_blocks):
+                            placeholder = f"{{MATH_{i}}}"
+                            formatted_math = self._format_math(math_block)
+                            main_text = main_text.replace(placeholder, formatted_math)
+                    
+                    # Check for unreplaced placeholders
+                    placeholder_pattern = r'\{CODE_BLOCK_\d+\}'
+                    import re
+                    if re.search(placeholder_pattern, main_text):
+                        logger.warning("Found unreplaced code block placeholders. Attempting to fix...")
+                        main_text = self._fix_unreplaced_placeholders(main_text, formatted_response.code_blocks)
+                    # Collect content types for monitoring
+                    content_types = ["text"]
+                    if formatted_response.code_blocks:
+                        content_types.append("code")
+                    if hasattr(formatted_response, 'tables') and formatted_response.tables:
+                        content_types.append("table")
+                    if hasattr(formatted_response, 'images') and formatted_response.images:
+                        content_types.append("image")
+                    if hasattr(formatted_response, 'math_blocks') and formatted_response.math_blocks:
+                        content_types.append("math")
+                    
+                    # Record successful structured output processing
+                    monitor = get_monitor()
+                    monitor.record_structured_output_success(
+                        response_size=len(main_text),
+                        content_types=content_types
+                    )
                     
                     logger.info(f"Successfully processed structured output response with {len(formatted_response.code_blocks)} code blocks")
                     
@@ -440,14 +537,62 @@ class GenerationMixin:
                         # Skip normalization to preserve the exact structure
                         return main_text
                 except (json.JSONDecodeError, ValueError) as e:
-                    logger.warning(f"Failed to parse structured output: {str(e)}")
+                    logger.warning(f"Failed to parse structured output at stage '{processing_stage}': {str(e)}")
+                    logger.debug(f"Error details: {traceback.format_exc()}")
+                    # Log the problematic JSON for debugging
+                    if processing_stage == "json_parsing":
+                        logger.debug(f"Problematic JSON: {response_text[:500]}...")
+                    
+                    # Record structured output error
+                    monitor = get_monitor()
+                    monitor.record_structured_output_error(
+                        error_message=str(e),
+                        processing_stage=processing_stage
+                    )
+                    
+                    # Record fallback to backend processing
+                    monitor.record_fallback(
+                        from_approach=FormattingApproach.STRUCTURED_OUTPUT,
+                        to_approach=FormattingApproach.BACKEND_PROCESSING,
+                        reason=f"Error in {processing_stage}: {str(e)}"
+                    )
+                    
                     # Fall back to normal processing
             
         except Exception as e:
             logger.warning(f"Error processing structured output: {str(e)}")
+            logger.debug(f"Error details: {traceback.format_exc()}")
+            
+            # Record structured output error
+            monitor = get_monitor()
+            monitor.record_structured_output_error(
+                error_message=str(e),
+                processing_stage="unknown"
+            )
+            
+            # Record fallback to backend processing
+            monitor.record_fallback(
+                from_approach=FormattingApproach.STRUCTURED_OUTPUT,
+                to_approach=FormattingApproach.BACKEND_PROCESSING,
+                reason=f"Unexpected error: {str(e)}"
+            )
+            
             # Fall back to normal processing
         
         # Apply text normalization to improve formatting
+        logger.info("Falling back to backend text processing")
+        
+        # Record backend processing event
+        monitor = get_monitor()
+        monitor.record_event(
+            approach=FormattingApproach.BACKEND_PROCESSING,
+            event=FormattingEvent.SUCCESS,
+            details={
+                "response_size": len(response_text),
+                "content_types": ["text"]
+            }
+        )
+        
         response_text = self.process_complete_response(response_text)
         
         return response_text
@@ -514,5 +659,265 @@ class GenerationMixin:
         # Check if paragraphs were lost during processing
         if paragraphs > final_paragraphs:
             logger.warning(f"Paragraph count decreased during processing: {paragraphs} -> {final_paragraphs}")
+        return formatted_text
         
+    def _format_table(self, table) -> str:
+        """
+        Format a table into markdown format
+        
+        Args:
+            table: The Table object to format
+            
+        Returns:
+            Markdown representation of the table
+        """
+        logger = logging.getLogger("app.rag.rag_generation")
+        logger.debug(f"Formatting table with {len(table.rows)} rows")
+        
+        # Start with the caption if available
+        markdown_lines = []
+        if table.caption:
+            markdown_lines.append(f"**{table.caption}**\n")
+        
+        # Process the rows
+        for i, row in enumerate(table.rows):
+            # Create the row content
+            row_cells = []
+            for cell in row.cells:
+                # Apply alignment if specified
+                content = cell.content.strip()
+                if cell.align == "center":
+                    content = f" {content} "
+                elif cell.align == "right":
+                    content = f" {content}"
+                else:  # left alignment (default)
+                    content = f"{content} "
+                
+                row_cells.append(content)
+            
+            # Add the row to the markdown
+            markdown_lines.append(f"| {' | '.join(row_cells)} |")
+            
+            # Add the header separator after the first row if it's a header row
+            if i == 0 and (row.is_header_row or any(cell.is_header for cell in row.cells)):
+                separators = []
+                for cell in row.cells:
+                    if cell.align == "center":
+                        separators.append(":---:")
+                    elif cell.align == "right":
+                        separators.append("---:")
+                    else:  # left alignment (default)
+                        separators.append("---")
+                
+                markdown_lines.append(f"| {' | '.join(separators)} |")
+        
+        # Join the lines with newlines
+        return "\n".join(markdown_lines)
+    
+    def _format_image(self, image) -> str:
+        """
+        Format an image into markdown format
+        
+        Args:
+            image: The Image object to format
+            
+        Returns:
+            Markdown representation of the image
+        """
+        logger = logging.getLogger("app.rag.rag_generation")
+        logger.debug(f"Formatting image with URL: {image.url}")
+        
+        # Create the basic image markdown
+        markdown = f"![{image.alt_text}]({image.url})"
+        
+        # Add the caption if available
+        if image.caption:
+            markdown += f"\n*{image.caption}*"
+        
+        return markdown
+    
+    def _format_math(self, math_block) -> str:
+        """
+        Format a math block into markdown format
+        
+        Args:
+            math_block: The MathBlock object to format
+            
+        Returns:
+            Markdown representation of the math block
+        """
+        logger = logging.getLogger("app.rag.rag_generation")
+        logger.debug("Formatting math block")
+        
+        # Format based on display mode
+        if math_block.display_mode:
+            # Display mode (block)
+            return f"$$\n{math_block.latex}\n$$"
+        else:
+            # Inline mode
+            return f"${math_block.latex}$"
+        
+    def _attempt_json_repair(self, json_text: str) -> str:
+        """
+        Attempt to repair malformed JSON
+        
+        Args:
+            json_text: The malformed JSON text
+            
+        Returns:
+            Repaired JSON text or empty string if repair failed
+        """
+        import re
+        import json
+        
+        logger = logging.getLogger("app.rag.rag_generation")
+        logger.debug("Attempting to repair malformed JSON")
+        
+        try:
+            # Common JSON formatting issues and their fixes
+            
+            # 1. Fix unescaped quotes in strings
+            # Look for patterns like: "key": "value with "quotes" inside"
+            fixed_text = re.sub(r'(?<=[:\s]\s*"[^"]*)"(?=[^"]*"(?:\s*[,}]))', r'\"', json_text)
+            
+            # 2. Fix missing quotes around keys
+            # Look for patterns like: {key: "value"} instead of {"key": "value"}
+            fixed_text = re.sub(r'([{,]\s*)([a-zA-Z0-9_]+)(\s*:)', r'\1"\2"\3', fixed_text)
+            
+            # 3. Fix trailing commas in objects and arrays
+            # Look for patterns like: {"key": "value",} or [1, 2, 3,]
+            fixed_text = re.sub(r',(\s*[}\]])', r'\1', fixed_text)
+            
+            # 4. Fix missing commas between elements
+            # Look for patterns like: {"key1": "value1" "key2": "value2"}
+            fixed_text = re.sub(r'(["\d])\s*"', r'\1, "', fixed_text)
+            
+            # 5. Fix single quotes used instead of double quotes
+            # First, escape any existing double quotes
+            fixed_text = fixed_text.replace('"', '\\"')
+            # Then replace all single quotes with double quotes
+            fixed_text = fixed_text.replace("'", '"')
+            # Finally, fix the double-escaped quotes
+            fixed_text = fixed_text.replace('\\"', '"')
+            
+            # Validate the fixed JSON
+            json.loads(fixed_text)
+            logger.info("JSON repair successful")
+            return fixed_text
+        except Exception as e:
+            logger.warning(f"JSON repair failed: {str(e)}")
+            return ""
+    
+    def _attempt_partial_validation(self, data: dict) -> Optional['FormattedResponse']:
+        """
+        Attempt partial validation of structured output data
+        
+        Args:
+            data: The structured output data
+            
+        Returns:
+            FormattedResponse object or None if validation failed
+        """
+        from app.models.structured_output import FormattedResponse, CodeBlock, TextBlock
+        from typing import Optional
+        
+        logger = logging.getLogger("app.rag.rag_generation")
+        logger.debug("Attempting partial validation of structured output data")
+        
+        try:
+            # Create a minimal valid response
+            minimal_response = {
+                "text": "",
+                "code_blocks": [],
+                "preserve_paragraphs": True
+            }
+            
+            # Copy valid fields from the original data
+            if "text" in data and isinstance(data["text"], str):
+                minimal_response["text"] = data["text"]
+            
+            # Process code blocks if available
+            if "code_blocks" in data and isinstance(data["code_blocks"], list):
+                code_blocks = []
+                for block in data["code_blocks"]:
+                    if isinstance(block, dict):
+                        # Ensure required fields are present
+                        if "language" in block and "code" in block:
+                            code_blocks.append({
+                                "language": block["language"],
+                                "code": block["code"],
+                                "metadata": block.get("metadata")
+                            })
+                minimal_response["code_blocks"] = code_blocks
+            
+            # Process text blocks if available
+            if "text_blocks" in data and isinstance(data["text_blocks"], list):
+                text_blocks = []
+                for block in data["text_blocks"]:
+                    if isinstance(block, dict):
+                        # Ensure required fields are present
+                        if "content" in block:
+                            text_blocks.append({
+                                "content": block["content"],
+                                "format_type": block.get("format_type", "paragraph"),
+                                "metadata": block.get("metadata")
+                            })
+                if text_blocks:
+                    minimal_response["text_blocks"] = text_blocks
+            
+            # Set preserve_paragraphs if available
+            if "preserve_paragraphs" in data and isinstance(data["preserve_paragraphs"], bool):
+                minimal_response["preserve_paragraphs"] = data["preserve_paragraphs"]
+            
+            # Validate the minimal response
+            formatted_response = FormattedResponse.model_validate(minimal_response)
+            logger.info("Partial validation successful")
+            return formatted_response
+        except Exception as e:
+            logger.warning(f"Partial validation failed: {str(e)}")
+            return None
+    
+    def _fix_unreplaced_placeholders(self, text: str, code_blocks: list) -> str:
+        """
+        Fix unreplaced code block placeholders
+        
+        Args:
+            text: The text with unreplaced placeholders
+            code_blocks: The list of code blocks
+            
+        Returns:
+            Text with placeholders replaced or removed
+        """
+        import re
+        
+        logger = logging.getLogger("app.rag.rag_generation")
+        logger.debug("Fixing unreplaced code block placeholders")
+        
+        # Find all unreplaced placeholders
+        placeholder_pattern = r'\{CODE_BLOCK_(\d+)\}'
+        placeholders = re.findall(placeholder_pattern, text)
+        
+        # Replace or remove each placeholder
+        for placeholder_index in placeholders:
+            try:
+                index = int(placeholder_index)
+                placeholder = f"{{CODE_BLOCK_{index}}}"
+                
+                # If we have a code block for this index, replace it
+                if index < len(code_blocks):
+                    code_block = code_blocks[index]
+                    formatted_block = f"```{code_block.language}\n{code_block.code}\n```"
+                    text = text.replace(placeholder, formatted_block)
+                    logger.debug(f"Replaced placeholder {placeholder} with code block")
+                else:
+                    # Otherwise, remove the placeholder
+                    text = text.replace(placeholder, "")
+                    logger.warning(f"Removed placeholder {placeholder} with no corresponding code block")
+            except ValueError:
+                # If the index is not a valid integer, just remove the placeholder
+                logger.warning(f"Found invalid placeholder index: {placeholder_index}")
+                placeholder = f"{{CODE_BLOCK_{placeholder_index}}}"
+                text = text.replace(placeholder, "")
+        
+        return text
         return formatted_text
