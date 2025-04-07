@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marked.js Configuration Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .output {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 300px;
+            background-color: #fff;
+            overflow: auto;
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        label {
+            margin-right: 15px;
+        }
+        pre {
+            background-color: #282c34;
+            border-radius: 6px;
+            padding: 16px;
+            overflow: auto;
+            margin: 16px 0;
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            tab-size: 4;
+            white-space: pre;
+            word-break: normal;
+            word-spacing: normal;
+            word-wrap: normal;
+            color: #abb2bf;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            max-width: 100%;
+            position: relative;
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            font-size: 1em;
+        }
+        .code-block-container {
+            position: relative;
+            margin: 16px 0;
+        }
+        .copy-code-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #abb2bf;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .copy-code-button:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .log-container {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 20px;
+            height: 200px;
+            overflow: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .log-entry.info {
+            color: #333;
+        }
+        .log-entry.warn {
+            color: #f39c12;
+        }
+        .log-entry.error {
+            color: #e74c3c;
+        }
+        .log-entry.debug {
+            color: #3498db;
+        }
+        .test-case {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-case h3 {
+            margin-top: 0;
+        }
+        .test-case-button {
+            background-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <h1>Marked.js Configuration Tester</h1>
+    <p>This tool helps test different marked.js configurations to find the optimal settings for text formatting.</p>
+    
+    <div class="controls">
+        <h2>Configuration</h2>
+        <div>
+            <label>
+                <input type="checkbox" id="breaks" checked> 
+                breaks: true (Convert single newlines to &lt;br&gt;)
+            </label>
+            <label>
+                <input type="checkbox" id="gfm" checked> 
+                gfm: true (GitHub Flavored Markdown)
+            </label>
+        </div>
+        <div>
+            <button id="apply-config">Apply Configuration</button>
+            <button id="clear-log">Clear Log</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="column">
+            <h2>Input (Markdown)</h2>
+            <textarea id="input"></textarea>
+            <button id="render">Render</button>
+            <div class="test-cases">
+                <h3>Test Cases</h3>
+                <div class="test-case">
+                    <h3>Simple Paragraphs</h3>
+                    <button class="test-case-button" data-test="simple-paragraphs">Load</button>
+                </div>
+                <div class="test-case">
+                    <h3>Code Blocks</h3>
+                    <button class="test-case-button" data-test="code-blocks">Load</button>
+                </div>
+                <div class="test-case">
+                    <h3>Mixed Content</h3>
+                    <button class="test-case-button" data-test="mixed-content">Load</button>
+                </div>
+                <div class="test-case">
+                    <h3>Problematic Code Blocks</h3>
+                    <button class="test-case-button" data-test="problematic-code-blocks">Load</button>
+                </div>
+                <div class="test-case">
+                    <h3>No Paragraph Breaks</h3>
+                    <button class="test-case-button" data-test="no-paragraph-breaks">Load</button>
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <h2>Output (HTML)</h2>
+            <div class="output" id="output"></div>
+            <h3>HTML Source</h3>
+            <textarea id="html-source" readonly></textarea>
+        </div>
+    </div>
+    
+    <div class="log-container" id="log-container">
+        <h3>Log</h3>
+        <div id="log"></div>
+    </div>
+    
+    <script>
+        // Test cases
+        const testCases = {
+            'simple-paragraphs': `This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third paragraph with a longer text that spans multiple lines.
+It should be treated as a single paragraph despite having a single newline.
+
+This is the fourth paragraph.`,
+            'code-blocks': `Here's a Python code example:
+
+\`\`\`python
+def hello_world():
+    print("Hello, world!")
+    
+hello_world()
+\`\`\`
+
+And here's a JavaScript example:
+
+\`\`\`javascript
+function helloWorld() {
+    console.log("Hello, world!");
+}
+
+helloWorld();
+\`\`\``,
+            'mixed-content': `# Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some text with a list:
+- Item 1
+- Item 2
+- Item 3
+
+## Section 2
+
+\`\`\`python
+# Python code
+class TestClass:
+    def __init__(self):
+        self.value = 42
+        
+    def get_value(self):
+        return self.value
+\`\`\`
+
+And some more text after the code block.
+
+## Section 3
+
+Final paragraph with some **bold** and *italic* text.`,
+            'problematic-code-blocks': `Here are some problematic code blocks:
+
+\`\`\`pythonimport math
+print(math.sqrt(16))
+\`\`\`
+
+\`\`\`javascriptconst x = 10;
+console.log(x);
+\`\`\`
+
+\`\`\`html<div>Hello</div>\`\`\`
+
+\`\`\`css.container {
+    width: 100%;
+}\`\`\``,
+            'no-paragraph-breaks': `This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite long, it doesn't have any double newlines. It just keeps going and going without any proper paragraph structure. This is exactly the kind of text we're seeing in some of our responses where paragraph breaks are lost.`
+        };
+        
+        // Custom logger
+        const logger = {
+            log: function(level, message) {
+                const logContainer = document.getElementById('log');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${level}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] [${level.toUpperCase()}] ${message}`;
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            },
+            debug: function(message) {
+                this.log('debug', message);
+            },
+            info: function(message) {
+                this.log('info', message);
+            },
+            warn: function(message) {
+                this.log('warn', message);
+            },
+            error: function(message) {
+                this.log('error', message);
+            }
+        };
+        
+        // Override console methods
+        const originalConsole = {
+            log: console.log,
+            debug: console.debug,
+            info: console.info,
+            warn: console.warn,
+            error: console.error
+        };
+        
+        console.log = function() {
+            originalConsole.log.apply(console, arguments);
+            logger.info(Array.from(arguments).join(' '));
+        };
+        
+        console.debug = function() {
+            originalConsole.debug.apply(console, arguments);
+            logger.debug(Array.from(arguments).join(' '));
+        };
+        
+        console.info = function() {
+            originalConsole.info.apply(console, arguments);
+            logger.info(Array.from(arguments).join(' '));
+        };
+        
+        console.warn = function() {
+            originalConsole.warn.apply(console, arguments);
+            logger.warn(Array.from(arguments).join(' '));
+        };
+        
+        console.error = function() {
+            originalConsole.error.apply(console, arguments);
+            logger.error(Array.from(arguments).join(' '));
+        };
+        
+        // Initialize marked.js
+        function initializeMarked() {
+            const useBreaks = document.getElementById('breaks').checked;
+            const useGfm = document.getElementById('gfm').checked;
+            
+            console.log(`Initializing marked.js with breaks=${useBreaks}, gfm=${useGfm}`);
+            
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+                    console.log(`Highlighting code with language: ${language}`);
+                    
+                    try {
+                        return hljs.highlight(code, { language, ignoreIllegals: true }).value;
+                    } catch (e) {
+                        console.error('Error highlighting code:', e);
+                        const temp = document.createElement('div');
+                        temp.textContent = code;
+                        return temp.innerHTML;
+                    }
+                },
+                breaks: useBreaks,
+                gfm: useGfm,
+                headerIds: false,
+                mangle: false,
+                renderer: {
+                    ...new marked.Renderer(),
+                    code: function(code, language) {
+                        const validLanguage = language && hljs.getLanguage(language) ? language : 'plaintext';
+                        console.log(`Rendering code block with language: ${validLanguage}`);
+                        
+                        try {
+                            const highlighted = hljs.highlight(code, { language: validLanguage, ignoreIllegals: true }).value;
+                            return `<pre><code class="hljs language-${validLanguage}">${highlighted}</code></pre>`;
+                        } catch (e) {
+                            console.error('Error in custom code renderer:', e);
+                            return `<pre><code class="hljs language-${validLanguage}">${code}</code></pre>`;
+                        }
+                    },
+                    paragraph: function(text) {
+                        console.log(`Rendering paragraph: ${text.substring(0, 50)}...`);
+                        return `<p>${text}</p>`;
+                    }
+                }
+            });
+            
+            console.log('Marked.js initialized');
+        }
+        
+        // Analyze text structure
+        function analyzeText(text) {
+            const result = {
+                length: text.length,
+                paragraphs: (text.match(/\n\n/g) || []).length + 1,
+                singleNewlines: (text.match(/\n/g) || []).length,
+                doubleNewlines: (text.match(/\n\n/g) || []).length,
+                codeBlocks: (text.match(/```[\w\-+#]*\s*[\s\S]*?```/g) || []).length
+            };
+            
+            console.log('Text analysis:', JSON.stringify(result, null, 2));
+            return result;
+        }
+        
+        // Render markdown
+        function renderMarkdown() {
+            const input = document.getElementById('input').value;
+            const output = document.getElementById('output');
+            const htmlSource = document.getElementById('html-source');
+            
+            console.log('Rendering markdown...');
+            console.log(`Input length: ${input.length}`);
+            
+            // Analyze input
+            analyzeText(input);
+            
+            try {
+                // Render markdown
+                const html = marked.parse(input);
+                
+                // Update output
+                output.innerHTML = html;
+                htmlSource.value = html;
+                
+                // Add copy buttons to code blocks
+                addCopyButtons();
+                
+                // Analyze HTML
+                const paragraphTags = (html.match(/<p>/g) || []).length;
+                const brTags = (html.match(/<br>/g) || []).length;
+                console.log('HTML analysis:', JSON.stringify({
+                    paragraphTags,
+                    brTags
+                }, null, 2));
+                
+                console.log('Markdown rendered successfully');
+            } catch (error) {
+                console.error('Error rendering markdown:', error);
+                output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                htmlSource.value = '';
+            }
+        }
+        
+        // Add copy buttons to code blocks
+        function addCopyButtons() {
+            document.querySelectorAll('pre code').forEach((codeBlock) => {
+                // Check if the container already exists
+                let container = codeBlock.closest('.code-block-container');
+                if (!container) {
+                    // Create container if it doesn't exist
+                    container = document.createElement('div');
+                    container.className = 'code-block-container';
+                    const preElement = codeBlock.parentNode; // Should be <pre>
+                    preElement.parentNode.replaceChild(container, preElement);
+                    container.appendChild(preElement);
+                }
+                
+                // Check if button already exists
+                if (container.querySelector('.copy-code-button')) {
+                    return;
+                }
+                
+                // Create copy button
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-code-button';
+                copyButton.textContent = 'Copy';
+                
+                // Add click event to copy the code
+                copyButton.addEventListener('click', () => {
+                    const code = codeBlock.textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        // Change button text to indicate success
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = 'Copy';
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy code:', err);
+                        copyButton.textContent = 'Failed';
+                        setTimeout(() => {
+                            copyButton.textContent = 'Copy';
+                        }, 2000);
+                    });
+                });
+                
+                container.appendChild(copyButton);
+            });
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize marked.js
+            initializeMarked();
+            
+            // Apply configuration button
+            document.getElementById('apply-config').addEventListener('click', function() {
+                initializeMarked();
+                renderMarkdown();
+            });
+            
+            // Render button
+            document.getElementById('render').addEventListener('click', renderMarkdown);
+            
+            // Clear log button
+            document.getElementById('clear-log').addEventListener('click', function() {
+                document.getElementById('log').innerHTML = '';
+            });
+            
+            // Test case buttons
+            document.querySelectorAll('.test-case-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const testCase = this.getAttribute('data-test');
+                    document.getElementById('input').value = testCases[testCase];
+                    renderMarkdown();
+                });
+            });
+            
+            // Load default test case
+            document.getElementById('input').value = testCases['mixed-content'];
+            renderMarkdown();
+        });
+    </script>
+</body>
+</html>

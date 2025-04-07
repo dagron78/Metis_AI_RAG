@@ -16,7 +16,8 @@ from app.rag.prompt_manager import PromptManager
 from app.rag.system_prompts import (
     CODE_GENERATION_SYSTEM_PROMPT,
     PYTHON_CODE_GENERATION_PROMPT,
-    JAVASCRIPT_CODE_GENERATION_PROMPT
+    JAVASCRIPT_CODE_GENERATION_PROMPT,
+    STRUCTURED_CODE_OUTPUT_PROMPT
 )
 
 logger = logging.getLogger("app.rag.rag_generation")
@@ -155,6 +156,31 @@ class GenerationMixin:
         Returns:
             Async generator of response tokens
         """
+        # Check if this is a structured output request
+        is_structured_output = "format" in model_parameters
+        
+        # For structured outputs, we can't stream the response directly
+        # because we need to process the complete JSON
+        if is_structured_output:
+            logger.info("Using non-streaming approach for structured output")
+            
+            # Generate the complete response
+            response = await self.ollama_client.generate(
+                prompt=prompt,
+                model=model,
+                system_prompt=system_prompt,
+                stream=False,
+                parameters=model_parameters or {}
+            )
+            
+            # Process the structured response
+            processed_text = self._process_response_text(response)
+            
+            # Yield the processed text as a single chunk
+            yield processed_text
+            return
+        
+        # For non-structured outputs, use the normal streaming approach
         # Get the raw stream from the LLM
         stream = await self.ollama_client.generate(
             prompt=prompt,
@@ -189,8 +215,9 @@ class GenerationMixin:
         is_code_query = self._is_code_related_query(query)
         
         if is_code_query:
-            logger.info("Detected code-related query, using code generation system prompt")
-            system_prompt = CODE_GENERATION_SYSTEM_PROMPT
+            logger.info("Detected code-related query, using structured code output prompt")
+            # Use the structured code output prompt for code-related queries
+            system_prompt = STRUCTURED_CODE_OUTPUT_PROMPT
             
             # Add language-specific guidelines if detected
             if re.search(r'\bpython\b', query.lower()):
@@ -360,6 +387,42 @@ class GenerationMixin:
         # Get response text
         response_text = response.get("response", "")
         
+        # Check if this is a structured output response (JSON)
+        try:
+            # Try to parse as JSON
+            from app.models.structured_output import FormattedResponse
+            import json
+            
+            # Check if the response looks like JSON
+            if response_text.strip().startswith('{') and response_text.strip().endswith('}'):
+                try:
+                    # Parse the JSON response
+                    structured_data = json.loads(response_text)
+                    
+                    # Validate against our schema
+                    formatted_response = FormattedResponse.model_validate(structured_data)
+                    
+                    # Process the structured response
+                    main_text = formatted_response.text
+                    
+                    # Replace code block placeholders with properly formatted code blocks
+                    for i, code_block in enumerate(formatted_response.code_blocks):
+                        placeholder = f"{{CODE_BLOCK_{i}}}"
+                        formatted_block = f"```{code_block.language}\n{code_block.code}\n```"
+                        main_text = main_text.replace(placeholder, formatted_block)
+                    
+                    logger.info(f"Successfully processed structured output response with {len(formatted_response.code_blocks)} code blocks")
+                    
+                    # Apply text normalization to the processed text
+                    return self.process_complete_response(main_text)
+                except (json.JSONDecodeError, ValueError) as e:
+                    logger.warning(f"Failed to parse structured output: {str(e)}")
+                    # Fall back to normal processing
+            
+        except Exception as e:
+            logger.warning(f"Error processing structured output: {str(e)}")
+            # Fall back to normal processing
+        
         # Apply text normalization to improve formatting
         response_text = self.process_complete_response(response_text)
         
@@ -375,12 +438,57 @@ class GenerationMixin:
         Returns:
             Processed response text
         """
+        # Log the raw response text from Ollama
+        logger.debug(f"Raw response from Ollama (length: {len(response_text)})")
+        logger.debug(f"Raw response preview: {response_text[:200]}...")
+        
+        # Log paragraph structure in raw response
+        paragraphs = response_text.count('\n\n') + 1
+        newlines = response_text.count('\n')
+        double_newlines = response_text.count('\n\n')
+        logger.debug(f"Raw response paragraph structure: paragraphs={paragraphs}, single newlines={newlines}, double newlines={double_newlines}")
+        
+        # Check for code blocks in raw response
+        code_block_pattern = r'```([\w\-+#]*)\s*(.*?)```'
+        code_blocks = len(re.findall(code_block_pattern, response_text, re.DOTALL))
+        logger.debug(f"Raw response code blocks: {code_blocks}")
+        
         if not apply_normalization:
+            logger.debug("Skipping normalization as requested")
             return response_text
         
         # Apply text normalization
+        logger.debug("Applying text normalization...")
         normalized_text = normalize_text(response_text)
         
+        # Log changes after normalization
+        if normalized_text != response_text:
+            logger.debug("Text was modified during normalization")
+            length_diff = len(normalized_text) - len(response_text)
+            logger.debug(f"Length change after normalization: {length_diff} characters")
+        else:
+            logger.debug("No changes made during normalization")
+        
         # Format code blocks
+        logger.debug("Formatting code blocks...")
         formatted_text = format_code_blocks(normalized_text)
+        
+        # Log changes after code block formatting
+        if formatted_text != normalized_text:
+            logger.debug("Text was modified during code block formatting")
+            length_diff = len(formatted_text) - len(normalized_text)
+            logger.debug(f"Length change after code block formatting: {length_diff} characters")
+        else:
+            logger.debug("No changes made during code block formatting")
+        
+        # Log final paragraph structure
+        final_paragraphs = formatted_text.count('\n\n') + 1
+        final_newlines = formatted_text.count('\n')
+        final_double_newlines = formatted_text.count('\n\n')
+        logger.debug(f"Final response paragraph structure: paragraphs={final_paragraphs}, single newlines={final_newlines}, double newlines={final_double_newlines}")
+        
+        # Check if paragraphs were lost during processing
+        if paragraphs > final_paragraphs:
+            logger.warning(f"Paragraph count decreased during processing: {paragraphs} -> {final_paragraphs}")
+        
         return formatted_text

@@ -1,4 +1,8 @@
 import re
+import logging
+
+# Create a dedicated logger for text processing
+logger = logging.getLogger("app.utils.text_processor")
 
 def normalize_text(text):
     """
@@ -16,8 +20,21 @@ def normalize_text(text):
         Normalized text with improved formatting
     """
     if not text:
+        logger.debug("normalize_text called with empty text")
         return text
-        
+    
+    logger.debug(f"normalize_text input length: {len(text)}")
+    logger.debug(f"normalize_text input preview: {text[:100]}...")
+    
+    # Count paragraphs before normalization
+    paragraphs_before = text.count('\n\n') + 1
+    logger.debug(f"Paragraphs before normalization: {paragraphs_before}")
+    
+    # Log newline patterns
+    newline_count = text.count('\n')
+    double_newline_count = text.count('\n\n')
+    logger.debug(f"Newline patterns before: single={newline_count}, double={double_newline_count}")
+    
     # Fix spacing around punctuation - add space after punctuation if not already there
     text = re.sub(r'([.!?,:;])(?!\s)([A-Za-z0-9])', r'\1 \2', text)
     
@@ -34,13 +51,29 @@ def normalize_text(text):
     # Fix multiple spaces
     text = re.sub(r' +', ' ', text)
     
-    # Fix spacing in code blocks (preserve indentation)
-    # We don't need to modify the lines, just preserve them
-    lines = text.split('\n')
+    # IMPORTANT: Preserve paragraph breaks (double newlines)
+    # This is critical for proper text formatting
+    text = re.sub(r'\n{3,}', '\n\n', text)  # Normalize multiple newlines to double newlines
     
-    return '\n'.join(lines)
+    # Count paragraphs after normalization
+    paragraphs_after = text.count('\n\n') + 1
+    logger.debug(f"Paragraphs after normalization: {paragraphs_after}")
+    
+    # Log newline patterns after normalization
+    newline_count_after = text.count('\n')
+    double_newline_count_after = text.count('\n\n')
+    logger.debug(f"Newline patterns after: single={newline_count_after}, double={double_newline_count_after}")
+    
+    # Check if paragraphs were lost during normalization
+    if paragraphs_before > paragraphs_after:
+        logger.warning(f"Paragraph count decreased during normalization: {paragraphs_before} -> {paragraphs_after}")
+    
+    logger.debug(f"normalize_text output length: {len(text)}")
+    logger.debug(f"normalize_text output preview: {text[:100]}...")
+    
+    return text
 
-def format_code_blocks(text):
+def format_code_blocks(text, preserve_paragraphs=True):
     """
     Properly format code blocks in text, handling various edge cases from LLM output.
     
@@ -54,15 +87,29 @@ def format_code_blocks(text):
     - Ensures proper newlines after language tags
     - Fixes method calls with spaces
     - Infers language when no tag is provided
+    - Preserves original paragraph structure (when preserve_paragraphs=True)
     
     Args:
         text: The input text containing code blocks
+        preserve_paragraphs: Whether to preserve the original paragraph structure
         
     Returns:
         Text with properly formatted code blocks
     """
     if not text:
+        logger.debug("format_code_blocks called with empty text")
         return text
+    
+    logger.debug(f"format_code_blocks input length: {len(text)}")
+    
+    # Count code blocks before formatting
+    code_block_pattern = r'```([\w\-+#]*)\s*(.*?)```'
+    code_blocks_before = len(re.findall(code_block_pattern, text, re.DOTALL))
+    logger.debug(f"Code blocks before formatting: {code_blocks_before}")
+    
+    # Log paragraph structure before code block formatting
+    paragraphs_before = text.count('\n\n') + 1
+    logger.debug(f"Paragraphs before code block formatting: {paragraphs_before}")
     
     # Handle duplicate language tags (e.g., ```python python)
     text = re.sub(r'```(\w+)\s+\1', r'```\1', text)
@@ -126,7 +173,11 @@ def format_code_blocks(text):
         lang = match.group(1).strip()
         code = match.group(2)
         
+        logger.debug(f"Processing code block with language tag: '{lang}'")
+        logger.debug(f"Code block preview: {code[:50]}...")
+        
         # Handle specific concatenated language tags
+        original_lang = lang
         if lang == 'pythoncss':
             lang = 'css'
         elif lang == 'javascripthtml':
@@ -135,6 +186,9 @@ def format_code_blocks(text):
             lang = 'html'
         elif lang == 'pythonjs' or lang == 'pythonjavascript':
             lang = 'javascript'
+        
+        if lang != original_lang:
+            logger.debug(f"Fixed concatenated language tag: '{original_lang}' -> '{lang}'")
         # Handle other concatenated language tags
         elif lang:
             # Check for common concatenated language tags
@@ -229,11 +283,76 @@ def format_code_blocks(text):
         # Return with proper language tag and spacing
         # Ensure there's always a newline after the language tag and before the closing backticks
         if lang:
-            return f'```{lang}\n{code}\n```'
+            # Ensure we're using the correct format for code blocks
+            return f'```{lang}\n{code}```'
         else:
-            return f'```\n{code}\n```'
+            return f'```\n{code}```'
     
     # Process all code blocks
     processed_text = re.sub(code_block_pattern, process_code_block, text, flags=re.DOTALL)
+    
+    # Count code blocks after formatting
+    code_blocks_after = len(re.findall(code_block_pattern, processed_text, re.DOTALL))
+    logger.debug(f"Code blocks after formatting: {code_blocks_after}")
+    
+    # Log paragraph structure after code block formatting
+    paragraphs_after = processed_text.count('\n\n') + 1
+    logger.debug(f"Paragraphs after code block formatting: {paragraphs_after}")
+    
+    # Check if paragraphs were lost during code block formatting
+    if paragraphs_before > paragraphs_after:
+        logger.warning(f"Paragraph count decreased during code block formatting: {paragraphs_before} -> {paragraphs_after}")
+    
+    # Check if code blocks were lost during formatting
+    if code_blocks_before > code_blocks_after:
+        logger.warning(f"Code block count decreased during formatting: {code_blocks_before} -> {code_blocks_after}")
+    
+    # Preserve original paragraph structure if requested
+    if preserve_paragraphs and paragraphs_before != paragraphs_after:
+        logger.info(f"Preserving original paragraph structure (before: {paragraphs_before}, after: {paragraphs_after})")
+        
+        # Split the original text and processed text into paragraphs
+        original_paragraphs = text.split('\n\n')
+        processed_paragraphs = processed_text.split('\n\n')
+        
+        # If we have more paragraphs after processing, we need to merge some
+        if paragraphs_after > paragraphs_before:
+            logger.debug("Merging extra paragraphs to match original structure")
+            
+            # A simpler approach: just use the original text and replace the code blocks
+            try:
+                # First, identify code blocks in the original text
+                original_code_blocks = re.findall(r'```[\w\-+#]*\s*.*?```', text, re.DOTALL)
+                
+                # Then, identify code blocks in the processed text
+                processed_code_blocks = re.findall(r'```[\w\-+#]*\s*.*?```', processed_text, re.DOTALL)
+                
+                # If we have the same number of code blocks, we can map them directly
+                if len(original_code_blocks) == len(processed_code_blocks):
+                    logger.debug(f"Mapping {len(original_code_blocks)} code blocks to their original positions")
+                    
+                    # Replace each original code block with its processed version
+                    result_text = text
+                    for i, (orig_block, proc_block) in enumerate(zip(original_code_blocks, processed_code_blocks)):
+                        result_text = result_text.replace(orig_block, proc_block)
+                    
+                    # Use the result text instead of the processed text
+                    processed_text = result_text
+                else:
+                    # If we have a different number of code blocks, just keep the processed text
+                    logger.debug(f"Cannot map code blocks directly: original={len(original_code_blocks)}, processed={len(processed_code_blocks)}")
+                    logger.debug("Using processed text as is")
+            except Exception as e:
+                logger.error(f"Error preserving paragraph structure: {str(e)}")
+                logger.debug("Using processed text as is")
+            # No need to do anything else, we've already updated processed_text
+            
+            
+            # Verify the paragraph count
+            final_paragraphs = processed_text.count('\n\n') + 1
+            logger.debug(f"Final paragraph count after merging: {final_paragraphs}")
+    
+    logger.debug(f"format_code_blocks output length: {len(processed_text)}")
+    logger.debug(f"format_code_blocks output preview: {processed_text[:100]}...")
     
     return processed_text
