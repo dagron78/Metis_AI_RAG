@@ -327,11 +327,11 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Add deprecation warning
 
 ### 4.4 Refactor RAG Engine Base
-- [ ] Update `app/rag/engine/base/__init__.py`:
-  - [ ] Export base components
-- [ ] Refactor `app/rag/rag_engine_base.py`:
-  - [ ] Convert to thin wrapper that imports from new modules
-  - [ ] Add deprecation warning
+- [x] Update `app/rag/engine/base/__init__.py`:
+  - [x] Export base components
+- [x] Refactor `app/rag/rag_engine_base.py`:
+  - [x] Convert to thin wrapper that imports from new modules
+  - [x] Add deprecation warning
 
 ### 4.5 Refactor Text Formatting Monitor
 - [ ] Update `app/utils/text_formatting/__init__.py`:
