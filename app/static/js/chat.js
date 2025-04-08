@@ -1,5 +1,55 @@
 // File: app/static/js/chat.js
 
+console.log('CHAT.JS LOADED');
+
+// Debug DevOps panel directly
+window.addEventListener('load', function() {
+    console.log('WINDOW LOADED');
+    
+    const devopsPanel = document.querySelector('.devops-panel');
+    console.log('DevOps Panel (window.load):', devopsPanel);
+    
+    // Debug checkboxes
+    const ragToggle = document.getElementById('rag-toggle');
+    const streamToggle = document.getElementById('stream-toggle');
+    const rawOutputToggle = document.getElementById('raw-output-toggle');
+    const rawLlmOutputToggle = document.getElementById('raw-llm-output-toggle');
+    
+    console.log('Checkboxes found:', {
+        ragToggle,
+        streamToggle,
+        rawOutputToggle,
+        rawLlmOutputToggle
+    });
+    
+    if (devopsPanel) {
+        console.log('DevOps Panel style:', window.getComputedStyle(devopsPanel));
+        // Force visibility
+        devopsPanel.style.display = 'block';
+        devopsPanel.style.visibility = 'visible';
+        devopsPanel.style.opacity = '1';
+        console.log('DevOps Panel style forced visible');
+    }
+    
+    if (devopsPanel) {
+        console.log('DevOps Panel style:', window.getComputedStyle(devopsPanel));
+        // Force visibility
+        devopsPanel.style.display = 'block';
+        devopsPanel.style.visibility = 'visible';
+        devopsPanel.style.opacity = '1';
+        devopsPanel.style.zIndex = '9999';
+        
+        // Force checkboxes to be visible
+        if (ragToggle) ragToggle.style.display = 'inline-block';
+        if (streamToggle) streamToggle.style.display = 'inline-block';
+        if (rawOutputToggle) rawOutputToggle.style.display = 'inline-block';
+        if (rawLlmOutputToggle) rawLlmOutputToggle.style.display = 'inline-block';
+        console.log('DevOps Panel style forced visible');
+    } else {
+        console.error('DevOps Panel not found in DOM!');
+    }
+});
+
 // Ensure MetisMarkdown is loaded (assuming markdown-parser.js is included before this)
 if (typeof window.MetisMarkdown === 'undefined') {
     console.error("Error: markdown-parser.js must be loaded before chat.js");
@@ -26,12 +76,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const modelSelect = document.getElementById('model');
     const ragToggle = document.getElementById('rag-toggle');
     const streamToggle = document.getElementById('stream-toggle');
+    const rawOutputToggle = document.getElementById('raw-output-toggle');
+    const rawLlmOutputToggle = document.getElementById('raw-llm-output-toggle');
     const loadingIndicator = document.getElementById('loading');
     const maxResults = document.getElementById('max-results');
     const temperature = document.getElementById('temperature');
     const metadataFilters = document.getElementById('metadata-filters');
+    
+    // Debug DevOps panel
+    const devopsPanel = document.querySelector('.devops-panel');
+    console.log('DevOps Panel:', devopsPanel);
+    if (devopsPanel) {
+        console.log('DevOps Panel style:', window.getComputedStyle(devopsPanel));
+        // Force visibility
+        devopsPanel.style.display = 'block';
+        devopsPanel.style.visibility = 'visible';
+        devopsPanel.style.opacity = '1';
+        console.log('DevOps Panel style forced visible');
+    }
 
-    if (!chatContainer || !userInput || !sendButton || !modelSelect || !ragToggle || !streamToggle || !loadingIndicator || !maxResults || !temperature || !metadataFilters) {
+    if (!chatContainer || !userInput || !sendButton || !modelSelect || !ragToggle || !streamToggle || !rawOutputToggle || !rawLlmOutputToggle || !loadingIndicator || !maxResults || !temperature || !metadataFilters) {
         console.error("Chat UI elements not found. Chat functionality may be limited.");
         // return; // Optionally return if core elements are missing
     }
@@ -190,9 +254,14 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessage('user', message); // Add raw user message
         userInput.value = '';
         if (loadingIndicator) loadingIndicator.style.display = 'flex'; // Use flex
+// Get the state of the raw output toggles
+const showRawOutput = rawOutputToggle?.checked ?? false;
+const showRawLlmOutput = rawLlmOutputToggle?.checked ?? false;
 
+        
         const query = buildQuery(message);
         console.log('Sending query:', query);
+        console.log('Raw output mode:', showRawOutput ? 'ENABLED' : 'DISABLED');
 
         // Create placeholder for assistant response
         const assistantMessageDiv = addMessage('assistant', '', [], true); // Add placeholder
@@ -238,7 +307,60 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (processedResponse.match(uuidPattern)) {
                         processedResponse = processedResponse.replace(uuidPattern, '');
                     }
-                    contentDiv.innerHTML = window.MetisMarkdown.processResponse(processedResponse);
+                    
+                    // Log text structure before markdown processing
+                    console.log("TEXT STRUCTURE BEFORE MARKDOWN:", {
+                        paragraphs: (processedResponse.match(/\n\n+/g) || []).length + 1,
+                        singleNewlines: (processedResponse.match(/\n/g) || []).length,
+                        doubleNewlines: (processedResponse.match(/\n\n+/g) || []).length
+                    });
+                    if (showRawLlmOutput) {
+                        console.log("Displaying RAW LLM output (non-streaming).");
+                        // Display raw text, preserving whitespace and line breaks, safely
+                        const pre = document.createElement('pre');
+                        pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
+                        pre.style.wordBreak = 'break-word'; // Break long words without overflow
+                        pre.textContent = processedResponse; // Use textContent for safety
+                        contentDiv.innerHTML = ''; // Clear previous content
+                        contentDiv.appendChild(pre);
+                    } else {
+                        // With breaks=true, we need to preserve single newlines
+                        // but ensure proper list formatting
+                        const preparedText = processedResponse
+                            // Ensure list items have proper formatting
+                            .replace(/^(\d+\.|\*|-)\s+/gm, '$1 ') // Ensure proper spacing after list markers
+                            // Don't convert single newlines to double newlines anymore since breaks=true
+                            
+                        console.log("PREPARED TEXT PREVIEW:", preparedText.substring(0, 200) + "...");
+                        try {
+                            // First check if raw output mode is enabled
+                            if (showRawOutput) {
+                                console.log("Displaying RAW output (non-streaming).");
+                                // Display raw text, preserving whitespace and line breaks, safely
+                                const pre = document.createElement('pre');
+                                pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
+                                pre.style.wordBreak = 'break-word'; // Break long words without overflow
+                                pre.textContent = preparedText; // Use textContent for safety
+                                contentDiv.innerHTML = ''; // Clear previous content
+                                contentDiv.appendChild(pre);
+                            } else {
+                                contentDiv.innerHTML = window.MetisMarkdown.processResponse(preparedText);
+                            }
+                        } catch (markdownError) {
+                            console.error("Error processing markdown:", markdownError);
+                            // Fallback to basic formatting if markdown processing fails
+                            contentDiv.innerHTML = `<pre>${preparedText}</pre>`;
+                        }
+                    }
+                    
+                    // Add class to indicate markdown processing is complete
+                    contentDiv.classList.add('markdown-processed');
+                    
+                    // Log HTML structure after markdown processing
+                    console.log("HTML STRUCTURE AFTER MARKDOWN PROCESSING:", {
+                        paragraphTags: (contentDiv.innerHTML.match(/<p>/g) || []).length,
+                        brTags: (contentDiv.innerHTML.match(/<br>/g) || []).length
+                    });
 
                     addCitations(assistantMessageDiv, data.citations);
                     scrollToBottom();
@@ -259,13 +381,18 @@ document.addEventListener('DOMContentLoaded', function() {
      * @returns {object} The query object.
      */
     function buildQuery(message) {
+        // Get the state of the raw output toggles
+        const showRawOutput = rawOutputToggle?.checked ?? false;
+        const showRawLlmOutput = rawLlmOutputToggle?.checked ?? false;
+        
         const query = {
             message: message,
             model: modelSelect?.value || 'gemma3:4b',
             use_rag: ragToggle?.checked ?? true,
             conversation_id: currentConversationId,
             model_parameters: {},
-            stream: streamToggle?.checked ?? false // Default to false if toggle not found
+            stream: streamToggle?.checked ?? false, // Default to false if toggle not found
+            debug_raw: showRawOutput // Include raw output in response when toggle is checked
         };
 
         // Safely access values only if elements exist
@@ -374,13 +501,64 @@ document.addEventListener('DOMContentLoaded', function() {
                                 });
                             }
 
-                            // Update UI with RAW accumulated text during stream
+                            // Update UI with accumulated text during stream
                             let displayResponse = fullResponse;
                             const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
                             if (displayResponse.match(uuidPattern)) {
                                 displayResponse = displayResponse.replace(uuidPattern, '');
                             }
-                            contentDiv.textContent = displayResponse; // Use textContent for raw text during streaming
+                            
+                            // Get the state of the raw output toggles
+                            const showRawLlmOutput = rawLlmOutputToggle?.checked ?? false;
+                            
+                            if (showRawLlmOutput) {
+                                // Display raw text during streaming
+                                const pre = document.createElement('pre');
+                                pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
+                                pre.style.wordBreak = 'break-word'; // Break long words without overflow
+                                pre.textContent = displayResponse; // Use textContent for safety
+                                contentDiv.innerHTML = ''; // Clear any previous raw text
+                                contentDiv.appendChild(pre);
+                            } else {
+                                // During streaming, we need to handle text differently
+                                // Remove markdown-processed class during streaming if it exists
+                                contentDiv.classList.remove('markdown-processed');
+                                
+                                // Improved streaming text formatting
+                                // This preserves both paragraphs and list structures
+                                let formattedStreamingText = displayResponse;
+                                
+                                // First handle list items (preserve their structure)
+                                formattedStreamingText = formattedStreamingText
+                                    // Format numbered lists
+                                    .replace(/^(\d+\.)\s+(.+)$/gm, '<li class="numbered-list-item">$1 $2</li>')
+                                    // Format bullet lists
+                                    .replace(/^(\*|-)\s+(.+)$/gm, '<li class="bullet-list-item">$1 $2</li>');
+                                    
+                                // Then handle paragraphs
+                                formattedStreamingText = formattedStreamingText
+                                    .replace(/\n\n+/g, '</p><p>')
+                                    .replace(/\n/g, '<br>');
+                                
+                                // Wrap in paragraph tags
+                                contentDiv.innerHTML = '<p>' + formattedStreamingText + '</p>';
+                            }
+                            
+                            // Log streaming text structure
+                            if (fullResponse.length % 2000 === 0) {
+                                console.log("STREAMING TEXT STRUCTURE:", {
+                                    paragraphs: (displayResponse.match(/\n\n+/g) || []).length + 1,
+                                    singleNewlines: (displayResponse.match(/\n/g) || []).length,
+                                    doubleNewlines: (displayResponse.match(/\n\n+/g) || []).length
+                                });
+                                
+                                // Log HTML structure during streaming
+                                console.log("STREAMING HTML STRUCTURE:", {
+                                    paragraphTags: (contentDiv.innerHTML.match(/<p>/g) || []).length,
+                                    brTags: (contentDiv.innerHTML.match(/<br>/g) || []).length
+                                });
+                            }
+                            
                             scrollToBottom();
 
                         } catch (e) {
@@ -411,11 +589,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 finalProcessedResponse = finalProcessedResponse.replace(uuidPattern, '');
             }
             
-            console.log("SWITCHING FROM textContent TO innerHTML WITH MARKDOWN PROCESSING");
+            console.log("SWITCHING FROM STREAMING TO FULL MARKDOWN PROCESSING");
+            
+            // Log the final text structure before markdown processing
+            console.log("FINAL TEXT STRUCTURE BEFORE MARKDOWN:", {
+                paragraphs: (finalProcessedResponse.match(/\n\n+/g) || []).length + 1,
+                singleNewlines: (finalProcessedResponse.match(/\n/g) || []).length,
+                doubleNewlines: (finalProcessedResponse.match(/\n\n+/g) || []).length
+            });
+            
             // Process the complete response for Markdown, highlighting, and copy buttons
             const markdownStartTime = performance.now();
-            contentDiv.innerHTML = window.MetisMarkdown.processResponse(finalProcessedResponse);
+            
+            // Get the state of the raw output toggle (in case it changed during streaming)
+            const showRawOutput = rawOutputToggle?.checked ?? false;
+            
+            if (showRawOutput) {
+                console.log("Displaying RAW output (streaming final).");
+                // Display raw text, preserving whitespace and line breaks, safely
+                const pre = document.createElement('pre');
+                pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
+                pre.style.wordBreak = 'break-word'; // Break long words without overflow
+                pre.textContent = finalProcessedResponse; // Use textContent for safety
+                contentDiv.innerHTML = ''; // Clear any previous raw text
+                contentDiv.appendChild(pre);
+            } else {
+                // With breaks=true, we need to preserve single newlines
+                // but ensure proper list formatting
+                const preparedText = finalProcessedResponse
+                    // Ensure list items have proper formatting
+                    .replace(/^(\d+\.|\*|-)\s+/gm, '$1 '); // Ensure proper spacing after list markers
+                    // Don't convert single newlines to double newlines anymore since breaks=true
+                    
+                console.log("FINAL PREPARED TEXT PREVIEW:", preparedText.substring(0, 200) + "...");
+                try {
+                    // First check if raw output mode is enabled
+                    if (showRawOutput) {
+                        console.log("Displaying RAW output (streaming final).");
+                        // Display raw text, preserving whitespace and line breaks, safely
+                        const pre = document.createElement('pre');
+                        pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
+                        pre.style.wordBreak = 'break-word'; // Break long words without overflow
+                        pre.textContent = preparedText; // Use textContent for safety
+                        contentDiv.innerHTML = ''; // Clear any previous raw text
+                        contentDiv.appendChild(pre);
+                    } else {
+                        contentDiv.innerHTML = window.MetisMarkdown.processResponse(preparedText);
+                    }
+                } catch (markdownError) {
+                    console.error("Error processing markdown in streaming mode:", markdownError);
+                    // Fallback to basic formatting if markdown processing fails
+                    contentDiv.innerHTML = `<pre>${preparedText}</pre>`;
+                }
+                
+                // Add class to indicate markdown processing is complete
+                contentDiv.classList.add('markdown-processed');
+            }
             const markdownEndTime = performance.now();
+            
+            // Log HTML structure after markdown processing
+            console.log("HTML STRUCTURE AFTER MARKDOWN PROCESSING:", {
+                paragraphTags: (contentDiv.innerHTML.match(/<p>/g) || []).length,
+                brTags: (contentDiv.innerHTML.match(/<br>/g) || []).length
+            });
             console.log(`Markdown processing completed in ${(markdownEndTime - markdownStartTime).toFixed(2)}ms`);
             
             scrollToBottom();

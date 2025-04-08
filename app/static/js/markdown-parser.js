@@ -2,7 +2,7 @@
  * Markdown parser utility for Metis RAG
  */
 
-// Configure marked.js options
+// Check if marked is defined before configuring it
 console.log("CONFIGURING MARKED.JS OPTIONS");
 
 // Log the current breaks setting and its impact
@@ -12,11 +12,17 @@ console.log("- When breaks=false: Single newlines are ignored, double newlines (
 console.log("- If Ollama uses single newlines for line breaks, breaks=true is better");
 console.log("- If Ollama uses double newlines for paragraphs, breaks=false might be better");
 
-// Current setting: breaks=true
+// Current setting: breaks=false (recommended for proper paragraph structure)
+// When breaks=false, only double newlines (\n\n) create new paragraphs
+// When breaks=true, single newlines (\n) are converted to <br> tags
 const useBreaks = false;
 console.log("CURRENT SETTING: breaks=" + useBreaks);
+console.log("This means only double newlines (\\n\\n) will create new paragraphs");
+console.log("Single newlines (\\n) will be ignored unless they're in code blocks");
 
-marked.setOptions({
+// Check if marked is defined
+if (typeof marked !== 'undefined' && typeof hljs !== 'undefined') {
+  marked.setOptions({
   highlight: function(code, lang) {
     // Use the provided language tag or fallback to plaintext
     // The backend handles language tag fixing, so we just use what's provided
@@ -34,14 +40,33 @@ marked.setOptions({
       return temp.innerHTML; // Basic escaping
     }
   },
-  breaks: false, // Set to false to only create paragraphs on double newlines (\n\n)
-  gfm: true,    // Enable GitHub Flavored Markdown (includes fenced code blocks)
+  breaks: true, // Set to true to convert single newlines (\n) to <br> tags
+  gfm: true,     // Enable GitHub Flavored Markdown (includes fenced code blocks)
   headerIds: false,
+  sanitize: false, // Disable sanitization to allow HTML tags to be rendered
   mangle: false,
   // Add a custom renderer to ensure proper code block formatting
-  renderer: {
-    ...new marked.Renderer(),
-    code: function(code, language) {
+  renderer: new marked.Renderer(),
+});
+
+// Add custom renderer methods after initialization
+try {
+  if (typeof marked !== 'undefined' && typeof hljs !== 'undefined') {
+    // Try to get the renderer - different versions of marked.js have different APIs
+    let renderer;
+    try {
+      // Modern API
+      renderer = marked.getRenderer();
+    } catch (e) {
+      // Fallback to older API or create a new renderer
+      console.warn("Could not get renderer with getRenderer(), using fallback:", e);
+      renderer = new marked.Renderer();
+      // Apply the renderer to marked
+      marked.setOptions({ renderer: renderer });
+    }
+    
+    // Custom code renderer
+    renderer.code = function(code, language) {
       // Ensure proper code block formatting
       const validLanguage = language && hljs.getLanguage(language) ? language : 'plaintext';
       console.log("RENDERING CODE BLOCK WITH LANGUAGE:", validLanguage);
@@ -58,39 +83,71 @@ marked.setOptions({
                   <pre><code class="hljs language-${validLanguage}">${code}</code></pre>
                 </div>`;
       }
-    },
-    paragraph: function(text) {
+    };
+    
+    // Custom paragraph renderer
+    renderer.paragraph = function(text) {
       console.log("RENDERING PARAGRAPH:", text.substring(0, 50) + "...");
+      console.log("PARAGRAPH LENGTH:", text.length);
       return `<p class="structured-paragraph">${text}</p>`;
-    },
-    heading: function(text, level) {
+    };
+    
+    // Custom heading renderer
+    renderer.heading = function(text, level) {
       // Only apply our custom styling to h2 (##) headings
       if (level === 2) {
         return `<h${level} class="structured-heading">${text}</h${level}>`;
       }
       return `<h${level}>${text}</h${level}>`;
-    },
-    listitem: function(text) {
+    };
+    
+    // Custom list item renderer
+    renderer.listitem = function(text) {
       return `<li class="structured-list-item">${text}</li>`;
-    },
-    blockquote: function(text) {
+    };
+    
+    // Custom blockquote renderer
+    renderer.blockquote = function(text) {
       return `<blockquote class="structured-quote">${text}</blockquote>`;
-    }
+    };
   }
-});
+} catch (e) {
+  console.error("Error setting up custom renderers:", e);
+}
+} else {
+  console.error("ERROR: marked or hljs is not defined. Make sure to load these libraries before markdown-parser.js");
+  
+  // Define dummy functions to prevent errors
+  window.marked = {
+    parse: function(text) {
+      return `<pre>${text}</pre>`;
+    },
+    setOptions: function() {},
+    getRenderer: function() { return {}; },
+    Renderer: function() { return {}; }
+  };
+  
+  window.hljs = {
+    highlight: function(code, options) {
+      return { value: code };
+    },
+    getLanguage: function() { return null; }
+  };
+}
 
 /**
- * Sanitize HTML to prevent XSS attacks
+ * Sanitize HTML to prevent XSS attacks while preserving formatting
  * This is a more comprehensive sanitization than the basic approach
  * @param {string} html - The HTML to sanitize
  * @return {string} - Sanitized HTML
  */
 function sanitizeHTML(html) {
-  // Basic sanitization: remove script tags and potentially harmful attributes
+  // Only remove potentially harmful elements while preserving formatting
   const scriptTagRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
   const eventHandlerRegex = / on\w+="[^"]*"/gi;
   const inlineJSRegex = /javascript:/gi;
   
+  // Preserve HTML tags that are safe for formatting
   let sanitized = html.replace(scriptTagRegex, '')
                       .replace(eventHandlerRegex, '')
                       .replace(inlineJSRegex, 'void:');
@@ -114,7 +171,8 @@ function parseMarkdown(text) {
   console.log("PARAGRAPH STRUCTURE:", {
     paragraphs: paragraphCount,
     singleNewlines: singleNewlineCount,
-    doubleNewlines: doubleNewlineCount
+    doubleNewlines: doubleNewlineCount,
+    singleToDoubleRatio: singleNewlineCount > 0 ? (singleNewlineCount / (doubleNewlineCount || 1)).toFixed(2) : 0
   });
   
   // Pre-process code blocks to ensure proper formatting
@@ -137,13 +195,137 @@ function parseMarkdown(text) {
   // Let marked.js handle everything, including code blocks via the 'highlight' option
   console.log("CALLING MARKED.PARSE");
   try {
-    const rawHtml = marked.parse(text);
+    // Log the first few paragraphs with double newlines to confirm proper structure
+    const paragraphsWithDoubleNewlines = text.split(/\n\n+/);
+    console.log("PARAGRAPHS WITH DOUBLE NEWLINES:", paragraphsWithDoubleNewlines.length);
+    paragraphsWithDoubleNewlines.slice(0, 3).forEach((p, i) => {
+      console.log(`PARAGRAPH ${i+1} WITH DOUBLE NEWLINE:`, p.substring(0, 50) + (p.length > 50 ? "..." : ""));
+    });
+    
+    // Check if marked is defined and use the correct API
+    let rawHtml;
+    if (typeof marked !== 'undefined') {
+      try {
+        // Check if the error is the specific "t.text is not a function" issue
+        // This is a known issue with some versions of marked.js
+        const hasTextFunctionIssue = (function() {
+          try {
+            // Try a minimal test to see if we hit the error
+            const testText = "Test paragraph\n\nAnother paragraph";
+            if (typeof marked.parse === 'function') {
+              marked.parse(testText);
+            } else if (typeof marked === 'function') {
+              marked(testText);
+            }
+            return false; // No error occurred
+          } catch (e) {
+            return e.message.includes("t.text is not a function");
+          }
+        })();
+
+        if (hasTextFunctionIssue) {
+          console.warn("Detected 't.text is not a function' issue, using custom parser");
+          // Use our own simple markdown parser to avoid the issue
+          rawHtml = customMarkdownParser(text);
+        } else {
+          // Try using the modern API first
+          if (typeof marked.parse === 'function') {
+            rawHtml = marked.parse(text);
+          } else if (typeof marked === 'function') {
+            // Some versions expose marked as a function directly
+            rawHtml = marked(text);
+          } else if (typeof marked.Parser === 'function' && typeof marked.Lexer === 'function') {
+            // Fallback to older API if needed
+            const tokens = marked.Lexer.lex(text);
+            rawHtml = marked.Parser.parse(tokens);
+          } else {
+            // Last resort fallback
+            rawHtml = customMarkdownParser(text);
+            console.warn("Could not parse markdown with any available method, using custom parser");
+          }
+        }
+      } catch (parseError) {
+        console.warn("Error parsing markdown, using custom parser:", parseError);
+        rawHtml = customMarkdownParser(text);
+      }
+    } else {
+      rawHtml = `<pre>${text}</pre>`;
+    }
+
+    // Our custom markdown parser function as a fallback
+    function customMarkdownParser(mdText) {
+      if (!mdText) return '<p></p>';
+      
+      // Process code blocks first to avoid interference with other formatting
+      let processedText = mdText.replace(/```(\w*)([\s\S]*?)```/g, function(match, lang, code) {
+        return `<div class="structured-code-block">
+                  <div class="code-block-header">${lang || 'code'}</div>
+                  <pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>
+                </div>`;
+      });
+      
+      // Process inline code
+      processedText = processedText.replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // Process headers
+      processedText = processedText.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+      processedText = processedText.replace(/^## (.*?)$/gm, '<h2 class="structured-heading">$1</h2>');
+      processedText = processedText.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+      
+      // Process lists
+      processedText = processedText.replace(/^\s*[\*\-]\s+(.*?)$/gm, '<li class="structured-list-item">$1</li>');
+      processedText = processedText.replace(/^\s*(\d+)\.\s+(.*?)$/gm, '<li class="numbered-list-item">$1. $2</li>');
+      
+      // Process paragraphs (must be done after lists)
+      const paragraphs = processedText.split(/\n\n+/);
+      processedText = paragraphs.map(p => {
+        // Skip if already wrapped in HTML tag
+        if (p.trim().startsWith('<') && !p.trim().startsWith('<li')) {
+          return p;
+        }
+        // Convert single newlines to <br> tags
+        p = p.replace(/\n/g, '<br>');
+        // Wrap in paragraph tag if not a list item
+        if (p.includes('<li')) {
+          return `<ul>${p}</ul>`;
+        }
+        return `<p class="structured-paragraph">${p}</p>`;
+      }).join('\n\n');
+      
+      // Process bold and italic
+      processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      processedText = processedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      
+      // Process links
+      processedText = processedText.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+      
+      return processedText;
+    }
     console.log("MARKED.PARSE RETURNED HTML LENGTH:", rawHtml ? rawHtml.length : 0);
     
-    // Apply sanitization to the final HTML output
-    console.log("SANITIZING HTML");
+    // Log the raw HTML to see what marked.js is generating
+    console.log("RAW HTML PREVIEW:", rawHtml ? rawHtml.substring(0, 200) + "..." : "null");
+    
+    // Count paragraph tags in raw HTML
+    const paragraphTagsInRawHtml = (rawHtml.match(/<p>/g) || []).length;
+    console.log("PARAGRAPH TAGS IN RAW HTML:", paragraphTagsInRawHtml);
+    
+    // Compare with paragraphs with double newlines
+    console.log("PARAGRAPH CONVERSION RATE:",
+      paragraphsWithDoubleNewlines.length > 0 ?
+      ((paragraphTagsInRawHtml / paragraphsWithDoubleNewlines.length) * 100).toFixed(2) + "%" : "0%");
+    
+    // Apply minimal sanitization to the final HTML output
+    console.log("SANITIZING HTML (PRESERVING FORMATTING)");
     const sanitizedHtml = sanitizeHTML(rawHtml);
     console.log("SANITIZED HTML LENGTH:", sanitizedHtml ? sanitizedHtml.length : 0);
+    
+    // Log HTML structure after sanitization
+    console.log("HTML STRUCTURE AFTER SANITIZATION:", {
+      paragraphTags: (sanitizedHtml.match(/<p>/g) || []).length,
+      brTags: (sanitizedHtml.match(/<br>/g) || []).length,
+      listItems: (sanitizedHtml.match(/<li>/g) || []).length
+    });
     
     return sanitizedHtml;
   } catch (error) {
@@ -401,18 +583,52 @@ function processResponse(response) {
   // Log HTML structure
   const paragraphTags = (html.match(/<p>/g) || []).length;
   const brTags = (html.match(/<br>/g) || []).length;
+  const preBlocks = (html.match(/<pre>/g) || []).length;
+  
+  // Extract and log the first few paragraph tags to see their content
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  const pElements = tempDiv.querySelectorAll('p');
+  console.log("FIRST FEW PARAGRAPH ELEMENTS:");
+  Array.from(pElements).slice(0, 3).forEach((p, i) => {
+    console.log(`P ELEMENT ${i+1} (${p.textContent.length} chars):`, p.textContent.substring(0, 50) + (p.textContent.length > 50 ? "..." : ""));
+    console.log(`P ELEMENT ${i+1} BR TAGS:`, (p.innerHTML.match(/<br>/g) || []).length);
+  });
+  
   console.log("HTML STRUCTURE:", {
     paragraphTags: paragraphTags,
-    brTags: brTags
+    brTags: brTags,
+    preBlocks: preBlocks,
+    brToParaRatio: paragraphTags > 0 ? (brTags / paragraphTags).toFixed(2) : 0,
+    averageCharsPerParagraph: pElements.length > 0 ?
+      (Array.from(pElements).reduce((sum, p) => sum + p.textContent.length, 0) / pElements.length).toFixed(2) : 0
   });
   
   // Check if paragraph count matches
   if (paragraphCount !== paragraphTags) {
     console.warn("PARAGRAPH COUNT MISMATCH:", {
       originalParagraphs: paragraphCount,
-      htmlParagraphs: paragraphTags
+      htmlParagraphs: paragraphTags,
+      difference: paragraphCount - paragraphTags
     });
   }
+  
+  // Log the impact of breaks=true setting
+  console.log("BREAKS=TRUE IMPACT:", {
+    singleNewlines: singleNewlineCount,
+    brTags: brTags,
+    conversionRate: singleNewlineCount > 0 ? (brTags / singleNewlineCount).toFixed(2) : 0,
+    effectivenessRating: singleNewlineCount > 0 && brTags > 0 ?
+      ((brTags / singleNewlineCount) * 100).toFixed(2) + "%" : "0%"
+  });
+  
+  // Log overall formatting assessment
+  console.log("FORMATTING ASSESSMENT:", {
+    paragraphPreservation: paragraphCount === paragraphTags ? "Good" : "Needs improvement",
+    lineBreakPreservation: singleNewlineCount > 0 && brTags > 0 ?
+      ((brTags / singleNewlineCount) * 100).toFixed(2) + "%" : "0%",
+    overallQuality: paragraphCount === paragraphTags && brTags > 0 ? "Good" : "Needs improvement"
+  });
   
   // Use requestAnimationFrame to ensure DOM is ready for button addition/highlighting
   requestAnimationFrame(() => {
@@ -485,11 +701,38 @@ function initializeCodeHighlighting() {
 }
 
 // Export the functions for use in other scripts
+// Define the MetisMarkdown object with fallbacks
 window.MetisMarkdown = {
-  processResponse: processResponse,
-  initializeHighlighting: initializeCodeHighlighting,
-  addCopyButtons: addCopyButtons
+  processResponse: function(response) {
+    try {
+      return processResponse(response);
+    } catch (e) {
+      console.error("Error in processResponse:", e);
+      return `<pre>${response}</pre>`;
+    }
+  },
+  initializeHighlighting: function() {
+    try {
+      if (typeof initializeCodeHighlighting === 'function') {
+        initializeCodeHighlighting();
+      }
+    } catch (e) {
+      console.error("Error in initializeCodeHighlighting:", e);
+    }
+  },
+  addCopyButtons: function() {
+    try {
+      if (typeof addCopyButtons === 'function') {
+        addCopyButtons();
+      }
+    } catch (e) {
+      console.error("Error in addCopyButtons:", e);
+    }
+  }
 };
+
+// Log that the MetisMarkdown object is ready
+console.log("MetisMarkdown object initialized and ready for use");
 
 // Add Font Awesome if not already included
 if (!document.querySelector('link[href*="font-awesome"]')) {
