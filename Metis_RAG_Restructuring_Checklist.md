@@ -53,18 +53,18 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] `app/static/js/chat/components/`
   - [x] `app/static/js/chat/utils/`
   - [x] `app/static/js/chat/state/`
-  - [ ] `app/rag/engine/`
-  - [ ] `app/rag/engine/components/`
-  - [ ] `app/rag/engine/utils/`
-  - [ ] `app/rag/engine/base/`
+  - [x] `app/rag/engine/`
+  - [x] `app/rag/engine/components/`
+  - [x] `app/rag/engine/utils/`
+  - [x] `app/rag/engine/base/`
   - [ ] `app/utils/text_formatting/`
   - [ ] `app/utils/text_formatting/formatters/`
   - [ ] `app/utils/text_formatting/rules/`
 
 ### 1.2 Create Empty Files with Proper Imports
-- [x] Create `__init__.py` files in each directory (for chat API)
-- [x] Set up empty module files with proper imports (for chat API)
-- [x] Add placeholder docstrings explaining the purpose of each file (for chat API)
+- [x] Create `__init__.py` files in each directory (for chat API and RAG engine)
+- [x] Set up empty module files with proper imports (for chat API and RAG engine)
+- [x] Add placeholder docstrings explaining the purpose of each file (for chat API and RAG engine)
 
 ### 1.3 Set Up Testing Infrastructure
 - [x] Create or update unit tests for existing functionality (for chat API)
@@ -108,14 +108,24 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Extract error handling logic
 
 ### 2.3 Extract RAG Engine Utilities
-- [ ] Create `app/rag/engine/utils/query_processor.py`:
-  - [ ] Extract query processing logic
-- [ ] Create `app/rag/engine/utils/timing.py`:
-  - [ ] Extract performance timing logic
-- [ ] Create `app/rag/engine/utils/relevance.py`:
-  - [ ] Extract relevance scoring logic
-- [ ] Create `app/rag/engine/utils/error_handler.py`:
-  - [ ] Extract error handling logic
+- [x] Create `app/rag/engine/base/base_engine.py`:
+  - [x] Extract base engine functionality
+- [x] Create `app/rag/engine/base/vector_store_mixin.py`:
+  - [x] Extract vector store functionality
+- [x] Create `app/rag/engine/base/ollama_mixin.py`:
+  - [x] Extract Ollama LLM functionality
+- [x] Create `app/rag/engine/base/cache_mixin.py`:
+  - [x] Extract caching functionality
+- [x] Create `app/rag/engine/base/security_mixin.py`:
+  - [x] Extract security functionality
+- [x] Create `app/rag/engine/utils/query_processor.py`:
+  - [x] Extract query processing logic
+- [x] Create `app/rag/engine/utils/timing.py`:
+  - [x] Extract performance timing logic
+- [x] Create `app/rag/engine/utils/relevance.py`:
+  - [x] Extract relevance scoring logic
+- [x] Create `app/rag/engine/utils/error_handler.py`:
+  - [x] Extract error handling logic
 
 ### 2.4 Extract Text Formatting Utilities
 - [ ] Create `app/utils/text_formatting/rules/code_rules.py`:
