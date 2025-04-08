@@ -334,11 +334,11 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Add deprecation warning
 
 ### 4.5 Refactor Text Formatting Monitor
-- [ ] Update `app/utils/text_formatting/__init__.py`:
-  - [ ] Export formatting components
-- [ ] Refactor `app/utils/text_formatting_monitor.py`:
-  - [ ] Convert to thin wrapper that imports from new modules
-  - [ ] Add deprecation warning
+- [x] Update `app/utils/text_formatting/__init__.py`:
+  - [x] Export formatting components
+- [x] Refactor `app/utils/text_formatting_monitor.py`:
+  - [x] Convert to thin wrapper that imports from new modules
+  - [x] Add deprecation warning
 
 ### 4.6 Test Refactored Files
 - [x] Run unit tests (for chat API)
