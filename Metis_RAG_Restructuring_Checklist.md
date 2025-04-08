@@ -57,9 +57,9 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] `app/rag/engine/components/`
   - [x] `app/rag/engine/utils/`
   - [x] `app/rag/engine/base/`
-  - [ ] `app/utils/text_formatting/`
-  - [ ] `app/utils/text_formatting/formatters/`
-  - [ ] `app/utils/text_formatting/rules/`
+  - [x] `app/utils/text_formatting/`
+  - [x] `app/utils/text_formatting/formatters/`
+  - [x] `app/utils/text_formatting/rules/`
 
 ### 1.2 Create Empty Files with Proper Imports
 - [x] Create `__init__.py` files in each directory (for chat API and RAG engine)
@@ -128,14 +128,14 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Extract error handling logic
 
 ### 2.4 Extract Text Formatting Utilities
-- [ ] Create `app/utils/text_formatting/rules/code_rules.py`:
-  - [ ] Extract code formatting rules
-- [ ] Create `app/utils/text_formatting/rules/list_rules.py`:
-  - [ ] Extract list formatting rules
-- [ ] Create `app/utils/text_formatting/rules/table_rules.py`:
-  - [ ] Extract table formatting rules
-- [ ] Create `app/utils/text_formatting/rules/markdown_rules.py`:
-  - [ ] Extract markdown formatting rules
+- [x] Create `app/utils/text_formatting/rules/code_rules.py`:
+  - [x] Extract code formatting rules
+- [x] Create `app/utils/text_formatting/rules/list_rules.py`:
+  - [x] Extract list formatting rules
+- [x] Create `app/utils/text_formatting/rules/table_rules.py`:
+  - [x] Extract table formatting rules
+- [x] Create `app/utils/text_formatting/rules/markdown_rules.py`:
+  - [x] Extract markdown formatting rules
 
 ### 2.5 Test Utilities
 - [x] Run unit tests for each utility (for chat API)
@@ -219,28 +219,28 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Create `ContextBuilder` class
 
 ### 3.4 Extract RAG Engine Base Components
-- [ ] Create `app/rag/engine/base/base_engine.py`:
-  - [ ] Extract core base engine functionality
-- [ ] Create `app/rag/engine/base/vector_store_mixin.py`:
-  - [ ] Extract vector store integration
-- [ ] Create `app/rag/engine/base/ollama_mixin.py`:
-  - [ ] Extract Ollama client integration
-- [ ] Create `app/rag/engine/base/cache_mixin.py`:
-  - [ ] Extract cache management
-- [ ] Create `app/rag/engine/base/security_mixin.py`:
-  - [ ] Extract security features
+- [x] Create `app/rag/engine/base/base_engine.py`:
+  - [x] Extract core base engine functionality
+- [x] Create `app/rag/engine/base/vector_store_mixin.py`:
+  - [x] Extract vector store integration
+- [x] Create `app/rag/engine/base/ollama_mixin.py`:
+  - [x] Extract Ollama client integration
+- [x] Create `app/rag/engine/base/cache_mixin.py`:
+  - [x] Extract cache management
+- [x] Create `app/rag/engine/base/security_mixin.py`:
+  - [x] Extract security features
 
 ### 3.5 Extract Text Formatting Components
-- [ ] Create `app/utils/text_formatting/monitor.py`:
-  - [ ] Extract main monitoring functionality
-- [ ] Create `app/utils/text_formatting/formatters/code_formatter.py`:
-  - [ ] Extract code block formatting
-- [ ] Create `app/utils/text_formatting/formatters/list_formatter.py`:
-  - [ ] Extract list formatting
-- [ ] Create `app/utils/text_formatting/formatters/table_formatter.py`:
-  - [ ] Extract table formatting
-- [ ] Create `app/utils/text_formatting/formatters/markdown_formatter.py`:
-  - [ ] Extract general markdown formatting
+- [x] Create `app/utils/text_formatting/monitor.py`:
+  - [x] Extract main monitoring functionality
+- [x] Create `app/utils/text_formatting/formatters/code_formatter.py`:
+  - [x] Extract code block formatting
+- [x] Create `app/utils/text_formatting/formatters/list_formatter.py`:
+  - [x] Extract list formatting
+- [x] Create `app/utils/text_formatting/formatters/table_formatter.py`:
+  - [x] Extract table formatting
+- [x] Create `app/utils/text_formatting/formatters/markdown_formatter.py`:
+  - [x] Extract general markdown formatting
 
 ### 3.6 Test Components
 - [x] Run unit tests for each component (for chat API)
@@ -269,7 +269,7 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - Extract state management
   - Update to use utility functions"
   ```
-- [ ] Commit RAG engine component extraction:
+- [x] Commit RAG engine component extraction:
   ```bash
   git add app/rag/engine/
   git commit -m "restructure(rag-engine): extract RAG engine components
@@ -279,7 +279,7 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - Update to use utility functions
   - Add tests for all components"
   ```
-- [ ] Commit text formatting component extraction:
+- [x] Commit text formatting component extraction:
   ```bash
   git add app/utils/text_formatting/
   git commit -m "restructure(text-formatting): extract text formatting components
@@ -372,26 +372,26 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
 ## Phase 5: Update Imports
 
 ### 5.1 Identify Import Dependencies
-- [ ] Use a tool like `grep` to find all imports of the original files:
+- [x] Use a tool like `grep` to find all imports of the original files:
   ```bash
   grep -r "from app.api.chat import" --include="*.py" .
   grep -r "from app.rag.rag_engine import" --include="*.py" .
   grep -r "from app.rag.rag_engine_base import" --include="*.py" .
   grep -r "from app.utils.text_formatting_monitor import" --include="*.py" .
   ```
-- [ ] Create a list of files that need to be updated
+- [x] Create a list of files that need to be updated
 
 ### 5.2 Update Import Statements
-- [ ] Update imports in other files to use the new structure
-- [ ] Test each file after updating imports
+- [x] Update imports in other files to use the new structure
+- [x] Test each file after updating imports
 
 ### 5.3 Test Updated Imports
-- [ ] Run unit tests
-- [ ] Run integration tests
-- [ ] Fix any issues that arise
+- [x] Run unit tests
+- [x] Run integration tests
+- [x] Fix any issues that arise
 
 ### 5.4 Create Git Checkpoint
-- [ ] Commit import updates:
+- [x] Commit import updates:
   ```bash
   git add .
   git commit -m "restructure(imports): update import statements across codebase
@@ -400,11 +400,11 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - Fix any issues with circular imports
   - Update tests"
   ```
-- [ ] Create a tag for the imports milestone:
+- [x] Create a tag for the imports milestone:
   ```bash
   git tag -a restructure-imports-v1.0 -m "Import updates complete"
   ```
-- [ ] Push to remote:
+- [x] Push to remote:
   ```bash
   git push origin restructure/large-files
   git push origin restructure-imports-v1.0
@@ -413,24 +413,24 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
 ## Phase 6: Documentation and Cleanup
 
 ### 6.1 Update Documentation
-- [ ] Update API documentation
-- [ ] Update code comments
-- [ ] Create architecture diagrams
-- [ ] Update README files
+- [x] Update API documentation
+- [x] Update code comments
+- [x] Create architecture diagrams
+- [x] Update README files
 
 ### 6.2 Add Deprecation Warnings
 - [x] Add deprecation warnings to original files (for chat API)
-- [ ] Create migration guide
+- [x] Create migration guide
 
 ### 6.3 Final Testing
-- [ ] Run all tests
-- [ ] Perform manual testing
-- [ ] Fix any remaining issues
+- [x] Run all tests
+- [x] Perform manual testing
+- [x] Fix any remaining issues
 
 ### 6.4 Code Review
-- [ ] Conduct code review
-- [ ] Address feedback
-- [ ] Finalize changes
+- [x] Conduct code review
+- [x] Address feedback
+- [x] Finalize changes
 
 ## Phase 7: Deployment
 
