@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metis RAG Code Formatting Fix Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-case {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: #50c878;
+        }
+        .message {
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            line-height: 1.5;
+            max-width: 85%;
+            background-color: rgba(0, 255, 0, 0.05);
+            color: white;
+            margin-left: 10px;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            white-space: pre-wrap;
+            align-self: flex-start;
+            border-left: 3px solid #50c878;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #2e8b57;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #3a7a5d;
+        }
+        .code-block-container {
+            position: relative;
+            margin: 1em 0;
+        }
+        .copy-code-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 3px 8px;
+            font-size: 0.8em;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .copy-code-button:hover {
+            background-color: #555;
+        }
+        pre {
+            margin: 0;
+            padding: 1em;
+            overflow: auto;
+            background-color: #282c34;
+            border-radius: 4px;
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Metis RAG Code Formatting Fix Test</h1>
+        
+        <div class="controls">
+            <button id="parse-btn">Parse Markdown</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+        
+        <div class="test-case">
+            <h2>Test Case 1: Python Code with Incorrect Closing Tag</h2>
+            <div id="input1" class="message">
+Here's an example of how you could implement a function in Python to calculate square roots:
+
+```python
+import math
+
+def calculate_square_root(n):
+    """
+    Calculate the square root of a given number.
+    
+    Args:
+        n (float): The input number for which the square root needs to be calculated.
+        
+    Returns:
+        float: The square root of the input number.
+    """
+    if not isinstance(n, (int, float)):
+        raise ValueError("Input must be a number.")
+        
+    if n < 0:
+        return complex(math.sqrt(-n), math.atan(0))
+    else:
+        return math.sqrt(n)
+
+# Example usage
+print(calculate_square_root(9))  # Output: 3.0
+print(calculate_square_root(-16))  # Output: (4+0j)
+```python
+
+This function uses the built-in `math.sqrt` function to calculate the square root of a given number.
+            </div>
+            <div id="output1" class="message" style="display: none;"></div>
+        </div>
+        
+        <div class="test-case">
+            <h2>Test Case 2: JavaScript Code with Correct Closing Tag</h2>
+            <div id="input2" class="message">
+Here's a JavaScript function to calculate factorial:
+
+```javascript
+/**
+ * Calculate the factorial of a number
+ * @param {number} n - The number to calculate factorial for
+ * @returns {number} The factorial of n
+ */
+function factorial(n) {
+    // Check if input is valid
+    if (!Number.isInteger(n) || n < 0) {
+        throw new Error('Input must be a non-negative integer');
+    }
+    
+    // Base case
+    if (n === 0 || n === 1) {
+        return 1;
+    }
+    
+    // Recursive calculation
+    return n * factorial(n - 1);
+}
+
+// Example usage
+console.log(factorial(5)); // Output: 120
+console.log(factorial(0)); // Output: 1
+```
+
+This implementation provides a recursive approach to calculating factorials.
+            </div>
+            <div id="output2" class="message" style="display: none;"></div>
+        </div>
+        
+        <div class="test-case">
+            <h2>Test Case 3: Multiple Languages with Mixed Closing Tags</h2>
+            <div id="input3" class="message">
+Here are examples in multiple languages:
+
+**Python:**
+```python
+def greet(name):
+    return f"Hello, {name}!"
+```python
+
+**JavaScript:**
+```javascript
+function greet(name) {
+    return `Hello, ${name}!`;
+}
+```
+
+**SQL:**
+```sql
+SELECT first_name, last_name 
+FROM users 
+WHERE age > 21 
+ORDER BY last_name ASC;
+```sql
+
+**HTML/CSS:**
+```html
+<div class="greeting">
+    <h1>Welcome!</h1>
+    <p>Hello, <span class="name">User</span>!</p>
+</div>
+```html
+            </div>
+            <div id="output3" class="message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="js/markdown-parser.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const parseBtn = document.getElementById('parse-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            
+            parseBtn.addEventListener('click', function() {
+                // Process each test case
+                for (let i = 1; i <= 3; i++) {
+                    const input = document.getElementById(`input${i}`);
+                    const output = document.getElementById(`output${i}`);
+                    
+                    // Parse the markdown using our updated parser
+                    output.innerHTML = window.MetisMarkdown.processResponse(input.textContent);
+                    
+                    // Show output, hide input
+                    input.style.display = 'none';
+                    output.style.display = 'block';
+                }
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                // Reset each test case
+                for (let i = 1; i <= 3; i++) {
+                    const input = document.getElementById(`input${i}`);
+                    const output = document.getElementById(`output${i}`);
+                    
+                    // Show input, hide output
+                    input.style.display = 'block';
+                    output.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

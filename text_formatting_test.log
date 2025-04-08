@@ -1,0 +1,3832 @@
+2025-04-07 14:05:31,410 - passlib.utils.compat - DEBUG - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2025-04-07 14:05:31,410 - passlib.utils.compat - DEBUG - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2025-04-07 14:05:31,411 - passlib.utils.compat - DEBUG - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2025-04-07 14:05:31,427 - passlib.registry - DEBUG - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Created 5 default test cases
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Loaded 5 test cases
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Running tests on 5 test cases
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Test case 1/5: code_blocks
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - Before normalization: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - normalize_text input length: 237
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - normalize_text input preview: Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_wo...
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - Newline patterns before: single=17, double=4
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - Newline patterns after: single=17, double=4
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - normalize_text output length: 231
+2025-04-07 14:05:32,091 - app.utils.text_processor - DEBUG - normalize_text output preview: Here's a Python code example:
+
+```python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello_world()...
+2025-04-07 14:05:32,091 - test_text_formatting - INFO - After normalization: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:05:32,092 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:05:32,092 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:05:32,092 - app.utils.text_processor - DEBUG - format_code_blocks input length: 231
+2025-04-07 14:05:32,092 - app.utils.text_processor - DEBUG - Code blocks before formatting: 2
+2025-04-07 14:05:32,092 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:05:32,092 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:05:32,092 - app.utils.text_processor - DEBUG - Code block preview: python
+def hello_world():
+ print("Hello, world! ")...
+2025-04-07 14:05:32,092 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:05:32,092 - app.utils.text_processor - DEBUG - Code block preview: function helloWorld() {
+ console. log("Hello, worl...
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Code blocks after formatting: 2
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 7
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - format_code_blocks output length: 246
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here's a Python code example:
+
+```python
+
+python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello...
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - After code block formatting: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:05:32,093 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 7
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Final text analysis: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:05:32,093 - test_text_formatting - INFO -   Paragraphs: 5 -> 7
+2025-04-07 14:05:32,093 - test_text_formatting - INFO -   Code blocks: 2 -> 2
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Test case code_blocks completed successfully
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Test case 2/5: mixed_content
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Before normalization: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - normalize_text input length: 424
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - normalize_text input preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 9
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Newline patterns before: single=27, double=8
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 9
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Newline patterns after: single=27, double=8
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - normalize_text output length: 400
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - normalize_text output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - After normalization: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - format_code_blocks input length: 400
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Code blocks before formatting: 1
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 9
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Code block preview: python
+# Python code
+class TestClass:
+ def __init_...
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Code blocks after formatting: 1
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 10
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - format_code_blocks output length: 414
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - format_code_blocks output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - After code block formatting: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:05:32,093 - test_text_formatting - WARNING - Paragraph count changed: 9 -> 10
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Final text analysis: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:05:32,093 - test_text_formatting - INFO -   Paragraphs: 9 -> 10
+2025-04-07 14:05:32,093 - test_text_formatting - INFO -   Code blocks: 1 -> 1
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Test case mixed_content completed successfully
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Test case 3/5: problematic_code_blocks
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:05:32,093 - test_text_formatting - INFO - Before normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - normalize_text input length: 203
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - normalize_text input preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascript...
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:05:32,093 - app.utils.text_processor - DEBUG - Newline patterns before: single=14, double=4
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Newline patterns after: single=14, double=4
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - normalize_text output length: 203
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - normalize_text output preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math. sqrt(16))
+```
+
+```javascrip...
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - After normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - format_code_blocks input length: 203
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Code blocks before formatting: 4
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Code block preview: python
+import math
+print(math. sqrt(16))
+...
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Code block preview: const x = 10;
+console. log(x);
+...
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'html'
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Code block preview: <div>Hello</div>...
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'css'
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Code block preview: . container {
+ width: 100%;
+}...
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Code blocks after formatting: 4
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 9
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - format_code_blocks output length: 238
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here are some problematic code blocks:
+
+```python
+
+python
+import math
+print(math. sqrt(16))
+```pytho...
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - After code block formatting: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:05:32,094 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 9
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Final text analysis: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:05:32,094 - test_text_formatting - INFO -   Paragraphs: 5 -> 9
+2025-04-07 14:05:32,094 - test_text_formatting - INFO -   Code blocks: 4 -> 4
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Test case problematic_code_blocks completed successfully
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Test case 4/5: simple_paragraphs
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Before normalization: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - normalize_text input length: 260
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 4
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Newline patterns before: single=7, double=3
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 4
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Newline patterns after: single=7, double=3
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - normalize_text output length: 261
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - After normalization: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:05:32,094 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - format_code_blocks input length: 261
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:05:32,094 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 4
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 4
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - format_code_blocks output length: 261
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - After code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Final text analysis: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:05:32,095 - test_text_formatting - INFO -   Paragraphs: 4 -> 4
+2025-04-07 14:05:32,095 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Test case simple_paragraphs completed successfully
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Test case 5/5: no_paragraph_breaks
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Before normalization: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - normalize_text input length: 313
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 1
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Newline patterns before: single=0, double=0
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 1
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Newline patterns after: single=0, double=0
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - normalize_text output length: 314
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - After normalization: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:05:32,095 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - format_code_blocks input length: 314
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 1
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:05:32,095 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 1
+2025-04-07 14:05:32,096 - app.utils.text_processor - DEBUG - format_code_blocks output length: 314
+2025-04-07 14:05:32,096 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:05:32,096 - test_text_formatting - INFO - After code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:05:32,096 - test_text_formatting - INFO - Final text analysis: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:05:32,096 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:05:32,096 - test_text_formatting - INFO -   Paragraphs: 1 -> 1
+2025-04-07 14:05:32,096 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:05:32,096 - test_text_formatting - INFO - Test case no_paragraph_breaks completed successfully
+2025-04-07 14:05:32,096 - test_text_formatting - INFO - Test results written to /Users/charleshoward/Metis_RAG/tests/results/text_formatting_results.json
+2025-04-07 14:05:32,096 - test_text_formatting - INFO - Test summary: 5/5 tests passed
+2025-04-07 14:08:09,239 - passlib.utils.compat - DEBUG - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2025-04-07 14:08:09,239 - passlib.utils.compat - DEBUG - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2025-04-07 14:08:09,239 - passlib.utils.compat - DEBUG - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2025-04-07 14:08:09,245 - passlib.registry - DEBUG - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2025-04-07 14:08:09,813 - test_text_formatting - INFO - Loaded 5 test cases
+2025-04-07 14:08:09,813 - test_text_formatting - INFO - Running tests on 5 test cases
+2025-04-07 14:08:09,813 - test_text_formatting - INFO - Test case 1/5: code_blocks
+2025-04-07 14:08:09,813 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:09,814 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:09,814 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:09,814 - test_text_formatting - INFO - Before normalization: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - normalize_text input length: 237
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - normalize_text input preview: Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_wo...
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - Newline patterns before: single=17, double=4
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - Newline patterns after: single=17, double=4
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - normalize_text output length: 231
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - normalize_text output preview: Here's a Python code example:
+
+```python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello_world()...
+2025-04-07 14:08:09,814 - test_text_formatting - INFO - After normalization: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:09,814 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:09,814 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - format_code_blocks input length: 231
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - Code blocks before formatting: 2
+2025-04-07 14:08:09,814 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Code block preview: python
+def hello_world():
+ print("Hello, world! ")...
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Code block preview: function helloWorld() {
+ console. log("Hello, worl...
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Code blocks after formatting: 2
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 7
+2025-04-07 14:08:09,815 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 7)
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 7
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - format_code_blocks output length: 246
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here's a Python code example:
+
+```python
+
+python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello...
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - After code block formatting: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:08:09,815 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 7
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Final text analysis: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:08:09,815 - test_text_formatting - INFO -   Paragraphs: 5 -> 7
+2025-04-07 14:08:09,815 - test_text_formatting - INFO -   Code blocks: 2 -> 2
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Test case code_blocks completed successfully
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Test case 2/5: mixed_content
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:09,815 - test_text_formatting - INFO - Before normalization: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - normalize_text input length: 424
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - normalize_text input preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 9
+2025-04-07 14:08:09,815 - app.utils.text_processor - DEBUG - Newline patterns before: single=27, double=8
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 9
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Newline patterns after: single=27, double=8
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - normalize_text output length: 400
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - normalize_text output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - After normalization: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - format_code_blocks input length: 400
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code blocks before formatting: 1
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 9
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code block preview: python
+# Python code
+class TestClass:
+ def __init_...
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code blocks after formatting: 1
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 10
+2025-04-07 14:08:09,816 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 9, after: 10)
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 10
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - format_code_blocks output length: 414
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - format_code_blocks output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - After code block formatting: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:09,816 - test_text_formatting - WARNING - Paragraph count changed: 9 -> 10
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Final text analysis: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:08:09,816 - test_text_formatting - INFO -   Paragraphs: 9 -> 10
+2025-04-07 14:08:09,816 - test_text_formatting - INFO -   Code blocks: 1 -> 1
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Test case mixed_content completed successfully
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Test case 3/5: problematic_code_blocks
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Before normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - normalize_text input length: 203
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - normalize_text input preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascript...
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Newline patterns before: single=14, double=4
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Newline patterns after: single=14, double=4
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - normalize_text output length: 203
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - normalize_text output preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math. sqrt(16))
+```
+
+```javascrip...
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - After normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:09,816 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - format_code_blocks input length: 203
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code blocks before formatting: 4
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code block preview: python
+import math
+print(math. sqrt(16))
+...
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code block preview: const x = 10;
+console. log(x);
+...
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'html'
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code block preview: <div>Hello</div>...
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'css'
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code block preview: . container {
+ width: 100%;
+}...
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Code blocks after formatting: 4
+2025-04-07 14:08:09,816 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 9
+2025-04-07 14:08:09,817 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 9)
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 9
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - format_code_blocks output length: 238
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here are some problematic code blocks:
+
+```python
+
+python
+import math
+print(math. sqrt(16))
+```pytho...
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - After code block formatting: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:08:09,817 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 9
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Final text analysis: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:08:09,817 - test_text_formatting - INFO -   Paragraphs: 5 -> 9
+2025-04-07 14:08:09,817 - test_text_formatting - INFO -   Code blocks: 4 -> 4
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Test case problematic_code_blocks completed successfully
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Test case 4/5: simple_paragraphs
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Before normalization: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - normalize_text input length: 260
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 4
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Newline patterns before: single=7, double=3
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 4
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Newline patterns after: single=7, double=3
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - normalize_text output length: 261
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - After normalization: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - format_code_blocks input length: 261
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 4
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 4
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - format_code_blocks output length: 261
+2025-04-07 14:08:09,817 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - After code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Final text analysis: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:08:09,817 - test_text_formatting - INFO -   Paragraphs: 4 -> 4
+2025-04-07 14:08:09,817 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Test case simple_paragraphs completed successfully
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Test case 5/5: no_paragraph_breaks
+2025-04-07 14:08:09,817 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Before normalization: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - normalize_text input length: 313
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 1
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Newline patterns before: single=0, double=0
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 1
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Newline patterns after: single=0, double=0
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - normalize_text output length: 314
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - After normalization: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - format_code_blocks input length: 314
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 1
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 1
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - format_code_blocks output length: 314
+2025-04-07 14:08:09,818 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - After code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Final text analysis: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:08:09,818 - test_text_formatting - INFO -   Paragraphs: 1 -> 1
+2025-04-07 14:08:09,818 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Test case no_paragraph_breaks completed successfully
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Test results written to /Users/charleshoward/Metis_RAG/tests/results/text_formatting_results.json
+2025-04-07 14:08:09,818 - test_text_formatting - INFO - Test summary: 5/5 tests passed
+2025-04-07 14:08:38,457 - passlib.utils.compat - DEBUG - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2025-04-07 14:08:38,457 - passlib.utils.compat - DEBUG - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2025-04-07 14:08:38,457 - passlib.utils.compat - DEBUG - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2025-04-07 14:08:38,460 - passlib.registry - DEBUG - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2025-04-07 14:08:38,979 - test_text_formatting - INFO - Loaded 5 test cases
+2025-04-07 14:08:38,979 - test_text_formatting - INFO - Running tests on 5 test cases
+2025-04-07 14:08:38,979 - test_text_formatting - INFO - Test case 1/5: code_blocks
+2025-04-07 14:08:38,979 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:38,979 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:38,979 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:38,979 - test_text_formatting - INFO - Before normalization: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:38,979 - app.utils.text_processor - DEBUG - normalize_text input length: 237
+2025-04-07 14:08:38,979 - app.utils.text_processor - DEBUG - normalize_text input preview: Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_wo...
+2025-04-07 14:08:38,979 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:08:38,979 - app.utils.text_processor - DEBUG - Newline patterns before: single=17, double=4
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - Newline patterns after: single=17, double=4
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - normalize_text output length: 231
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - normalize_text output preview: Here's a Python code example:
+
+```python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello_world()...
+2025-04-07 14:08:38,980 - test_text_formatting - INFO - After normalization: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:38,980 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:38,980 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - format_code_blocks input length: 231
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - Code blocks before formatting: 2
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:08:38,980 - app.utils.text_processor - DEBUG - Code block preview: python
+def hello_world():
+ print("Hello, world! ")...
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Code block preview: function helloWorld() {
+ console. log("Hello, worl...
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Code blocks after formatting: 2
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 7
+2025-04-07 14:08:38,981 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 7)
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Mapping 2 code blocks to their original positions
+2025-04-07 14:08:38,981 - test_text_formatting - ERROR - Error processing test case code_blocks: local variable 'current_paragraph' referenced before assignment
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - Test case 2/5: mixed_content
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - Before normalization: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - normalize_text input length: 424
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - normalize_text input preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 9
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Newline patterns before: single=27, double=8
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 9
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Newline patterns after: single=27, double=8
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - normalize_text output length: 400
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - normalize_text output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - After normalization: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:38,981 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - format_code_blocks input length: 400
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Code blocks before formatting: 1
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 9
+2025-04-07 14:08:38,981 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code block preview: python
+# Python code
+class TestClass:
+ def __init_...
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code blocks after formatting: 1
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 10
+2025-04-07 14:08:38,982 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 9, after: 10)
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Mapping 1 code blocks to their original positions
+2025-04-07 14:08:38,982 - test_text_formatting - ERROR - Error processing test case mixed_content: local variable 'current_paragraph' referenced before assignment
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Test case 3/5: problematic_code_blocks
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Before normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text input length: 203
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text input preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascript...
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Newline patterns before: single=14, double=4
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Newline patterns after: single=14, double=4
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text output length: 203
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text output preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math. sqrt(16))
+```
+
+```javascrip...
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - After normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - format_code_blocks input length: 203
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code blocks before formatting: 4
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code block preview: python
+import math
+print(math. sqrt(16))
+...
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code block preview: const x = 10;
+console. log(x);
+...
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'html'
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code block preview: <div>Hello</div>...
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'css'
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code block preview: . container {
+ width: 100%;
+}...
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Code blocks after formatting: 4
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 9
+2025-04-07 14:08:38,982 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 9)
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Mapping 4 code blocks to their original positions
+2025-04-07 14:08:38,982 - test_text_formatting - ERROR - Error processing test case problematic_code_blocks: local variable 'current_paragraph' referenced before assignment
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Test case 4/5: simple_paragraphs
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:38,982 - test_text_formatting - INFO - Before normalization: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text input length: 260
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 4
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Newline patterns before: single=7, double=3
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 4
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - Newline patterns after: single=7, double=3
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text output length: 261
+2025-04-07 14:08:38,982 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - After normalization: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - format_code_blocks input length: 261
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 4
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 4
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - format_code_blocks output length: 261
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - After code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Final text analysis: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:08:38,983 - test_text_formatting - INFO -   Paragraphs: 4 -> 4
+2025-04-07 14:08:38,983 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Test case simple_paragraphs completed successfully
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Test case 5/5: no_paragraph_breaks
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Before normalization: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - normalize_text input length: 313
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 1
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Newline patterns before: single=0, double=0
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 1
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Newline patterns after: single=0, double=0
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - normalize_text output length: 314
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - After normalization: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - format_code_blocks input length: 314
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 1
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 1
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - format_code_blocks output length: 314
+2025-04-07 14:08:38,983 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - After code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Final text analysis: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:08:38,983 - test_text_formatting - INFO -   Paragraphs: 1 -> 1
+2025-04-07 14:08:38,983 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:08:38,983 - test_text_formatting - INFO - Test case no_paragraph_breaks completed successfully
+2025-04-07 14:08:38,984 - test_text_formatting - INFO - Test results written to /Users/charleshoward/Metis_RAG/tests/results/text_formatting_results.json
+2025-04-07 14:08:38,984 - test_text_formatting - INFO - Test summary: 2/5 tests passed
+2025-04-07 14:09:08,782 - passlib.utils.compat - DEBUG - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2025-04-07 14:09:08,783 - passlib.utils.compat - DEBUG - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2025-04-07 14:09:08,783 - passlib.utils.compat - DEBUG - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2025-04-07 14:09:08,786 - passlib.registry - DEBUG - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2025-04-07 14:09:09,302 - test_text_formatting - INFO - Loaded 5 test cases
+2025-04-07 14:09:09,302 - test_text_formatting - INFO - Running tests on 5 test cases
+2025-04-07 14:09:09,302 - test_text_formatting - INFO - Test case 1/5: code_blocks
+2025-04-07 14:09:09,302 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:09:09,302 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:09:09,302 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:09:09,302 - test_text_formatting - INFO - Before normalization: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:09:09,302 - app.utils.text_processor - DEBUG - normalize_text input length: 237
+2025-04-07 14:09:09,302 - app.utils.text_processor - DEBUG - normalize_text input preview: Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_wo...
+2025-04-07 14:09:09,302 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:09:09,302 - app.utils.text_processor - DEBUG - Newline patterns before: single=17, double=4
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - Newline patterns after: single=17, double=4
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - normalize_text output length: 231
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - normalize_text output preview: Here's a Python code example:
+
+```python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello_world()...
+2025-04-07 14:09:09,303 - test_text_formatting - INFO - After normalization: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:09:09,303 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:09:09,303 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - format_code_blocks input length: 231
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - Code blocks before formatting: 2
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:09:09,303 - app.utils.text_processor - DEBUG - Code block preview: python
+def hello_world():
+ print("Hello, world! ")...
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Code block preview: function helloWorld() {
+ console. log("Hello, worl...
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Code blocks after formatting: 2
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 7
+2025-04-07 14:09:09,304 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 7)
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Mapping 2 code blocks to their original positions
+2025-04-07 14:09:09,304 - test_text_formatting - ERROR - Error processing test case code_blocks: name 'current_paragraph' is not defined
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - Test case 2/5: mixed_content
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - Before normalization: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - normalize_text input length: 424
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - normalize_text input preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 9
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Newline patterns before: single=27, double=8
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 9
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Newline patterns after: single=27, double=8
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - normalize_text output length: 400
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - normalize_text output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - After normalization: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:09:09,304 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - format_code_blocks input length: 400
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Code blocks before formatting: 1
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 9
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Code block preview: python
+# Python code
+class TestClass:
+ def __init_...
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Code blocks after formatting: 1
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 10
+2025-04-07 14:09:09,304 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 9, after: 10)
+2025-04-07 14:09:09,304 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Mapping 1 code blocks to their original positions
+2025-04-07 14:09:09,305 - test_text_formatting - ERROR - Error processing test case mixed_content: name 'current_paragraph' is not defined
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Test case 3/5: problematic_code_blocks
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Before normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text input length: 203
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text input preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascript...
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Newline patterns before: single=14, double=4
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Newline patterns after: single=14, double=4
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text output length: 203
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text output preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math. sqrt(16))
+```
+
+```javascrip...
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - After normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - format_code_blocks input length: 203
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Code blocks before formatting: 4
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Code block preview: python
+import math
+print(math. sqrt(16))
+...
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Code block preview: const x = 10;
+console. log(x);
+...
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'html'
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Code block preview: <div>Hello</div>...
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'css'
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Code block preview: . container {
+ width: 100%;
+}...
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Code blocks after formatting: 4
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 9
+2025-04-07 14:09:09,305 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 9)
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Mapping 4 code blocks to their original positions
+2025-04-07 14:09:09,305 - test_text_formatting - ERROR - Error processing test case problematic_code_blocks: name 'current_paragraph' is not defined
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Test case 4/5: simple_paragraphs
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Before normalization: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text input length: 260
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 4
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Newline patterns before: single=7, double=3
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 4
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - Newline patterns after: single=7, double=3
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text output length: 261
+2025-04-07 14:09:09,305 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - After normalization: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:09:09,305 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - format_code_blocks input length: 261
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 4
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 4
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - format_code_blocks output length: 261
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - After code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Final text analysis: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:09:09,306 - test_text_formatting - INFO -   Paragraphs: 4 -> 4
+2025-04-07 14:09:09,306 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Test case simple_paragraphs completed successfully
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Test case 5/5: no_paragraph_breaks
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Before normalization: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - normalize_text input length: 313
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 1
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Newline patterns before: single=0, double=0
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 1
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Newline patterns after: single=0, double=0
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - normalize_text output length: 314
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - After normalization: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - format_code_blocks input length: 314
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 1
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 1
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - format_code_blocks output length: 314
+2025-04-07 14:09:09,306 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - After code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Final text analysis: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:09:09,306 - test_text_formatting - INFO -   Paragraphs: 1 -> 1
+2025-04-07 14:09:09,306 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:09:09,306 - test_text_formatting - INFO - Test case no_paragraph_breaks completed successfully
+2025-04-07 14:09:09,307 - test_text_formatting - INFO - Test results written to /Users/charleshoward/Metis_RAG/tests/results/text_formatting_results.json
+2025-04-07 14:09:09,307 - test_text_formatting - INFO - Test summary: 2/5 tests passed
+2025-04-07 14:11:59,033 - passlib.utils.compat - DEBUG - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2025-04-07 14:11:59,034 - passlib.utils.compat - DEBUG - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2025-04-07 14:11:59,034 - passlib.utils.compat - DEBUG - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2025-04-07 14:11:59,037 - passlib.registry - DEBUG - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2025-04-07 14:11:59,503 - test_text_formatting - INFO - Loaded 5 test cases
+2025-04-07 14:11:59,503 - test_text_formatting - INFO - Running tests on 5 test cases
+2025-04-07 14:11:59,503 - test_text_formatting - INFO - Test case 1/5: code_blocks
+2025-04-07 14:11:59,503 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:11:59,503 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:11:59,503 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:11:59,503 - test_text_formatting - INFO - Before normalization: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:11:59,503 - app.utils.text_processor - DEBUG - normalize_text input length: 237
+2025-04-07 14:11:59,503 - app.utils.text_processor - DEBUG - normalize_text input preview: Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_wo...
+2025-04-07 14:11:59,503 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:11:59,503 - app.utils.text_processor - DEBUG - Newline patterns before: single=17, double=4
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - Newline patterns after: single=17, double=4
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - normalize_text output length: 231
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - normalize_text output preview: Here's a Python code example:
+
+```python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello_world()...
+2025-04-07 14:11:59,504 - test_text_formatting - INFO - After normalization: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:11:59,504 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:11:59,504 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - format_code_blocks input length: 231
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - Code blocks before formatting: 2
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:11:59,504 - app.utils.text_processor - DEBUG - Code block preview: python
+def hello_world():
+ print("Hello, world! ")...
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Code block preview: function helloWorld() {
+ console. log("Hello, worl...
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Code blocks after formatting: 2
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 7
+2025-04-07 14:11:59,505 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 7)
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Mapping 2 code blocks to their original positions
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 7
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - format_code_blocks output length: 246
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here's a Python code example:
+
+```python
+
+python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello...
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - After code block formatting: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:11:59,505 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 7
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Final text analysis: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:11:59,505 - test_text_formatting - INFO -   Paragraphs: 5 -> 7
+2025-04-07 14:11:59,505 - test_text_formatting - INFO -   Code blocks: 2 -> 2
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Test case code_blocks completed successfully
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Test case 2/5: mixed_content
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Before normalization: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - normalize_text input length: 424
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - normalize_text input preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 9
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Newline patterns before: single=27, double=8
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 9
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - Newline patterns after: single=27, double=8
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - normalize_text output length: 400
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - normalize_text output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - After normalization: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:11:59,505 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:11:59,505 - app.utils.text_processor - DEBUG - format_code_blocks input length: 400
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code blocks before formatting: 1
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 9
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code block preview: python
+# Python code
+class TestClass:
+ def __init_...
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code blocks after formatting: 1
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 10
+2025-04-07 14:11:59,506 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 9, after: 10)
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Mapping 1 code blocks to their original positions
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 10
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - format_code_blocks output length: 414
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - format_code_blocks output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - After code block formatting: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:11:59,506 - test_text_formatting - WARNING - Paragraph count changed: 9 -> 10
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Final text analysis: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:11:59,506 - test_text_formatting - INFO -   Paragraphs: 9 -> 10
+2025-04-07 14:11:59,506 - test_text_formatting - INFO -   Code blocks: 1 -> 1
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Test case mixed_content completed successfully
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Test case 3/5: problematic_code_blocks
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Before normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - normalize_text input length: 203
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - normalize_text input preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascript...
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Newline patterns before: single=14, double=4
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Newline patterns after: single=14, double=4
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - normalize_text output length: 203
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - normalize_text output preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math. sqrt(16))
+```
+
+```javascrip...
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - After normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:11:59,506 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - format_code_blocks input length: 203
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code blocks before formatting: 4
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code block preview: python
+import math
+print(math. sqrt(16))
+...
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code block preview: const x = 10;
+console. log(x);
+...
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'html'
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code block preview: <div>Hello</div>...
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'css'
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code block preview: . container {
+ width: 100%;
+}...
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Code blocks after formatting: 4
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 9
+2025-04-07 14:11:59,506 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 9)
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Mapping 4 code blocks to their original positions
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 9
+2025-04-07 14:11:59,506 - app.utils.text_processor - DEBUG - format_code_blocks output length: 238
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here are some problematic code blocks:
+
+```python
+
+python
+import math
+print(math. sqrt(16))
+```pytho...
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - After code block formatting: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:11:59,507 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 9
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Final text analysis: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:11:59,507 - test_text_formatting - INFO -   Paragraphs: 5 -> 9
+2025-04-07 14:11:59,507 - test_text_formatting - INFO -   Code blocks: 4 -> 4
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Test case problematic_code_blocks completed successfully
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Test case 4/5: simple_paragraphs
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Before normalization: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - normalize_text input length: 260
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 4
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Newline patterns before: single=7, double=3
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 4
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Newline patterns after: single=7, double=3
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - normalize_text output length: 261
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - After normalization: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - format_code_blocks input length: 261
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 4
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 4
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - format_code_blocks output length: 261
+2025-04-07 14:11:59,507 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - After code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Final text analysis: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:11:59,507 - test_text_formatting - INFO -   Paragraphs: 4 -> 4
+2025-04-07 14:11:59,507 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Test case simple_paragraphs completed successfully
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Test case 5/5: no_paragraph_breaks
+2025-04-07 14:11:59,507 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Before normalization: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - normalize_text input length: 313
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 1
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Newline patterns before: single=0, double=0
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 1
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Newline patterns after: single=0, double=0
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - normalize_text output length: 314
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - After normalization: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - format_code_blocks input length: 314
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 1
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 1
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - format_code_blocks output length: 314
+2025-04-07 14:11:59,508 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - After code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Final text analysis: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:11:59,508 - test_text_formatting - INFO -   Paragraphs: 1 -> 1
+2025-04-07 14:11:59,508 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Test case no_paragraph_breaks completed successfully
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Test results written to /Users/charleshoward/Metis_RAG/tests/results/text_formatting_results.json
+2025-04-07 14:11:59,508 - test_text_formatting - INFO - Test summary: 5/5 tests passed
+2025-04-07 14:33:00,021 - passlib.utils.compat - DEBUG - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2025-04-07 14:33:00,021 - passlib.utils.compat - DEBUG - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2025-04-07 14:33:00,021 - passlib.utils.compat - DEBUG - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2025-04-07 14:33:00,026 - passlib.registry - DEBUG - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2025-04-07 14:33:00,653 - test_text_formatting - INFO - Loaded 5 test cases
+2025-04-07 14:33:00,653 - test_text_formatting - INFO - Running tests on 5 test cases
+2025-04-07 14:33:00,653 - test_text_formatting - INFO - Test case 1/5: code_blocks
+2025-04-07 14:33:00,653 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:00,653 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:00,653 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:00,653 - test_text_formatting - INFO - Before normalization: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:00,653 - app.utils.text_processor - DEBUG - normalize_text input length: 237
+2025-04-07 14:33:00,653 - app.utils.text_processor - DEBUG - normalize_text input preview: Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_wo...
+2025-04-07 14:33:00,653 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:33:00,653 - app.utils.text_processor - DEBUG - Newline patterns before: single=17, double=4
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - Newline patterns after: single=17, double=4
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - normalize_text output length: 231
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - normalize_text output preview: Here's a Python code example:
+
+```python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello_world()...
+2025-04-07 14:33:00,654 - test_text_formatting - INFO - After normalization: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:00,654 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:00,654 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - format_code_blocks input length: 231
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - Code blocks before formatting: 2
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:33:00,654 - app.utils.text_processor - DEBUG - Code block preview: python
+def hello_world():
+ print("Hello, world! ")...
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Code block preview: function helloWorld() {
+ console. log("Hello, worl...
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Code blocks after formatting: 2
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 7
+2025-04-07 14:33:00,655 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 7)
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Mapping 2 code blocks to their original positions
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 7
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - format_code_blocks output length: 246
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here's a Python code example:
+
+```python
+
+python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello...
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - After code block formatting: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:33:00,655 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 7
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Final text analysis: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:00,655 - test_text_formatting - INFO -   Paragraphs: 5 -> 7
+2025-04-07 14:33:00,655 - test_text_formatting - INFO -   Code blocks: 2 -> 2
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Test case code_blocks completed successfully
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Test case 2/5: mixed_content
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Before normalization: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - normalize_text input length: 424
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - normalize_text input preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 9
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Newline patterns before: single=27, double=8
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 9
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Newline patterns after: single=27, double=8
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - normalize_text output length: 400
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - normalize_text output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - After normalization: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:00,655 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - format_code_blocks input length: 400
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Code blocks before formatting: 1
+2025-04-07 14:33:00,655 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 9
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code block preview: python
+# Python code
+class TestClass:
+ def __init_...
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code blocks after formatting: 1
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 10
+2025-04-07 14:33:00,656 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 9, after: 10)
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Mapping 1 code blocks to their original positions
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 10
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - format_code_blocks output length: 414
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - format_code_blocks output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - After code block formatting: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:00,656 - test_text_formatting - WARNING - Paragraph count changed: 9 -> 10
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Final text analysis: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:00,656 - test_text_formatting - INFO -   Paragraphs: 9 -> 10
+2025-04-07 14:33:00,656 - test_text_formatting - INFO -   Code blocks: 1 -> 1
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Test case mixed_content completed successfully
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Test case 3/5: problematic_code_blocks
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Before normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - normalize_text input length: 203
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - normalize_text input preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascript...
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Newline patterns before: single=14, double=4
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Newline patterns after: single=14, double=4
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - normalize_text output length: 203
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - normalize_text output preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math. sqrt(16))
+```
+
+```javascrip...
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - After normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - format_code_blocks input length: 203
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code blocks before formatting: 4
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code block preview: python
+import math
+print(math. sqrt(16))
+...
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code block preview: const x = 10;
+console. log(x);
+...
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'html'
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code block preview: <div>Hello</div>...
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'css'
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code block preview: . container {
+ width: 100%;
+}...
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Code blocks after formatting: 4
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 9
+2025-04-07 14:33:00,656 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 9)
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Mapping 4 code blocks to their original positions
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 9
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - format_code_blocks output length: 238
+2025-04-07 14:33:00,656 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here are some problematic code blocks:
+
+```python
+
+python
+import math
+print(math. sqrt(16))
+```pytho...
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - After code block formatting: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:33:00,656 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 9
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Final text analysis: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:33:00,656 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:00,656 - test_text_formatting - INFO -   Paragraphs: 5 -> 9
+2025-04-07 14:33:00,657 - test_text_formatting - INFO -   Code blocks: 4 -> 4
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Test case problematic_code_blocks completed successfully
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Test case 4/5: simple_paragraphs
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Before normalization: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - normalize_text input length: 260
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 4
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Newline patterns before: single=7, double=3
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 4
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Newline patterns after: single=7, double=3
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - normalize_text output length: 261
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - After normalization: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - format_code_blocks input length: 261
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 4
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 4
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - format_code_blocks output length: 261
+2025-04-07 14:33:00,657 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - After code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Final text analysis: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:00,657 - test_text_formatting - INFO -   Paragraphs: 4 -> 4
+2025-04-07 14:33:00,657 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Test case simple_paragraphs completed successfully
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Test case 5/5: no_paragraph_breaks
+2025-04-07 14:33:00,657 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Before normalization: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - normalize_text input length: 313
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 1
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Newline patterns before: single=0, double=0
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 1
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Newline patterns after: single=0, double=0
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - normalize_text output length: 314
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - After normalization: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - format_code_blocks input length: 314
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 1
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 1
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - format_code_blocks output length: 314
+2025-04-07 14:33:00,658 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - After code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Final text analysis: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:00,658 - test_text_formatting - INFO -   Paragraphs: 1 -> 1
+2025-04-07 14:33:00,658 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Test case no_paragraph_breaks completed successfully
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Test results written to /Users/charleshoward/Metis_RAG/tests/results/text_formatting_results.json
+2025-04-07 14:33:00,658 - test_text_formatting - INFO - Test summary: 5/5 tests passed
+2025-04-07 14:33:21,757 - passlib.utils.compat - DEBUG - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2025-04-07 14:33:21,757 - passlib.utils.compat - DEBUG - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2025-04-07 14:33:21,757 - passlib.utils.compat - DEBUG - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2025-04-07 14:33:21,762 - passlib.registry - DEBUG - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Loaded 5 test cases
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Running tests on 5 test cases
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Test case 1/5: code_blocks
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Before normalization: {
+  "length": 237,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - normalize_text input length: 237
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - normalize_text input preview: Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_wo...
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - Newline patterns before: single=17, double=4
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - Newline patterns after: single=17, double=4
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - normalize_text output length: 231
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - normalize_text output preview: Here's a Python code example:
+
+```python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello_world()...
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - After normalization: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:22,316 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 231,
+  "paragraphs": 5,
+  "single_newlines": 17,
+  "double_newlines": 4,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```",
+    "And here's a JavaScript example:"
+  ]
+}
+2025-04-07 14:33:22,316 - app.utils.text_processor - DEBUG - format_code_blocks input length: 231
+2025-04-07 14:33:22,317 - app.utils.text_processor - DEBUG - Code blocks before formatting: 2
+2025-04-07 14:33:22,317 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:33:22,317 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:33:22,317 - app.utils.text_processor - DEBUG - Code block preview: python
+def hello_world():
+ print("Hello, world! ")...
+2025-04-07 14:33:22,317 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:33:22,317 - app.utils.text_processor - DEBUG - Code block preview: function helloWorld() {
+ console. log("Hello, worl...
+2025-04-07 14:33:22,317 - app.utils.text_processor - DEBUG - Code blocks after formatting: 2
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 7
+2025-04-07 14:33:22,318 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 7)
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Mapping 2 code blocks to their original positions
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 7
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - format_code_blocks output length: 246
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here's a Python code example:
+
+```python
+
+python
+def hello_world():
+ print("Hello, world! ")
+ 
+hello...
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - After code block formatting: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:33:22,318 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 7
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Final text analysis: {
+  "length": 246,
+  "paragraphs": 7,
+  "single_newlines": 20,
+  "double_newlines": 6,
+  "code_blocks": 2,
+  "first_paragraphs": [
+    "Here's a Python code example:",
+    "```python",
+    "python\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python"
+  ]
+}
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:22,318 - test_text_formatting - INFO -   Paragraphs: 5 -> 7
+2025-04-07 14:33:22,318 - test_text_formatting - INFO -   Code blocks: 2 -> 2
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Test case code_blocks completed successfully
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Test case 2/5: mixed_content
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Before normalization: {
+  "length": 424,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - normalize_text input length: 424
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - normalize_text input preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 9
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Newline patterns before: single=27, double=8
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 9
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Newline patterns after: single=27, double=8
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - normalize_text output length: 400
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - normalize_text output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - After normalization: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 400,
+  "paragraphs": 9,
+  "single_newlines": 27,
+  "double_newlines": 8,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - format_code_blocks input length: 400
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Code blocks before formatting: 1
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 9
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Code block preview: python
+# Python code
+class TestClass:
+ def __init_...
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Code blocks after formatting: 1
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 10
+2025-04-07 14:33:22,318 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 9, after: 10)
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Mapping 1 code blocks to their original positions
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 10
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - format_code_blocks output length: 414
+2025-04-07 14:33:22,318 - app.utils.text_processor - DEBUG - format_code_blocks output preview: # Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some...
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - After code block formatting: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:22,318 - test_text_formatting - WARNING - Paragraph count changed: 9 -> 10
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Final text analysis: {
+  "length": 414,
+  "paragraphs": 10,
+  "single_newlines": 29,
+  "double_newlines": 9,
+  "code_blocks": 1,
+  "first_paragraphs": [
+    "# Mixed Content Test",
+    "This test contains both paragraphs and code blocks.",
+    "## Section 1"
+  ]
+}
+2025-04-07 14:33:22,318 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:22,318 - test_text_formatting - INFO -   Paragraphs: 9 -> 10
+2025-04-07 14:33:22,319 - test_text_formatting - INFO -   Code blocks: 1 -> 1
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Test case mixed_content completed successfully
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Test case 3/5: problematic_code_blocks
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Before normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math.sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole.log(x);\n```"
+  ]
+}
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - normalize_text input length: 203
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - normalize_text input preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascript...
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 5
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Newline patterns before: single=14, double=4
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 5
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Newline patterns after: single=14, double=4
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - normalize_text output length: 203
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - normalize_text output preview: Here are some problematic code blocks:
+
+```pythonimport math
+print(math. sqrt(16))
+```
+
+```javascrip...
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - After normalization: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 203,
+  "paragraphs": 5,
+  "single_newlines": 14,
+  "double_newlines": 4,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```pythonimport math\nprint(math. sqrt(16))\n```",
+    "```javascriptconst x = 10;\nconsole. log(x);\n```"
+  ]
+}
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - format_code_blocks input length: 203
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Code blocks before formatting: 4
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 5
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'python'
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Code block preview: python
+import math
+print(math. sqrt(16))
+...
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'javascript'
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Code block preview: const x = 10;
+console. log(x);
+...
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'html'
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Code block preview: <div>Hello</div>...
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Processing code block with language tag: 'css'
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Code block preview: . container {
+ width: 100%;
+}...
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Code blocks after formatting: 4
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 9
+2025-04-07 14:33:22,319 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 5, after: 9)
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Merging extra paragraphs to match original structure
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Mapping 4 code blocks to their original positions
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - Final paragraph count after merging: 9
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - format_code_blocks output length: 238
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - format_code_blocks output preview: Here are some problematic code blocks:
+
+```python
+
+python
+import math
+print(math. sqrt(16))
+```pytho...
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - After code block formatting: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:33:22,319 - test_text_formatting - WARNING - Paragraph count changed: 5 -> 9
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Final text analysis: {
+  "length": 238,
+  "paragraphs": 9,
+  "single_newlines": 25,
+  "double_newlines": 8,
+  "code_blocks": 4,
+  "first_paragraphs": [
+    "Here are some problematic code blocks:",
+    "```python",
+    "python\nimport math\nprint(math. sqrt(16))\n```python"
+  ]
+}
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:22,319 - test_text_formatting - INFO -   Paragraphs: 5 -> 9
+2025-04-07 14:33:22,319 - test_text_formatting - INFO -   Code blocks: 4 -> 4
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Test case problematic_code_blocks completed successfully
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Test case 4/5: simple_paragraphs
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:22,319 - test_text_formatting - INFO - Before normalization: {
+  "length": 260,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - normalize_text input length: 260
+2025-04-07 14:33:22,319 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 4
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Newline patterns before: single=7, double=3
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 4
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Newline patterns after: single=7, double=3
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - normalize_text output length: 261
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - After normalization: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - format_code_blocks input length: 261
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 4
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 4
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - format_code_blocks output length: 261
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third pa...
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - After code block formatting: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Final text analysis: {
+  "length": 261,
+  "paragraphs": 4,
+  "single_newlines": 7,
+  "double_newlines": 3,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a simple test with multiple paragraphs.",
+    "This is the second paragraph.",
+    "This is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a ..."
+  ]
+}
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:22,320 - test_text_formatting - INFO -   Paragraphs: 4 -> 4
+2025-04-07 14:33:22,320 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Test case simple_paragraphs completed successfully
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Test case 5/5: no_paragraph_breaks
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Testing full text processing pipeline
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Raw text analysis: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Testing normalize_text function
+2025-04-07 14:33:22,320 - test_text_formatting - INFO - Before normalization: {
+  "length": 313,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:22,320 - app.utils.text_processor - DEBUG - normalize_text input length: 313
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - normalize_text input preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Paragraphs before normalization: 1
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Newline patterns before: single=0, double=0
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Paragraphs after normalization: 1
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Newline patterns after: single=0, double=0
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - normalize_text output length: 314
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - normalize_text output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - After normalization: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - Testing format_code_blocks function
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - Before code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - format_code_blocks input length: 314
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Code blocks before formatting: 0
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Paragraphs before code block formatting: 1
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Code blocks after formatting: 0
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - Paragraphs after code block formatting: 1
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - format_code_blocks output length: 314
+2025-04-07 14:33:22,321 - app.utils.text_processor - DEBUG - format_code_blocks output preview: This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon...
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - After code block formatting: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - Final text analysis: {
+  "length": 314,
+  "paragraphs": 1,
+  "single_newlines": 0,
+  "double_newlines": 0,
+  "code_blocks": 0,
+  "first_paragraphs": [
+    "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite lon..."
+  ]
+}
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - Comparison of raw and final text:
+2025-04-07 14:33:22,321 - test_text_formatting - INFO -   Paragraphs: 1 -> 1
+2025-04-07 14:33:22,321 - test_text_formatting - INFO -   Code blocks: 0 -> 0
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - Test case no_paragraph_breaks completed successfully
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - Test results written to /Users/charleshoward/Metis_RAG/tests/results/text_formatting_results.json
+2025-04-07 14:33:22,321 - test_text_formatting - INFO - Test summary: 5/5 tests passed

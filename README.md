@@ -29,6 +29,9 @@ This repository contains the following key documentation:
 - Explicit memory buffer for storing and recalling user information
 - Context-aware memory management with priority-based retrieval
 - Responsive UI with light/dark mode
+- Syntax highlighting for code blocks in responses
+- Automatic language detection for code snippets
+- Copy-to-clipboard functionality for code blocks
 - Enhanced logging and debugging capabilities
 
 ## Authentication System
@@ -205,6 +208,9 @@ The main chat interface allows you to:
 - View citations from source documents
 - Control conversation history
 - See quality scores for responses
+- View code with syntax highlighting
+- Copy code blocks with a single click
+- Automatically detect programming languages in code
 - View source attributions and citations
 
 ### Document Management

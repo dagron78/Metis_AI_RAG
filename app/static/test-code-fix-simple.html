@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Code Fix Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-case {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Code Fix Test</h1>
+    
+    <div class="test-case">
+        <h2>Test Case 1: Duplicate Language Tag</h2>
+        <textarea id="input1" rows="15" cols="80">
+Here's an example of how you could implement a function in Python to calculate square roots:
+
+```python python
+import math
+
+def calculate_square_root(n):
+    """
+    Calculate the square root of a given number.
+    """
+    if not isinstance(n, (int, float)):
+        raise ValueError("Input must be a number.")
+        
+    if n < 0:
+        return complex(math.sqrt(-n), math.atan(0))
+    else:
+        return math.sqrt(n)
+
+# Example usage
+print(calculate_square_root(9))  # Output: 3.0
+print(calculate_square_root(-16))  # Output: (4+0j)
+```python
+
+This function uses the built-in `math.sqrt` function to calculate the square root of a given number.
+        </textarea>
+        <div>
+            <button onclick="processText('input1', 'output1')">Process Text</button>
+        </div>
+        <div id="output1" class="output"></div>
+    </div>
+    
+    <div class="test-case">
+        <h2>Test Case 2: Incorrect Closing Tag</h2>
+        <textarea id="input2" rows="15" cols="80">
+Here's a JavaScript function to calculate factorial:
+
+```javascript
+/**
+ * Calculate the factorial of a number
+ * @param {number} n - The number to calculate factorial for
+ * @returns {number} The factorial of n
+ */
+function factorial(n) {
+    // Check if input is valid
+    if (!Number.isInteger(n) || n < 0) {
+        throw new Error('Input must be a non-negative integer');
+    }
+    
+    // Base case
+    if (n === 0 || n === 1) {
+        return 1;
+    }
+    
+    // Recursive calculation
+    return n * factorial(n - 1);
+}
+
+// Example usage
+console.log(factorial(5)); // Output: 120
+```javascript
+
+This implementation provides a recursive approach to calculating factorials.
+        </textarea>
+        <div>
+            <button onclick="processText('input2', 'output2')">Process Text</button>
+        </div>
+        <div id="output2" class="output"></div>
+    </div>
+
+    <script>
+        // Copy of the preprocessCodeBlocks function from markdown-parser.js
+        function preprocessCodeBlocks(text) {
+            if (!text) return text;
+            
+            // Fix duplicate language tags at the beginning (e.g., ```python python)
+            text = text.replace(/```(\w+)\s+\1/g, '```$1');
+            
+            // Fix code blocks with incorrect closing tags
+            // This regex matches code blocks with language tags and ensures proper closing
+            text = text.replace(/```(\w+)([\s\S]*?)```(\w+)?/g, function(match, lang, code, closingLang) {
+                // If there's a closing language tag, remove it
+                if (closingLang) {
+                    return '```' + lang + code + '```';
+                }
+                return match;
+            });
+            
+            return text;
+        }
+        
+        function processText(inputId, outputId) {
+            const input = document.getElementById(inputId).value;
+            const output = document.getElementById(outputId);
+            
+            // Process the text using our preprocessCodeBlocks function
+            const processedText = preprocessCodeBlocks(input);
+            
+            // Display the processed text with HTML escaping
+            output.innerHTML = '<pre>' + escapeHtml(processedText) + '</pre>';
+            
+            // Also log the processed text to the console for inspection
+            console.log('Processed text:', processedText);
+        }
+        
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

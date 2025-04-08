@@ -1,6 +1,8 @@
 import logging
+import time
+from datetime import datetime
 from typing import Dict, Any
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -9,6 +11,9 @@ from app.db.session import engine
 from app.rag.vector_store import VectorStore
 from app.core.config import SETTINGS
 
+# Server start time (used for detecting restarts)
+SERVER_START_TIME = str(int(time.time()))
+
 # Create router
 router = APIRouter()
 
@@ -16,7 +21,7 @@ router = APIRouter()
 logger = logging.getLogger("app.api.health")
 
 @router.get("/")
-async def health_check(db: AsyncSession = Depends(get_db)):
+async def health_check(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Health check endpoint
     
@@ -82,10 +87,14 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         if db_status != "healthy" or vector_store_status != "healthy":
             overall_status = "unhealthy"
         
+        # Get client session ID if provided
+        client_session_id = request.headers.get('X-Client-Session', None)
+        
         # Build response
         response = {
             "status": overall_status,
             "version": SETTINGS.version,
+            "server_start_time": SERVER_START_TIME,
             "components": {
                 "database": {
                     "status": db_status,
@@ -105,6 +114,10 @@ async def health_check(db: AsyncSession = Depends(get_db)):
                 }
             }
         }
+        
+        # Include client session ID in response if provided
+        if client_session_id:
+            response["client_session_id"] = client_session_id
         
         # Log health check result
         logger.info(f"Health check: {overall_status}")

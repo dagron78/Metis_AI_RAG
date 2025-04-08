@@ -73,6 +73,8 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                    user_id: Optional[str] = None,
                    conversation_id: Optional[str] = None,
                    db: AsyncSession = None,  # Add db parameter
+                   capture_raw_output: bool = False,  # Add parameter to capture raw output
+                   return_raw_ollama: bool = False,  # Add parameter to return raw Ollama output
                    **kwargs) -> Dict[str, Any]:
         """
         Query the RAG engine with optional conversation history and metadata filtering
@@ -90,6 +92,8 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
             metadata_filters: Metadata filters
             user_id: User ID for permission filtering
             db: Database session to use for memory operations
+            capture_raw_output: Whether to capture and include raw Ollama output in the response
+            return_raw_ollama: Whether to return only the raw Ollama output, bypassing processing
             
         Returns:
             Response dictionary
@@ -555,6 +559,16 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 response_time_ms = (time.time() - start_time) * 1000
                 logger.info(f"Response time: {response_time_ms:.2f}ms")
                 
+                # Capture the raw Ollama output if requested
+                raw_ollama_output = None
+                if (capture_raw_output or return_raw_ollama) and "response" in response:
+                    raw_ollama_output = response.get("response", "")
+                    
+                    # If return_raw_ollama is true, return only the raw output
+                    if return_raw_ollama:
+                        logger.info("Returning RAW Ollama output as requested")
+                        return {"raw_output": raw_ollama_output}
+                
                 # Process response text with optional normalization
                 response_text = self._process_response_text(response)
                 
@@ -594,7 +608,9 @@ class RAGEngine(BaseRAGEngine, RetrievalMixin, GenerationMixin):
                 return {
                     "query": query,
                     "answer": response_text,
-                    "sources": [Citation(**source) for source in sources] if sources else []
+                    "sources": [Citation(**source) for source in sources] if sources else [],
+                    "raw_ollama_output": raw_ollama_output if capture_raw_output else None,
+                    "raw_output": raw_ollama_output if return_raw_ollama else None
                 }
         except Exception as e:
             logger.error(f"Error querying RAG engine: {str(e)}")

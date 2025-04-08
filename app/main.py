@@ -27,6 +27,7 @@ from app.api.notifications import router as notifications_router
 from app.api.organizations import router as organizations_router
 from app.api.schema import router as schema_router
 from app.api.text_formatting_dashboard import router as text_formatting_dashboard_router
+from app.api.health import router as health_router
 from app.db.session import init_db, get_session
 from app.rag.tool_initializer import initialize_tools
 
@@ -84,6 +85,7 @@ app.include_router(notifications_router, prefix=f"{API_V1_STR}/notifications", t
 app.include_router(organizations_router, prefix=f"{API_V1_STR}/organizations", tags=["organizations"])
 app.include_router(schema_router, tags=["schema"])  # Schema router has its own prefix
 app.include_router(text_formatting_dashboard_router, prefix=f"{API_V1_STR}", tags=["text-formatting"])
+app.include_router(health_router, prefix=f"{API_V1_STR}/health", tags=["health"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):

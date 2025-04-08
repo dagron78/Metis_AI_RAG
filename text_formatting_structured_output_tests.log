@@ -1,0 +1,124 @@
+2025-04-07 14:33:01,090 - __main__ - INFO - Running text formatting structured output tests...
+2025-04-07 14:33:01,979 - app.cache.vector_search - INFO - Loaded 0 items from disk cache
+2025-04-07 14:33:02,035 - app.rag.vector_store - INFO - Vector store initialized with collection 'documents', caching enabled
+2025-04-07 14:33:02,041 - app.rag.mem0_client - INFO - Mem0 integration is disabled in configuration
+2025-04-07 14:33:02,041 - app.cache.manager - INFO - Using default cache configuration
+2025-04-07 14:33:02,041 - app.cache.vector_search - INFO - Loaded 0 items from disk cache
+2025-04-07 14:33:02,041 - app.cache.document - INFO - Loaded 0 items from disk cache
+2025-04-07 14:33:02,041 - app.cache.llm_response - INFO - Loaded 1 items from disk cache
+2025-04-07 14:33:02,041 - app.cache.manager - INFO - Cache manager initialized with caching enabled
+2025-04-07 14:33:02,041 - app.rag.rag_engine_base - INFO - Retrieval Judge is enabled
+2025-04-07 14:33:02,041 - app.rag.rag_engine_base - INFO - Mem0 integration is disabled
+2025-04-07 14:33:02,041 - app.rag.rag_engine_base - INFO - Caching is enabled
+2025-04-07 14:33:02,042 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:02,042 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:02,042 - app.rag.rag_engine - INFO - RAGEngine initialized with PromptManager
+2025-04-07 14:33:02,042 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'format text'
+2025-04-07 14:33:02,042 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'paragraph structure'
+2025-04-07 14:33:02,042 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'preserve paragraphs'
+2025-04-07 14:33:02,042 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'format code blocks'
+2025-04-07 14:33:02,042 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'structured output'
+2025-04-07 14:33:02,042 - app.rag.rag_engine_base - INFO - Query not detected as code-related: 'How do I make a cake?...'
+2025-04-07 14:33:02,042 - app.rag.rag_engine_base - INFO - Query not detected as code-related: 'What's the weather like today?...'
+2025-04-07 14:33:02,044 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:02,044 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:02,044 - app.rag.rag_generation - INFO - Processing structured response with 5 text blocks
+2025-04-07 14:33:02,044 - app.rag.rag_generation - INFO - Successfully processed structured output response with 0 code blocks
+2025-04-07 14:33:02,045 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:02,045 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:02,045 - app.rag.rag_generation - INFO - Processing structured response with 4 text blocks
+2025-04-07 14:33:02,045 - app.rag.rag_generation - INFO - Successfully processed structured output response with 1 code blocks
+2025-04-07 14:33:02,046 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 4, after: 5)
+2025-04-07 14:33:02,046 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:02,046 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:02,046 - app.rag.rag_generation - INFO - Successfully processed structured output response with 1 code blocks
+2025-04-07 14:33:02,046 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 3, after: 4)
+2025-04-07 14:33:02,048 - __main__ - INFO - All structured output tests passed!
+2025-04-07 14:33:02,048 - __main__ - INFO - 
+Running manual test with sample structured output...
+2025-04-07 14:33:02,048 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:02,048 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:02,048 - app.rag.rag_generation - INFO - Processing structured response with 4 text blocks
+2025-04-07 14:33:02,048 - app.rag.rag_generation - INFO - Successfully processed structured output response with 1 code blocks
+2025-04-07 14:33:02,048 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 4, after: 5)
+2025-04-07 14:33:02,048 - __main__ - INFO - Manual test results:
+2025-04-07 14:33:02,048 - __main__ - INFO - Processed text length: 224
+2025-04-07 14:33:02,048 - __main__ - INFO - Processed text preview: ## Structured Output Example
+
+This is a sample text with proper paragraph structure.
+
+Here's a Python example: ```python
+
+python
+def hello():
+ print('Hello, world! ')
+```python
+
+The function above pri...
+2025-04-07 14:33:02,048 - __main__ - INFO - ✅ Heading properly formatted
+2025-04-07 14:33:02,048 - __main__ - INFO - ✅ Code block properly formatted
+2025-04-07 14:33:02,048 - __main__ - INFO - ✅ Code block placeholder properly replaced
+2025-04-07 14:33:02,048 - __main__ - INFO - Paragraph count: 5
+2025-04-07 14:33:02,048 - __main__ - INFO - Manual test completed successfully
+2025-04-07 14:33:13,342 - __main__ - INFO - Running text formatting structured output tests...
+2025-04-07 14:33:14,224 - app.cache.vector_search - INFO - Loaded 0 items from disk cache
+2025-04-07 14:33:14,284 - app.rag.vector_store - INFO - Vector store initialized with collection 'documents', caching enabled
+2025-04-07 14:33:14,290 - app.rag.mem0_client - INFO - Mem0 integration is disabled in configuration
+2025-04-07 14:33:14,291 - app.cache.manager - INFO - Using default cache configuration
+2025-04-07 14:33:14,291 - app.cache.vector_search - INFO - Loaded 0 items from disk cache
+2025-04-07 14:33:14,291 - app.cache.document - INFO - Loaded 0 items from disk cache
+2025-04-07 14:33:14,291 - app.cache.llm_response - INFO - Loaded 1 items from disk cache
+2025-04-07 14:33:14,292 - app.cache.manager - INFO - Cache manager initialized with caching enabled
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Retrieval Judge is enabled
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Mem0 integration is disabled
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Caching is enabled
+2025-04-07 14:33:14,292 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:14,292 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:14,292 - app.rag.rag_engine - INFO - RAGEngine initialized with PromptManager
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'format text'
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'paragraph structure'
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'preserve paragraphs'
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'format code blocks'
+2025-04-07 14:33:14,292 - app.rag.rag_engine_base - INFO - Query matched text formatting indicator: 'structured output'
+2025-04-07 14:33:14,293 - app.rag.rag_engine_base - INFO - Query not detected as code-related: 'How do I make a cake?...'
+2025-04-07 14:33:14,293 - app.rag.rag_engine_base - INFO - Query not detected as code-related: 'What's the weather like today?...'
+2025-04-07 14:33:14,295 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:14,295 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:14,295 - app.rag.rag_generation - INFO - Processing structured response with 5 text blocks
+2025-04-07 14:33:14,295 - app.rag.rag_generation - INFO - Successfully processed structured output response with 0 code blocks
+2025-04-07 14:33:14,296 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:14,297 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:14,297 - app.rag.rag_generation - INFO - Processing structured response with 4 text blocks
+2025-04-07 14:33:14,297 - app.rag.rag_generation - INFO - Successfully processed structured output response with 1 code blocks
+2025-04-07 14:33:14,297 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 4, after: 5)
+2025-04-07 14:33:14,298 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:14,299 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:14,299 - app.rag.rag_generation - INFO - Successfully processed structured output response with 1 code blocks
+2025-04-07 14:33:14,299 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 3, after: 4)
+2025-04-07 14:33:14,302 - __main__ - INFO - All structured output tests passed!
+2025-04-07 14:33:14,302 - __main__ - INFO - 
+Running manual test with sample structured output...
+2025-04-07 14:33:14,302 - app.rag.prompt_manager - INFO - PromptManager initialized with templates
+2025-04-07 14:33:14,302 - app.rag.rag_generation - INFO - GenerationMixin initialized with PromptManager
+2025-04-07 14:33:14,302 - app.rag.rag_generation - INFO - Processing structured response with 4 text blocks
+2025-04-07 14:33:14,302 - app.rag.rag_generation - INFO - Successfully processed structured output response with 1 code blocks
+2025-04-07 14:33:14,302 - app.utils.text_processor - INFO - Preserving original paragraph structure (before: 4, after: 5)
+2025-04-07 14:33:14,302 - __main__ - INFO - Manual test results:
+2025-04-07 14:33:14,302 - __main__ - INFO - Processed text length: 224
+2025-04-07 14:33:14,302 - __main__ - INFO - Processed text preview: ## Structured Output Example
+
+This is a sample text with proper paragraph structure.
+
+Here's a Python example: ```python
+
+python
+def hello():
+ print('Hello, world! ')
+```python
+
+The function above pri...
+2025-04-07 14:33:14,302 - __main__ - INFO - ✅ Heading properly formatted
+2025-04-07 14:33:14,302 - __main__ - INFO - ✅ Code block properly formatted
+2025-04-07 14:33:14,302 - __main__ - INFO - ✅ Code block placeholder properly replaced
+2025-04-07 14:33:14,302 - __main__ - INFO - Paragraph count: 5
+2025-04-07 14:33:14,302 - __main__ - INFO - Manual test completed successfully

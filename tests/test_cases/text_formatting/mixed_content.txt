@@ -1,0 +1,28 @@
+# Mixed Content Test
+
+This test contains both paragraphs and code blocks.
+
+## Section 1
+
+Here's some text with a list:
+- Item 1
+- Item 2
+- Item 3
+
+## Section 2
+
+```python
+# Python code
+class TestClass:
+    def __init__(self):
+        self.value = 42
+        
+    def get_value(self):
+        return self.value
+```
+
+And some more text after the code block.
+
+## Section 3
+
+Final paragraph with some **bold** and *italic* text.

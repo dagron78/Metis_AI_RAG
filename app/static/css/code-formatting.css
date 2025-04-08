@@ -1,0 +1,163 @@
+/**
+ * Code Formatting Styles
+ * Dedicated CSS for code blocks and syntax highlighting
+ */
+
+/* Base code styles */
+code {
+    font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+pre {
+    background-color: #282c34;
+    border-radius: 6px;
+    padding: 16px;
+    overflow: auto;
+    margin: 16px 0;
+    font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    tab-size: 4;
+    white-space: pre;
+    word-break: normal;
+    word-spacing: normal;
+    word-wrap: normal;
+    color: #abb2bf;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    max-width: 100%;
+    position: relative;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: 1em;
+}
+
+/* Code block container with copy button */
+.code-block-container {
+    position: relative;
+    margin: 16px 0;
+}
+
+/* Enhanced code block styling with language tag */
+.structured-code-block {
+    margin: 1.5em 0;
+    position: relative;
+}
+
+.code-block-header {
+    background-color: #343a40;
+    border: 1px solid #444;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 0.3em 0.8em;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #aaa;
+    text-transform: lowercase;
+}
+
+.structured-code-block pre {
+    margin: 0;
+    border-radius: 0 0 6px 6px;
+}
+
+/* Copy button styling */
+.copy-code-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #abb2bf;
+    border: none;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 10;
+}
+
+.copy-code-button i {
+    font-size: 10px;
+}
+
+.code-block-container:hover .copy-code-button,
+.structured-code-block:hover .copy-code-button {
+    opacity: 1;
+}
+
+.copy-code-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Ensuring code blocks are properly displayed in the chat interface */
+.bot-message pre {
+    max-width: 100%;
+    margin: 16px 0;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* Specific styling for code blocks to ensure proper formatting */
+.message-content pre code {
+    white-space: pre;
+    font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+    tab-size: 4;
+}
+
+/* Styling for raw output display */
+.message-content pre.raw-output {
+    background-color: var(--input-bg);
+    border: 1px dashed var(--border-color);
+    padding: 10px;
+    margin: 0;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: var(--muted-color);
+}
+
+/* Light mode styles for code blocks */
+.light-mode pre {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.light-mode .code-block-header {
+    background-color: #e9ecef;
+    border-color: #ddd;
+    color: #555;
+}
+
+.light-mode .copy-code-button {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #555;
+}
+
+.light-mode .copy-code-button:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive styles for code blocks */
+@media (max-width: 768px) {
+    pre {
+        padding: 12px;
+        font-size: 13px;
+    }
+    
+    .copy-code-button {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
+}

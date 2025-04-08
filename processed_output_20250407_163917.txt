@@ -1,0 +1,18 @@
+Okay, let’s break down the differences between REST and GraphQL.
+
+Essentially, they’re both ways to fetch data from a server, but they approach it very differently.
+
+**REST (Representational State Transfer)** is an architectural style. Think of it like this: you make requests to specific URLs (endpoints) to get data. Each endpoint represents a resource – like a user, a product, or a blog post. You typically get a fixed set of data for each request. For example, you might request a user’s profile, and you’ll always get the same information (name, email, address) regardless of what else you might need. REST relies on standard HTTP methods (GET, POST, PUT, DELETE) to interact with these resources.
+
+**GraphQL**, on the other hand, is a query language for your APIs. Instead of the server defining what data you get, *you* tell the server exactly what data you need. You send a single query that specifies the fields you want, and the server returns only those fields. This is great for efficiency, especially on mobile devices, as it reduces the amount of data transferred.
+
+**Here’s a table summarizing the key differences: **
+
+| Feature | REST | GraphQL |
+|------------------|--------------------------|------------------------|
+| **Data Fetching** | Multiple endpoints, fixed data | Single query, flexible data |
+| **Efficiency** | Can be less efficient | More efficient |
+| **Flexibility** | Less flexible | More flexible |
+| **Schema** | Implicit | Explicit (Strongly typed)|
+
+Do you want me to delve deeper into a specific aspect, like how they handle relationships between data, or perhaps give an example of when one might be preferred over the other? 

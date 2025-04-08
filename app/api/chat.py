@@ -52,6 +52,8 @@ MAX_HISTORY_MESSAGES = 25
 async def query_chat(
     query: ChatQuery,
     request: Request,
+    debug_raw: bool = Query(False, description="Include raw LLM output in response for debugging"),
+    raw_ollama_response: bool = Query(False, description="If true, return the raw response from Ollama, bypassing backend processing"),
     db: AsyncSession = Depends(get_db),
     conversation_repository: ConversationRepository = Depends(get_conversation_repository),
     current_user: User = Depends(get_current_active_user)
@@ -188,8 +190,15 @@ async def query_chat(
                     conversation_history=conversation_messages,
                     metadata_filters=metadata_filters,
                     user_id=conversation.conv_metadata.get("user_id"),
-                    conversation_id=conversation_id  # Explicitly pass conversation_id
+                    conversation_id=conversation_id,  # Explicitly pass conversation_id
+                    capture_raw_output=debug_raw,  # Pass the debug flag to capture raw output
+                    return_raw_ollama=raw_ollama_response  # Pass the raw Ollama response flag
                 )
+                
+                # If raw_ollama_response is true, return the raw output directly
+                if raw_ollama_response and "raw_output" in rag_response:
+                    from fastapi.responses import JSONResponse
+                    return JSONResponse(content={"raw_output": rag_response.get("raw_output", "Error: Raw output not captured.")})
                 
                 # Get response and sources
                 response_text = rag_response.get("answer", "")
@@ -234,12 +243,20 @@ async def query_chat(
                     logger.error(f"Error adding citations to message: {str(e)}")
                     warnings.append("Failed to save citation information")
             
-            # Return response with any warnings
+            # Get raw Ollama output if available and debug mode is enabled
+            raw_ollama_output = rag_response.get("raw_ollama_output") if debug_raw else None
+            
+            # Log the final API response text for comparison
+            query_id = conversation_id
+            logger.debug(f"FINAL API RESPONSE TEXT (Query ID: {query_id}):\n```\n{response_text}\n```")
+            
+            # Return response with any warnings and raw output if requested
             return ChatResponse(
                 message=response_text,
                 conversation_id=conversation_id,
                 citations=sources,
-                warnings=warnings if warnings else None
+                warnings=warnings if warnings else None,
+                raw_ollama_output=raw_ollama_output
             )
     except Exception as e:
         logger.error(f"Error generating chat response: {str(e)}")

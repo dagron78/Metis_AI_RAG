@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Code Fix Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-case {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .console-log {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Direct Code Fix Test</h1>
+    
+    <div class="test-case">
+        <h2>Test Case 1: User's Example</h2>
+        <textarea id="input1" rows="15" cols="80">
+Okay, here's a Python program that reverses the alphabet: ```python python
+def reverse_alphabet(text):
+    """Reverses the order of letters in a string.
+    Args:
+        text: The input string.
+    Returns:
+        A string with the letters in reversed alphabetical order.
+    """
+    reversed_string = ''. join(sorted(text, reverse=True))
+    return reversed_string
+
+# Example usage:
+input_string = "hello"
+reversed_string = reverse_alphabet(input_string)
+print(reversed_string)  # Output: o l l e h
+```python
+
+This program takes a string as input, sorts the characters in reverse alphabetical order, and returns the resulting string. It uses the `sorted()` function with the `reverse=True` argument to achieve this.
+        </textarea>
+        <div>
+            <button onclick="processText('input1', 'output1')">Process Text</button>
+            <button onclick="clearConsole()">Clear Console</button>
+        </div>
+        <div id="output1" class="output"></div>
+        <div id="console-log" class="console-log"></div>
+    </div>
+
+    <script>
+        // Copy of the preprocessCodeBlocks function from markdown-parser.js
+        function preprocessCodeBlocks(text) {
+            if (!text) return text;
+            
+            console.log("BEFORE PREPROCESSING:", JSON.stringify(text));
+            
+            // Fix duplicate language tags at the beginning (e.g., ```python python)
+            let step1 = text.replace(/```(\w+)\s+\1/g, '```$1');
+            console.log("AFTER FIXING DUPLICATE TAGS:", JSON.stringify(step1));
+            
+            // Fix code blocks with incorrect closing tags
+            // This regex matches code blocks with language tags and ensures proper closing
+            let step2 = step1.replace(/```(\w+)([\s\S]*?)```(\w+)?/g, function(match, lang, code, closingLang) {
+                console.log("FOUND CODE BLOCK:", {
+                    lang: lang,
+                    codePreview: code.substring(0, 50) + "...",
+                    closingLang: closingLang
+                });
+                
+                // If there's a closing language tag, remove it
+                if (closingLang) {
+                    console.log("REMOVING CLOSING LANGUAGE TAG:", closingLang);
+                    return '```' + lang + code + '```';
+                }
+                return match;
+            });
+            
+            console.log("AFTER FIXING CLOSING TAGS:", JSON.stringify(step2));
+            
+            // Additional fix for cases where language tag is repeated after newline
+            // Example: ```python\npython\ndef...
+            let step3 = step2.replace(/```(\w+)\n\1\b/g, function(match, lang) {
+                console.log("FIXING NEWLINE LANGUAGE REPETITION:", lang);
+                return '```' + lang + '\n';
+            });
+            
+            // Fix for the specific pattern in the user's example
+            // This handles cases where there's a newline between the language tag and the code
+            let step4 = step3.replace(/```(\w+)(\s*\n\s*)/g, function(match, lang, spacing) {
+                console.log("FIXING NEWLINE AFTER LANGUAGE TAG:", lang);
+                return '```' + lang + '\n';
+            });
+            
+            console.log("FINAL PREPROCESSED TEXT:", JSON.stringify(step4));
+            
+            return step4;
+        }
+        
+        // Override console.log to capture logs
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const consoleLogDiv = document.getElementById('console-log');
+        
+        console.log = function() {
+            // Call the original console.log
+            originalConsoleLog.apply(console, arguments);
+            
+            // Format the arguments
+            const args = Array.from(arguments).map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return String(arg);
+            }).join(' ');
+            
+            // Add to the console log div
+            consoleLogDiv.innerHTML += `<div>${args}</div>`;
+            
+            // Scroll to bottom
+            consoleLogDiv.scrollTop = consoleLogDiv.scrollHeight;
+        };
+        
+        console.error = function() {
+            // Call the original console.error
+            originalConsoleError.apply(console, arguments);
+            
+            // Format the arguments
+            const args = Array.from(arguments).map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return String(arg);
+            }).join(' ');
+            
+            // Add to the console log div with error styling
+            consoleLogDiv.innerHTML += `<div style="color: red;">${args}</div>`;
+            
+            // Scroll to bottom
+            consoleLogDiv.scrollTop = consoleLogDiv.scrollHeight;
+        };
+        
+        function clearConsole() {
+            consoleLogDiv.innerHTML = '';
+        }
+        
+        function processText(inputId, outputId) {
+            const input = document.getElementById(inputId).value;
+            const output = document.getElementById(outputId);
+            
+            console.log("ORIGINAL INPUT:", input);
+            
+            // Process the text using our preprocessCodeBlocks function
+            const processedText = preprocessCodeBlocks(input);
+            
+            // Display the processed text
+            output.textContent = processedText;
+        }
+    </script>
+</body>
+</html>

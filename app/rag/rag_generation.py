@@ -8,7 +8,8 @@ import asyncio
 import sys
 from typing import Dict, Any, Optional, List, AsyncGenerator
 from app.rag.text_formatting_monitor import get_monitor, FormattingApproach, FormattingEvent
-from uuid import UUID
+from uuid import UUID, uuid4
+import uuid
 
 from app.core.config import DEFAULT_MODEL
 from app.models.chat import Citation, Message
@@ -351,6 +352,24 @@ class GenerationMixin:
                 parameters=model_parameters or {}
             )
             
+            # Log the response type and structure to understand when JSON is returned
+            if isinstance(response, dict):
+                logger.debug(f"Ollama response type: dict with keys: {list(response.keys())}")
+                if "response" in response:
+                    response_content = response["response"]
+                    try:
+                        # Check if the response is JSON
+                        import json
+                        json_data = json.loads(response_content) if isinstance(response_content, str) else None
+                        if json_data and isinstance(json_data, dict):
+                            logger.debug(f"Response content appears to be JSON with keys: {list(json_data.keys())}")
+                            if "text" in json_data and "code_blocks" in json_data:
+                                logger.debug("Response contains structured code format with 'text' and 'code_blocks'")
+                    except json.JSONDecodeError:
+                        logger.debug("Response content is not JSON")
+            else:
+                logger.debug(f"Ollama response type: {type(response)}")
+            
             # Cache the response if appropriate
             if "error" not in response and self.cache_manager.llm_response_cache.should_cache_response(
                 prompt=prompt,
@@ -383,6 +402,11 @@ class GenerationMixin:
         # Get the monitor
         monitor = get_monitor()
         
+        # Get the raw response text for logging
+        raw_response_text = response.get("response", "")
+        query_id = getattr(self, 'conversation_id', str(uuid.uuid4()))
+        logger.debug(f"RAW OLLAMA OUTPUT (Query ID: {query_id}):\n```\n{raw_response_text}\n```")
+        
         # Check if there was an error in the response
         if "error" in response:
             error_message = response.get("error", "Unknown error")
@@ -399,6 +423,56 @@ class GenerationMixin:
         
         # Get response text
         response_text = response.get("response", "")
+        
+        # Check if the response is structured JSON with code blocks
+        try:
+            import json
+            json_data = json.loads(response_text) if isinstance(response_text, str) else None
+            
+            if json_data and isinstance(json_data, dict) and "text" in json_data and "code_blocks" in json_data:
+                logger.info("Detected structured JSON response with code blocks")
+                
+                # Extract the main text and code blocks
+                main_text = json_data.get("text", "")
+                code_blocks = json_data.get("code_blocks", [])
+                
+                # Process each code block and replace placeholders
+                for i, code_block in enumerate(code_blocks):
+                    language = code_block.get("language", "")
+                    code = code_block.get("code", "")
+                    
+                    # Ensure code has proper newlines
+                    if code and not code.startswith('\n'):
+                        code = '\n' + code
+                    if code and not code.endswith('\n'):
+                        code = code + '\n'
+                    
+                    # Create properly formatted markdown code block
+                    formatted_block = f"```{language}\n{code}\n```"
+                    
+                    # Replace placeholder in main text
+                    placeholder = f"{{CODE_BLOCK_{i}}}"
+                    main_text = main_text.replace(placeholder, formatted_block)
+                
+                # Use the processed text instead of the raw JSON
+                response_text = main_text
+                
+                # Log that we're using the structured format
+                logger.info("Using structured JSON format for code blocks")
+                
+                # Record the event
+                monitor.record_event(
+                    approach=FormattingApproach.STRUCTURED_OUTPUT,
+                    event=FormattingEvent.SUCCESS,
+                    details={"code_blocks": len(code_blocks)}
+                )
+                
+                # Return the processed text, marking it as already processed from structured JSON
+                # so it won't go through additional formatting in process_complete_response
+                return self.process_complete_response(response_text, apply_normalization=False, is_structured_json=True)
+        except (json.JSONDecodeError, AttributeError, TypeError) as e:
+            logger.debug(f"Response is not structured JSON: {str(e)}")
+            # Continue with normal processing for non-JSON responses
         
         # Check if this is a structured output response (JSON)
         try:
@@ -593,16 +667,18 @@ class GenerationMixin:
             }
         )
         
-        response_text = self.process_complete_response(response_text)
+        # Process the response text with the standard pipeline
+        response_text = self.process_complete_response(response_text, apply_normalization=True, is_structured_json=False)
         
         return response_text
-    def process_complete_response(self, response_text: str, apply_normalization: bool = True) -> str:
+    def process_complete_response(self, response_text: str, apply_normalization: bool = True, is_structured_json: bool = False) -> str:
         """
         Process a complete response with optional normalization
         
         Args:
             response_text: The complete response text
             apply_normalization: Whether to apply text normalization
+            is_structured_json: Whether the response is already processed from structured JSON
             
         Returns:
             Processed response text
@@ -610,6 +686,16 @@ class GenerationMixin:
         # Log the raw response text from Ollama
         logger.debug(f"Raw response from Ollama (length: {len(response_text)})")
         logger.debug(f"Raw response preview: {response_text[:200]}...")
+        
+        # If this is already processed from structured JSON, skip additional processing
+        if is_structured_json:
+            logger.info("Response was already processed from structured JSON, skipping additional formatting")
+            
+            # Log the final processed output for comparison with raw output
+            query_id = getattr(self, 'conversation_id', str(uuid.uuid4()))
+            logger.debug(f"PROCESSED BACKEND OUTPUT (Query ID: {query_id}):\n```\n{response_text}\n```")
+            
+            return response_text
         
         # Log paragraph structure in raw response
         paragraphs = response_text.count('\n\n') + 1
@@ -659,6 +745,11 @@ class GenerationMixin:
         # Check if paragraphs were lost during processing
         if paragraphs > final_paragraphs:
             logger.warning(f"Paragraph count decreased during processing: {paragraphs} -> {final_paragraphs}")
+            
+        # Log the final processed output for comparison with raw output
+        query_id = getattr(self, 'conversation_id', str(uuid.uuid4()))
+        logger.debug(f"PROCESSED BACKEND OUTPUT (Query ID: {query_id}):\n```\n{formatted_text}\n```")
+        
         return formatted_text
         
     def _format_table(self, table) -> str:

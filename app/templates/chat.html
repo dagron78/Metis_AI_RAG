@@ -5,6 +5,8 @@
 {% block head %}
 <!-- Document manager styles -->
 <link rel="stylesheet" href="{{ url_for('static', path='css/document-manager.css') }}">
+<!-- Loading history styles -->
+<link rel="stylesheet" href="{{ url_for('static', path='css/loading-history.css') }}">
 {% endblock %}
 
 {% block sidebar %}
@@ -24,35 +26,7 @@
             <!-- Other models will be loaded dynamically -->
         </select>
     </div>
-    
-    <!-- RAG Toggle -->
-    <div class="form-group checkbox-container">
-        <input type="checkbox" id="rag-toggle" name="use_rag" value="true">
-        <label for="rag-toggle">
-            Use RAG
-            <span class="tooltip">
-                <i class="fas fa-info-circle"></i>
-                <span class="tooltip-text">When enabled, the model will use your documents to provide more informed responses.</span>
-            </span>
-            <div class="param-description">Enable Retrieval Augmented Generation with your documents</div>
-        </label>
-    </div>
-    
-    <!-- Streaming Toggle -->
-    <div class="form-group checkbox-container">
-        <input type="checkbox" id="stream-toggle" name="use_stream" value="true">
-        <label for="stream-toggle">
-            Use Streaming
-            <span class="tooltip">
-                <i class="fas fa-info-circle"></i>
-                <span class="tooltip-text">When enabled, responses will be streamed in real-time. May cause errors with some models.</span>
-            </span>
-            <div class="param-description">Enable streaming responses (may be unstable)</div>
-        </label>
-    </div>
-    <div class="streaming-warning" style="color: #ff9800; font-size: 0.8em; margin-top: 5px; padding: 5px; border-left: 3px solid #ff9800;">
-        <i class="fas fa-exclamation-triangle"></i> Streaming mode may cause errors with some models. For best results, keep it disabled.
-    </div>
+    <!-- Model selection remains in the left sidebar -->
     
     <!-- Advanced Parameters -->
     <div class="advanced-options">
@@ -235,6 +209,38 @@
 {% endblock %}
 
 {% block content %}
+<!-- DevOps Panel -->
+<div class="devops-panel">
+    <div class="devops-header">
+        <h3><i class="fas fa-tools"></i> DevOps</h3>
+    </div>
+    <div class="devops-content">
+        <!-- RAG Toggle -->
+        <div class="form-group checkbox-container">
+            <input type="checkbox" id="rag-toggle" name="use_rag" value="true" checked>
+            <label for="rag-toggle">Use RAG</label>
+        </div>
+        
+        <!-- Streaming Toggle -->
+        <div class="form-group checkbox-container">
+            <input type="checkbox" id="stream-toggle" name="use_stream" value="true" checked>
+            <label for="stream-toggle">Use Streaming</label>
+        </div>
+        
+        <!-- Raw Output Toggle -->
+        <div class="form-group checkbox-container">
+            <input type="checkbox" id="raw-output-toggle" name="raw_output" value="true">
+            <label for="raw-output-toggle">Show Raw Output</label>
+        </div>
+        
+        <!-- Raw LLM Output Toggle -->
+        <div class="form-group checkbox-container">
+            <input type="checkbox" id="raw-llm-output-toggle" name="raw_llm_output">
+            <label for="raw-llm-output-toggle">Show Raw LLM Output</label>
+        </div>
+    </div>
+</div>
+
 <div class="chat-area">
     <!-- Chat Container -->
     <div class="chat-container" id="chat-container">
@@ -260,7 +266,6 @@
                 Press <strong>Enter</strong> to send, <strong>Shift+Enter</strong> for new line
             </div>
         </div>
-        
         <div class="submit-container">
             <button type="button" id="send-button">
                 <i class="fas fa-paper-plane"></i> Send Message
@@ -275,13 +280,15 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- Highlight.js and Marked.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js" integrity="sha512-bgHRAiTjGrzHzLyKOnpFvaEpGzJet3z4tZnXGjpsCcqOnAH6VGUx9frc5bcIhKTVLEiCO6vEhNAgx5jtLUYrfA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js" integrity="sha512-zAs8dHhwlTbfcVGRX1x0EZAH/L99NjAx6DvZ0f+86YXJ2033hiCT6VWJJzhHRJ4VYdNqQvvToEJx7/RsQCJfrw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- Make sure scripts are loaded in the correct order -->
+<!-- 1. First load the external libraries -->
+<script src="{{ url_for('static', path='vendor/highlight.js/highlight.min.js') }}"></script>
+<script src="{{ url_for('static', path='vendor/marked/marked.min.js') }}"></script>
 
-<!-- Custom markdown parser for code block handling -->
+<!-- 2. Then load our custom markdown parser that depends on the libraries -->
 <script src="{{ url_for('static', path='js/markdown-parser.js') }}"></script>
 
+<!-- 3. Finally load the application scripts that depend on the markdown parser -->
 <script src="{{ url_for('static', path='js/document-manager.js') }}"></script>
 <script src="{{ url_for('static', path='js/chat.js') }}"></script>
 {% endblock %}

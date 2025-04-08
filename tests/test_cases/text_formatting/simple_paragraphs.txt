@@ -1,0 +1,8 @@
+This is a simple test with multiple paragraphs.
+
+This is the second paragraph.
+
+This is the third paragraph with a longer text that spans multiple lines.
+It should be treated as a single paragraph despite having a single newline.
+
+This is the fourth paragraph.

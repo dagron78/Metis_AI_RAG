@@ -3,15 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self'; style-attr 'unsafe-inline'; img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+        font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:;
+        connect-src 'self';
+        img-src 'self' data:;
+    ">
     <title>{% block title %}Metis RAG{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" integrity="sha512-Jk4AqjWsdSzSWCSuQTfYRIF84Rq/eV0G2+tu07byYwHcbTGfdmLrHjUSwvzp5HvbiqK4ibmNwdcG49Y5RGYPTg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/font-awesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/highlight.js/styles/atom-one-dark.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/code-formatting.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/structured-output.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
     <meta name="description" content="Metis RAG - Retrieval Augmented Generation with Ollama">
+    <link rel="icon" href="{{ url_for('static', path='favicon.ico') }}" type="image/x-icon">
     <style>
         .header-controls {
             display: flex;
@@ -44,6 +52,7 @@
         .auth-button:hover {
             background-color: var(--hover-color);
         }
+        
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -74,7 +83,7 @@
             </div>
         </div>
         
-        <!-- Right Content Area -->
+        <!-- Main Content Area -->
         <div class="main-content">
             {% block content %}{% endblock %}
         </div>
@@ -91,9 +100,9 @@
         <div id="token-usage-text">0 / 4096 tokens</div>
     </div>
     
+    <!-- DevOps Controls Panel is now included in chat.html -->
+    
     <script src="{{ url_for('static', path='js/main.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

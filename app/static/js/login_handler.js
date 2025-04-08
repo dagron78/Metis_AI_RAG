@@ -1,5 +1,5 @@
-// Enable debug mode for troubleshooting
-const debugMode = true;
+// Debug mode should be disabled in production
+const debugMode = false;
 
 function debugLog(message) {
     if (debugMode) {
@@ -83,85 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up login form submission handler
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-        loginForm.addEventListener('submit', async function(e) {
-            e.preventDefault(); // Prevent the default form submission
-            debugLog('Form submitted');
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            try {
-                debugLog('Sending login request');
-                // Always use the API endpoint directly
-                const response = await fetch('/api/auth/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
-                });
-                
-                debugLog(`Response status: ${response.status}`);
-                const data = await response.json();
-                debugLog(`Response data: ${JSON.stringify(data)}`);
-                
-                if (response.ok) {
-                    // Store token and username in localStorage
-                    localStorage.setItem('access_token', data.access_token);
-                    localStorage.setItem('token_type', data.token_type);
-                    localStorage.setItem('username', username);
-                    
-                    // Show success message
-                    const successMessage = document.getElementById('success-message');
-                    if (successMessage) {
-                        successMessage.textContent = 'Login successful! Redirecting...';
-                        successMessage.style.display = 'block';
-                    }
-                    
-                    const errorMessage = document.getElementById('error-message');
-                    if (errorMessage) {
-                        errorMessage.textContent = '';
-                    }
-                    
-                    // Check for redirect parameter
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const redirect = urlParams.get('redirect');
-                    
-                    // Log the redirect
-                    debugLog(`Redirecting to: ${redirect || '/'}`);
-                    
-                    // Redirect to the specified page or home page after a short delay
-                    setTimeout(() => {
-                        window.location.href = redirect || '/';
-                    }, 1000);
-                } else {
-                    // Display error message
-                    const errorMessage = document.getElementById('error-message');
-                    if (errorMessage) {
-                        errorMessage.textContent = data.detail || 'Login failed';
-                        errorMessage.style.display = 'block';
-                    }
-                    
-                    const successMessage = document.getElementById('success-message');
-                    if (successMessage) {
-                        successMessage.style.display = 'none';
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                debugLog(`Error: ${error.message}`);
-                
-                const errorMessage = document.getElementById('error-message');
-                if (errorMessage) {
-                    errorMessage.textContent = 'An error occurred during login';
-                    errorMessage.style.display = 'block';
-                }
-                
-                const successMessage = document.getElementById('success-message');
-                if (successMessage) {
-                    successMessage.style.display = 'none';
-                }
-            }
-        });
+        // Login form submission is handled by login.js
     }
 });

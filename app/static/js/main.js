@@ -1,5 +1,8 @@
 // Theme switching functionality
 document.addEventListener('DOMContentLoaded', function() {
+
+
+
     // Check for saved theme preference or default to 'dark'
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -326,11 +329,12 @@ function renderConversation() {
 
 // Authentication functions
 function isAuthenticated() {
-    return localStorage.getItem('access_token') !== null;
+    return localStorage.getItem('metisToken') !== null;
 }
 
 function getToken() {
-    return localStorage.getItem('access_token');
+    // Try localStorage first, then sessionStorage as fallback
+    return localStorage.getItem('metisToken') || sessionStorage.getItem('metisToken') || '';
 }
 
 // Check if token is expired or about to expire
@@ -385,11 +389,19 @@ async function refreshToken() {
         
         const data = await response.json();
         
-        // Store the new tokens
-        localStorage.setItem('access_token', data.access_token);
+        // Store the new tokens in both localStorage and sessionStorage
+        localStorage.setItem('metisToken', data.access_token);
+        sessionStorage.setItem('metisToken', data.access_token);
+        
         if (data.refresh_token) {
             localStorage.setItem('refresh_token', data.refresh_token);
+            sessionStorage.setItem('refresh_token', data.refresh_token);
         }
+        
+        // Also update the cookie for server-side authentication
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 7); // 7 days expiration
+        document.cookie = `auth_token=${data.access_token}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Strict`;
         
         console.log('Token refreshed successfully');
         return true;
@@ -460,10 +472,18 @@ window.authenticatedFetch = authenticatedFetch;
 console.log('Auth functions made global');
 
 function logout() {
-    localStorage.removeItem('access_token');
+    // Clear localStorage
+    localStorage.removeItem('metisToken');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('token_type');
     localStorage.removeItem('username');
+    
+    // Clear sessionStorage
+    sessionStorage.removeItem('metisToken');
+    sessionStorage.removeItem('refresh_token');
+    
+    // Clear auth cookie
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
     updateAuthUI();
     
     // Redirect to login page if on a protected page
@@ -563,7 +583,81 @@ function setupTokenRefreshCheck() {
                 }
             });
         }
+        
+        // Also check for server restarts
+        checkServerStatus();
     }, 5 * 60 * 1000); // Check every 5 minutes
+    
+    // Immediate server status check on page load
+    checkServerStatus();
+}
+
+/**
+ * Check if the server has restarted and handle auth token synchronization
+ */
+function checkServerStatus() {
+    // Store a random session ID for server restart detection
+    if (!sessionStorage.getItem('server_session_id')) {
+        sessionStorage.setItem('server_session_id', Math.random().toString(36).substring(2));
+    }
+    
+    const sessionId = sessionStorage.getItem('server_session_id');
+    
+    // Simple health check
+    fetch('/api/health/', {
+        headers: {
+            'X-Client-Session': sessionId
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error('Health check failed');
+    })
+    .then(data => {
+        // If server reports different session than what we've seen before
+        if (data.server_start_time && sessionStorage.getItem('server_start_time') &&
+            sessionStorage.getItem('server_start_time') !== data.server_start_time) {
+            console.log('Server restart detected, synchronizing tokens');
+            
+            // Server has restarted, attempt to refresh token or force re-login
+            if (isAuthenticated()) {
+                refreshToken()
+                    .then(success => {
+                        if (success) {
+                            console.log('Token refreshed after server restart');
+                            // Also sync cookie to ensure consistency
+                            const token = localStorage.getItem('metisToken');
+                            if (token) {
+                                const expirationDate = new Date();
+                                expirationDate.setDate(expirationDate.getDate() + 7); // 7 days expiration
+                                document.cookie = `auth_token=${token}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Strict`;
+                            }
+                        } else {
+                            // Force logout if refresh fails
+                            logout();
+                            showNotification('Your session expired due to server restart. Please log in again.', 'warning');
+                            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}&reason=server_restart`;
+                        }
+                    })
+                    .catch(() => {
+                        // Force logout if refresh fails with error
+                        logout();
+                        showNotification('Your session expired due to server restart. Please log in again.', 'warning');
+                        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}&reason=server_restart`;
+                    });
+            }
+        }
+        
+        // Store server start time for future comparisons
+        if (data.server_start_time) {
+            sessionStorage.setItem('server_start_time', data.server_start_time);
+        }
+    })
+    .catch(error => {
+        console.error('Server status check failed:', error);
+    });
 }
 
 // Initialize when page loads
@@ -578,9 +672,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up token refresh check
     setupTokenRefreshCheck();
     
+    // DevOps panel is now directly included in chat.html
+    const currentPath = window.location.pathname;
+    
     // Check if we need to redirect to login
     const protectedPages = ['/documents', '/chat', '/analytics', '/system'];
-    const currentPath = window.location.pathname;
     if (protectedPages.includes(currentPath) && !isAuthenticated()) {
         window.location.href = '/login?redirect=' + encodeURIComponent(currentPath);
     }
@@ -606,6 +702,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 advancedIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
                 localStorage.setItem('advancedOptions', 'hidden');
             }
+        });
+    }
+    
+    // Set up DevOps panel toggle
+    const devopsHeader = document.querySelector('.devops-header');
+    const devopsContent = document.querySelector('.devops-content');
+    
+    if (devopsHeader && devopsContent) {
+        // Add toggle indicator
+        const toggleIcon = document.createElement('i');
+        toggleIcon.className = 'fas fa-chevron-down toggle-icon';
+        toggleIcon.style.marginLeft = '8px';
+        toggleIcon.style.cursor = 'pointer';
+        devopsHeader.querySelector('h3').appendChild(toggleIcon);
+        
+        // Set initial state based on preference
+        const devopsPanelOpen = localStorage.getItem('metis_devops_panel_open') !== 'false';
+        if (!devopsPanelOpen) {
+            devopsContent.style.display = 'none';
+            toggleIcon.className = 'fas fa-chevron-right toggle-icon';
+        }
+        
+        // Add click handler
+        devopsHeader.addEventListener('click', function() {
+            const isVisible = devopsContent.style.display !== 'none';
+            devopsContent.style.display = isVisible ? 'none' : 'flex';
+            toggleIcon.className = isVisible 
+                ? 'fas fa-chevron-right toggle-icon' 
+                : 'fas fa-chevron-down toggle-icon';
+            
+            // Store preference
+            localStorage.setItem('metis_devops_panel_open', isVisible ? 'false' : 'true');
         });
     }
     
