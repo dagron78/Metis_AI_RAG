@@ -205,18 +205,18 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Extract user settings state management logic
 
 ### 3.3 Extract RAG Engine Components
-- [ ] Create `app/rag/engine/components/retrieval.py`:
-  - [ ] Extract retrieval functionality
-  - [ ] Create `RetrievalComponent` class
-- [ ] Create `app/rag/engine/components/generation.py`:
-  - [ ] Extract generation functionality
-  - [ ] Create `GenerationComponent` class
-- [ ] Create `app/rag/engine/components/memory.py`:
-  - [ ] Extract memory operations
-  - [ ] Create `MemoryComponent` class
-- [ ] Create `app/rag/engine/components/context_builder.py`:
-  - [ ] Extract context assembly logic
-  - [ ] Create `ContextBuilder` class
+- [x] Create `app/rag/engine/components/retrieval.py`:
+  - [x] Extract retrieval functionality
+  - [x] Create `RetrievalComponent` class
+- [x] Create `app/rag/engine/components/generation.py`:
+  - [x] Extract generation functionality
+  - [x] Create `GenerationComponent` class
+- [x] Create `app/rag/engine/components/memory.py`:
+  - [x] Extract memory operations
+  - [x] Create `MemoryComponent` class
+- [x] Create `app/rag/engine/components/context_builder.py`:
+  - [x] Extract context assembly logic
+  - [x] Create `ContextBuilder` class
 
 ### 3.4 Extract RAG Engine Base Components
 - [ ] Create `app/rag/engine/base/base_engine.py`:
