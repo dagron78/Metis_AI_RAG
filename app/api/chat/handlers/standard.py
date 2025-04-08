@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 from app.models.chat import ChatQuery, ChatResponse
 from app.models.user import User
-from app.rag.rag_engine import RAGEngine
+from app.rag.engine.rag_engine import RAGEngine
 from app.db.dependencies import get_db, get_conversation_repository
 from app.db.repositories.conversation_repository import ConversationRepository
 from app.core.security import get_current_active_user
