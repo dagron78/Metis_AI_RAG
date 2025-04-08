@@ -181,18 +181,18 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Extract API calls for chat functionality
 - [x] Create `app/static/js/chat/api/conversation-service.js`:
   - [x] Extract API calls for conversation management
-- [ ] Create `app/static/js/chat/components/chat-interface.js`:
-  - [ ] Extract chat UI components
-- [ ] Create `app/static/js/chat/components/message-list.js`:
-  - [ ] Extract message rendering logic
-- [ ] Create `app/static/js/chat/components/input-area.js`:
-  - [ ] Extract user input handling logic
-- [ ] Create `app/static/js/chat/components/citations.js`:
-  - [ ] Extract citation display and handling logic
-- [ ] Create `app/static/js/chat/state/chat-state.js`:
-  - [ ] Extract chat state management logic
-- [ ] Create `app/static/js/chat/state/settings-state.js`:
-  - [ ] Extract user settings state management logic
+- [x] Create `app/static/js/chat/components/chat-interface.js`:
+  - [x] Extract chat UI components
+- [x] Create `app/static/js/chat/components/message-list.js`:
+  - [x] Extract message rendering logic
+- [x] Create `app/static/js/chat/components/input-area.js`:
+  - [x] Extract user input handling logic
+- [x] Create `app/static/js/chat/components/citations.js`:
+  - [x] Extract citation display and handling logic
+- [x] Create `app/static/js/chat/state/chat-state.js`:
+  - [x] Extract chat state management logic
+- [x] Create `app/static/js/chat/state/settings-state.js`:
+  - [x] Extract user settings state management logic
 
 ### 3.3 Extract RAG Engine Components
 - [ ] Create `app/rag/engine/components/retrieval.py`:
@@ -249,7 +249,7 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - Update to use utility functions
   - Add tests for all components"
   ```
-- [ ] Commit frontend component extraction:
+- [x] Commit frontend component extraction:
   ```bash
   git add app/static/js/chat/
   git commit -m "restructure(frontend): extract frontend components
@@ -301,11 +301,11 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
   - [x] Add deprecation warning
 
 ### 4.2 Refactor Frontend
-- [ ] Create `app/static/js/chat/index.js`:
-  - [ ] Import and initialize all components
-- [ ] Refactor `app/static/js/chat.js`:
-  - [ ] Convert to thin wrapper that imports from new modules
-  - [ ] Add deprecation warning
+- [x] Create `app/static/js/chat/index.js`:
+  - [x] Import and initialize all components
+- [x] Refactor `app/static/js/chat.js`:
+  - [x] Convert to thin wrapper that imports from new modules
+  - [x] Add deprecation warning
 
 ### 4.3 Refactor RAG Engine
 - [ ] Create `app/rag/engine/rag_engine.py`:
