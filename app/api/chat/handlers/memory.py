@@ -13,7 +13,11 @@ from app.models.user import User
 from app.db.dependencies import get_db, get_conversation_repository
 from app.db.repositories.conversation_repository import ConversationRepository
 from app.core.security import get_current_active_user
-from app.rag.mem0_client import get_memory_diagnostics, get_conversation_history
+from app.rag.mem0_client import (
+    get_conversation_history,
+    get_user_preferences,
+    get_document_interactions
+)
 
 # Logger
 logger = logging.getLogger("app.api.chat.handlers.memory")
@@ -39,11 +43,14 @@ async def memory_diagnostics(
     target_id = human_id or str(current_user.id)
     
     try:
-        # Get memory diagnostics from Mem0
-        memory_data = await get_memory_diagnostics(target_id)
-        
         # Get conversation history from Mem0
         conversation_history = await get_conversation_history(target_id, limit=10)
+        
+        # Get user preferences from Mem0
+        user_preferences = await get_user_preferences(target_id)
+        
+        # Get document interactions from Mem0
+        document_interactions = await get_document_interactions(target_id, limit=20)
         
         # Get conversation statistics from the database
         db_stats = await conversation_repository.get_conversation_statistics()
@@ -51,7 +58,10 @@ async def memory_diagnostics(
         # Combine all data
         result = {
             "user_id": target_id,
-            "memory": memory_data,
+            "memory": {
+                "user_preferences": user_preferences,
+                "document_interactions": document_interactions
+            },
             "recent_conversations": conversation_history,
             "database_statistics": db_stats
         }
