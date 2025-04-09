@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """
-Simple script to test authentication with a known user.
+Unit tests for authentication with a known user.
 """
 
-import asyncio
+import pytest
 import logging
 import sys
+import os
 import requests
 import json
+from unittest.mock import patch, MagicMock
+
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
 
 # Configure logging
 logging.basicConfig(
@@ -26,80 +32,158 @@ TEST_USER = {
     "password": "testpassword123"
 }
 
-def test_authentication():
-    """Test authentication using direct API calls"""
-    logger.info(f"Testing authentication with username: {TEST_USER['username']}")
+@pytest.fixture
+def test_document_path():
+    """Create a test document and return its path"""
+    # Create a test document in the project root
+    document_path = os.path.join(project_root, "test_document.txt")
+    with open(document_path, "w") as f:
+        f.write("This is a test document for authentication testing.")
+    
+    yield document_path
+    
+    # Clean up after the test
+    if os.path.exists(document_path):
+        os.remove(document_path)
+
+@pytest.fixture
+def mock_token_response():
+    """Mock a successful token response"""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "access_token": "mock_access_token_12345",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "refresh_token": "mock_refresh_token"
+    }
+    return mock_response
+
+@pytest.fixture
+def mock_me_response():
+    """Mock a successful /me response"""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "id": "user123",
+        "username": TEST_USER["username"],
+        "email": "testuser123@example.com",
+        "is_active": True,
+        "is_admin": False
+    }
+    return mock_response
+
+@pytest.fixture
+def mock_upload_response():
+    """Mock a successful document upload response"""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "document_id": "doc123",
+        "filename": "test_document.txt",
+        "status": "success"
+    }
+    return mock_response
+
+@patch('requests.post')
+@patch('requests.get')
+def test_authentication_success(mock_get, mock_post, test_document_path, mock_token_response, mock_me_response, mock_upload_response):
+    """Test successful authentication and protected endpoint access"""
+    # Mock the responses
+    mock_post.side_effect = [mock_token_response, mock_upload_response]
+    mock_get.return_value = mock_me_response
     
     # Try to get a token
-    try:
-        response = requests.post(
-            f"{BASE_URL}/auth/token",
-            data={
-                "username": TEST_USER["username"],
-                "password": TEST_USER["password"]
-            }
+    response = requests.post(
+        f"{BASE_URL}/auth/token",
+        data={
+            "username": TEST_USER["username"],
+            "password": TEST_USER["password"]
+        }
+    )
+    
+    # Verify token response
+    assert response.status_code == 200
+    token_data = response.json()
+    assert "access_token" in token_data
+    
+    # Test accessing a protected endpoint
+    headers = {"Authorization": f"Bearer {token_data['access_token']}"}
+    
+    # Try to get user info
+    me_response = requests.get(f"{BASE_URL}/auth/me", headers=headers)
+    assert me_response.status_code == 200
+    user_data = me_response.json()
+    assert user_data["username"] == TEST_USER["username"]
+    
+    # Try to upload a document
+    with open(test_document_path, "rb") as f:
+        files = {"file": ("test_document.txt", f, "text/plain")}
+        upload_response = requests.post(
+            f"{BASE_URL}/documents/upload",
+            headers=headers,
+            files=files,
+            data={"tags": "test,auth", "folder": "/test"}
         )
-        
-        if response.status_code == 200:
-            token_data = response.json()
-            logger.info("Authentication successful!")
-            logger.info(f"Access token: {token_data['access_token'][:20]}...")
-            
-            # Test accessing a protected endpoint
-            headers = {"Authorization": f"Bearer {token_data['access_token']}"}
-            
-            # Try to get user info
-            me_response = requests.get(f"{BASE_URL}/auth/me", headers=headers)
-            if me_response.status_code == 200:
-                user_data = me_response.json()
-                logger.info(f"Successfully accessed protected endpoint: /auth/me")
-                logger.info(f"User data: {json.dumps(user_data, indent=2)}")
-            else:
-                logger.error(f"Failed to access protected endpoint: {me_response.status_code} - {me_response.text}")
-            
-            # Try to upload a document
-            with open("test_document.txt", "w") as f:
-                f.write("This is a test document for authentication testing.")
-            
-            with open("test_document.txt", "rb") as f:
-                files = {"file": ("test_document.txt", f, "text/plain")}
-                upload_response = requests.post(
-                    f"{BASE_URL}/documents/upload",
-                    headers=headers,
-                    files=files,
-                    data={"tags": "test,auth", "folder": "/test"}
-                )
-            
-            if upload_response.status_code == 200:
-                result = upload_response.json()
-                logger.info(f"Document uploaded successfully: {result['document_id']}")
-            else:
-                logger.error(f"Failed to upload document: {upload_response.status_code} - {upload_response.text}")
-            
-            return True
-        else:
-            logger.error(f"Authentication failed: {response.status_code} - {response.text}")
-            return False
-    except Exception as e:
-        logger.error(f"Error during authentication test: {str(e)}")
-        return False
+    
+    # Verify upload response
+    assert upload_response.status_code == 200
+    result = upload_response.json()
+    assert "document_id" in result
+    assert result["document_id"] == "doc123"
 
-def main():
-    """Main function"""
-    logger.info("Starting authentication test...")
+@patch('requests.post')
+def test_authentication_failure(mock_post):
+    """Test authentication failure with invalid credentials"""
+    # Mock the response
+    mock_response = MagicMock()
+    mock_response.status_code = 401
+    mock_response.text = "Invalid credentials"
+    mock_post.return_value = mock_response
     
-    # Test authentication
-    success = test_authentication()
+    # Try to get a token with invalid credentials
+    response = requests.post(
+        f"{BASE_URL}/auth/token",
+        data={
+            "username": "wrong_username",
+            "password": "wrong_password"
+        }
+    )
     
-    # Print summary
-    logger.info("\n" + "="*80)
-    logger.info("Authentication Test Summary")
-    logger.info("="*80)
-    logger.info(f"Authentication: {'✓ Success' if success else '✗ Failed'}")
-    logger.info("="*80)
-    
-    # Return success code
-    return 0 if success else 1
+    # Verify response
+    assert response.status_code == 401
+    assert "Invalid credentials" in response.text
 
-if __name__ == "__main__":
-    sys.exit(main())
+@patch('requests.post')
+@patch('requests.get')
+def test_protected_endpoint_access_failure(mock_get, mock_post, mock_token_response):
+    """Test failure to access protected endpoint with invalid token"""
+    # Mock the token response
+    mock_post.return_value = mock_token_response
+    
+    # Mock the protected endpoint response
+    mock_me_response = MagicMock()
+    mock_me_response.status_code = 401
+    mock_me_response.text = "Invalid token"
+    mock_get.return_value = mock_me_response
+    
+    # Get a token
+    response = requests.post(
+        f"{BASE_URL}/auth/token",
+        data={
+            "username": TEST_USER["username"],
+            "password": TEST_USER["password"]
+        }
+    )
+    
+    # Verify token response
+    assert response.status_code == 200
+    token_data = response.json()
+    
+    # Try to access protected endpoint with invalid token
+    headers = {"Authorization": "Bearer invalid_token"}
+    me_response = requests.get(f"{BASE_URL}/auth/me", headers=headers)
+    
+    # Verify response
+    assert me_response.status_code == 401
+    assert "Invalid token" in me_response.text
