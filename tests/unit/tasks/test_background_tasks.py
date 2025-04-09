@@ -5,7 +5,13 @@ import asyncio
 import time
 import random
 import pytest
+import os
+import sys
 from typing import List, Dict, Any
+
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
 
 from app.tasks.task_manager import TaskManager
 from app.tasks.task_models import Task, TaskStatus, TaskPriority
