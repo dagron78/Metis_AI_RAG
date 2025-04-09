@@ -90,7 +90,7 @@ We are following a test-type-first organization that better mirrors the applicat
    - Updated `Metis_RAG_Test_Files_Inventory.md`
    - Updated `Metis_RAG_Test_Reorganization_Plan.md`
 
-## Phase 5: Complete Directory Structure (In Progress)
+## Phase 5: Complete Directory Structure (Completed) ✅
 
 1. Created remaining unit test directories ✅
    - Created `tests/unit/api/`
@@ -119,25 +119,43 @@ We are following a test-type-first organization that better mirrors the applicat
    - Ensured proper mocking of dependencies
    - Set up database fixtures for integration and E2E tests
 
-## Next Steps
+## Phase 6: Move Remaining Tests (In Progress)
 
-### Phase 6: Move Remaining Tests (Not Started)
+1. Moved authentication tests ✅
+   - Moved `tests/test_auth_simple.py` to `tests/unit/middleware/test_auth_simple.py`
+   - Moved `tests/test_authentication.py` to `tests/unit/middleware/test_authentication.py`
 
-1. Categorize and move remaining unit tests
-   - Analyze each test file to determine the appropriate directory
-   - Move files to the correct location
-   - Update imports as needed
-   - Run tests to verify functionality
+2. Moved API tests ✅
+   - Moved `tests/test_chat_api.py` to `tests/unit/api/test_chat_api.py`
+   - Moved `tests/test_document_upload.py` to `tests/unit/api/test_document_upload.py`
 
-2. Categorize and move remaining integration tests
-   - Analyze each test file to determine the appropriate directory
-   - Move files to the correct location
-   - Update imports as needed
-   - Run tests to verify functionality
+3. Moved database tests ✅
+   - Moved `tests/test_db_connection.py` to `tests/unit/db/test_db_connection.py`
+   - Moved `tests/test_db_connection_simple.py` to `tests/unit/db/test_db_connection_simple.py`
+   - Moved `tests/test_db_simple.py` to `tests/unit/db/test_db_simple.py`
+   - Moved `tests/test_document_repository.py` to `tests/unit/db/repositories/test_document_repository.py`
 
-3. Categorize and move remaining E2E tests
-   - Analyze each test file to determine the appropriate directory
-   - Move files to the correct location
+4. Moved RAG tests ✅
+   - Moved `tests/test_chunking_judge_phase1.py` to `tests/unit/rag/test_chunking_judge_phase1.py`
+   - Moved `tests/test_chunking_judge_real.py` to `tests/integration/rag_api/test_chunking_judge_real.py`
+   - Moved `tests/test_entity_preservation.py` to `tests/unit/rag/test_entity_preservation.py`
+
+5. Moved task tests ✅
+   - Moved `tests/test_background_tasks.py` to `tests/unit/tasks/test_background_tasks.py`
+   - Moved `tests/test_simplified_document_processing.py` to `tests/unit/tasks/test_simplified_document_processing.py`
+   - Moved `tests/test_simplified_document_processing_with_db.py` to `tests/integration/tasks_db/test_simplified_document_processing_with_db.py`
+
+6. Moved utility tests ✅
+   - Moved `tests/test_code_formatting.py` to `tests/unit/utils/test_code_formatting.py`
+   - Moved `tests/test_file_handling.py` to `tests/unit/utils/test_file_handling.py`
+
+7. Moved E2E tests ✅
+   - Moved `tests/test_document_processing_performance.py` to `tests/e2e/document_processing/test_document_processing_performance.py`
+   - Moved `tests/test_metis_rag_e2e.py` to `tests/e2e/chat/test_metis_rag_e2e.py`
+   - Moved `tests/test_metis_rag_e2e_demo.py` to `tests/e2e/chat/test_metis_rag_e2e_demo.py`
+
+8. Remaining tests to move (Not Started)
+   - Need to review and categorize any remaining test files
    - Update imports as needed
    - Run tests to verify functionality
 
@@ -157,6 +175,6 @@ We are following a test-type-first organization that better mirrors the applicat
 | E2E Tests | 2 | 0 | 0 | 2 |
 | Legacy Tests | 18 | 0 | 0 | 18 |
 | Complete Directory Structure | 18 | 18 | 0 | 0 |
-| Move Remaining Tests | 47 | 0 | 0 | 47 |
+| Move Remaining Tests | 19 | 19 | 0 | 0 |
 | Final Verification | N/A | 0 | 0 | 1 |
-| **Total** | **100** | **26** | **0** | **74** |
+| **Total** | **72** | **45** | **0** | **47** |
