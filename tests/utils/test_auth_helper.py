@@ -10,11 +10,16 @@ tests/authentication_setup_guide.md.
 """
 
 import os
+import sys
 import json
 import logging
 import requests
 from typing import Dict, Optional, Tuple
 from fastapi.testclient import TestClient
+
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(project_root)
 
 # Configure logging
 logging.basicConfig(
@@ -163,7 +168,9 @@ def configure_test_client(app, username: str = "testuser", password: str = "test
                 client.headers["Authorization"] = f"Bearer {access_token}"
                 
                 # Save cookies to a file for debugging
-                with open("cookies.txt", "w") as f:
+                cookies_path = os.path.join(project_root, "data", "cookies.txt")
+                os.makedirs(os.path.dirname(cookies_path), exist_ok=True)
+                with open(cookies_path, "w") as f:
                     f.write(str(client.cookies))
                 
                 return client
