@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import asyncio
 import pytest
@@ -8,14 +9,20 @@ import uuid
 from typing import List, Dict, Any
 from pathlib import Path
 
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
+
 from app.rag.document_processor import DocumentProcessor
 from app.rag.document_analysis_service import DocumentAnalysisService
 from app.rag.vector_store import VectorStore
-from app.db.repositories.document_repository import DocumentRepository
+from app.db.repositories.document import DocumentRepository
 from app.db.session import SessionLocal
 from app.models.document import Document
-from app.core.config import SETTINGS, UPLOAD_DIR, DATABASE_TYPE
-from app.db.models import Folder
+from app.core.config import SETTINGS
+
+# Define upload directory using project_root
+UPLOAD_DIR = os.path.join(project_root, "data", "uploads")
 
 # Test configuration
 TEST_FILE_SIZES = [
@@ -228,6 +235,16 @@ async def run_processing_tests(document_repository, document_processor, vector_s
                 except:
                     pass
     
+    # Save results to file
+    results_path = os.path.join(project_root, "tests", "results", "document_processing_performance_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
+    
+    import json
+    with open(results_path, "w") as f:
+        json.dump(results, f, indent=2)
+    
+    print(f"Results saved to {results_path}")
+    
     return results
 
 async def run_analysis_tests(document_repository, document_analysis_service):
@@ -296,6 +313,16 @@ async def run_analysis_tests(document_repository, document_analysis_service):
                     os.unlink(file_path)
                 except:
                     pass
+    
+    # Save results to file
+    results_path = os.path.join(project_root, "tests", "results", "document_analysis_performance_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
+    
+    import json
+    with open(results_path, "w") as f:
+        json.dump(results, f, indent=2)
+    
+    print(f"Results saved to {results_path}")
     
     return results
 
