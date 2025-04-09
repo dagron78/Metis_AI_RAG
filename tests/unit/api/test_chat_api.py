@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from app.main import app
 from app.core.config import SETTINGS
-from app.core.dependencies import get_current_user, get_current_active_user
+from app.core.security import get_current_user, get_current_active_user
 
 @pytest.fixture
 def test_client():
