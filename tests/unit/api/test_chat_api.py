@@ -7,7 +7,7 @@ import jwt
 from datetime import datetime, timedelta
 
 from app.main import app
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.core.dependencies import get_current_user, get_current_active_user
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def auth_headers():
         "iat": datetime.utcnow(),
         "scope": "user"
     }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    token = jwt.encode(payload, SETTINGS.secret_key, algorithm=SETTINGS.algorithm)
     return {"Authorization": f"Bearer {token}"}
 
 def test_chat_query_endpoint(test_client, mock_current_user, auth_headers):
