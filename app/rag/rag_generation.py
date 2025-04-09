@@ -7,7 +7,7 @@ import re
 import asyncio
 import sys
 from typing import Dict, Any, Optional, List, AsyncGenerator
-from app.rag.text_formatting_monitor import get_monitor, FormattingApproach, FormattingEvent
+from app.utils.text_formatting.monitor import get_monitor, FormattingApproach, FormattingEvent
 from uuid import UUID, uuid4
 import uuid
 

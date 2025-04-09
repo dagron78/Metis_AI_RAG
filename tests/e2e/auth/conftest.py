@@ -6,13 +6,13 @@ import os
 import tempfile
 from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
-import jwt
+from jose import jwt
 from datetime import datetime, timedelta
 
 from app.main import app
-from app.db.base import Base
+from app.db.session import Base
 from app.db.session import get_db
-from app.db.repositories.user import UserRepository
+from app.db.repositories.user_repository import UserRepository
 from app.models.user import User
 from app.core.security import get_password_hash, create_access_token
 from app.core.config import settings

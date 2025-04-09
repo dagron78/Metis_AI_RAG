@@ -87,6 +87,8 @@ async def health_check():
     """
     Health check endpoint
     """
+    server_start_time = os.environ.get("SERVER_START_TIME", "unknown")
+    
     try:
         # Check Ollama
         ollama_status = "healthy"
@@ -109,7 +111,8 @@ async def health_check():
             status="healthy" if ollama_status == "healthy" and vector_db_status == "healthy" else "unhealthy",
             ollama_status=ollama_status,
             vector_db_status=vector_db_status,
-            api_version="v1"
+            api_version="v1",
+            server_start_time=server_start_time
         )
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
@@ -117,5 +120,6 @@ async def health_check():
             status="unhealthy",
             ollama_status="unknown",
             vector_db_status="unknown",
-            api_version="v1"
+            api_version="v1",
+            server_start_time=server_start_time
         )

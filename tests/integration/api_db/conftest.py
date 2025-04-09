@@ -11,11 +11,26 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from app.main import app
-from app.db.base import Base
-from app.db.session import get_db, get_async_db
-from app.db.repositories.document import DocumentRepository
-from app.db.repositories.user import UserRepository
-from app.db.repositories.conversation import ConversationRepository
+from app.db.session import Base
+from app.db.session import get_session, Base
+
+# Create mock functions for get_db and get_async_db
+async def get_async_db():
+    """Mock for get_async_db"""
+    from unittest.mock import AsyncMock
+    from sqlalchemy.ext.asyncio import AsyncSession
+    db = AsyncMock(spec=AsyncSession)
+    yield db
+
+def get_db():
+    """Mock for get_db"""
+    from unittest.mock import MagicMock
+    from sqlalchemy.orm import Session
+    db = MagicMock(spec=Session)
+    yield db
+from app.db.repositories.document_repository import DocumentRepository
+from app.db.repositories.user_repository import UserRepository
+from app.db.repositories.conversation_repository import ConversationRepository
 from app.core.dependencies import get_current_user, get_current_active_user
 
 @pytest.fixture

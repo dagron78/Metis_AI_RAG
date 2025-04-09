@@ -131,6 +131,11 @@ class AuthMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
             
+        # Check if developer mode is enabled
+        if SETTINGS.developer_mode:
+            logger.info("Developer mode is enabled, bypassing authentication")
+            return await self.app(scope, receive, send)
+            
         # Create a request object
         request = Request(scope)
         # Check if the route is protected

@@ -1,6 +1,10 @@
 import logging
 import os
+import time
 from fastapi import FastAPI, Request, status
+
+# Set server start time for client connection verification
+os.environ["SERVER_START_TIME"] = str(int(time.time()))
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates

@@ -1,8 +1,0 @@
-Text Formatting Improvements Test - 2025-04-07 16:03:25
-================================================================================
-
-2025-04-07 16:03:25 - Starting text formatting tests
-2025-04-07 16:03:25 - Getting authentication token...
-2025-04-07 16:03:25 - Authentication failed: 401 Client Error: Unauthorized for url: http://localhost:8000/api/auth/token
-2025-04-07 16:03:25 - Response: {"detail":"Incorrect username or password"}
-2025-04-07 16:03:25 - Failed to get authentication token. Exiting.

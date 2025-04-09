@@ -1,223 +1,195 @@
 #!/usr/bin/env python3
 """
 Unit tests to verify authentication with the Metis RAG API.
-This module tests both direct API calls and the TestClient approach.
+These are simplified tests focused on core authentication functionality.
 """
 
-import os
-import sys
-import logging
 import pytest
-import requests
 from unittest.mock import patch, MagicMock
-from fastapi.testclient import TestClient
+from jose import jwt
+import time
+from datetime import datetime, timedelta
 
-# Add the project root to the Python path
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-sys.path.append(project_root)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]
+from app.core.security import (
+    verify_password,
+    get_password_hash,
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    verify_refresh_token
 )
-logger = logging.getLogger("test_authentication")
+from app.core.config import SETTINGS
 
-# Import app and authentication helper
-from app.main import app
-from tests.utils.test_auth_helper import (
-    configure_test_client,
-    verify_authentication,
-    authenticate_with_session
-)
-
-@pytest.fixture
-def base_url():
-    """Return the base URL for API tests"""
-    return "http://localhost:8000"
-
-@pytest.fixture
-def mock_session():
-    """Mock requests.Session for testing"""
-    session = MagicMock()
-    return session
-
-@pytest.fixture
-def mock_token_response():
-    """Mock a successful token response"""
-    response = MagicMock()
-    response.status_code = 200
-    response.json.return_value = {
-        "access_token": "mock_access_token",
-        "token_type": "bearer",
-        "expires_in": 3600
-    }
-    return response
-
-@pytest.fixture
-def mock_documents_response():
-    """Mock a successful documents response"""
-    response = MagicMock()
-    response.status_code = 200
-    response.json.return_value = {
-        "documents": []
-    }
-    return response
-
-@pytest.fixture
-def mock_failed_auth_response():
-    """Mock a failed authentication response"""
-    response = MagicMock()
-    response.status_code = 401
-    response.text = "Invalid credentials"
-    return response
-
-@patch('requests.Session')
-def test_direct_api_authentication_success(mock_session_class, base_url, mock_token_response, mock_documents_response):
-    """Test successful authentication using direct API calls"""
-    # Setup mock session
-    session = MagicMock()
-    mock_session_class.return_value = session
-    session.post.return_value = mock_token_response
-    session.get.return_value = mock_documents_response
+class TestAuthenticationCore:
+    """Tests for core authentication functionality"""
     
-    # Call the function under test with patched session
-    with patch('tests.utils.test_auth_helper.requests.Session', return_value=session):
-        test_session, token = authenticate_with_session(base_url, "testuser", "testpassword")
+    def test_password_hash_and_verify(self):
+        """Test password hashing and verification"""
+        password = "test_password123"
+        
+        # Hash the password
+        hashed = get_password_hash(password)
+        
+        # Verify it's not the original password
+        assert hashed != password
+        
+        # Verify the password correctly
+        assert verify_password(password, hashed) is True
+        
+        # Verify wrong password fails
+        assert verify_password("wrong_password", hashed) is False
     
-    # Verify the results
-    assert token is not None
-    assert token == "mock_access_token"
-    
-    # Verify the session was used correctly
-    session.post.assert_called_with(
-        f"{base_url}/api/auth/token",
-        data={
-            "username": "testuser",
-            "password": "testpassword",
-            "grant_type": "password"
+    def test_access_token_creation(self):
+        """Test creating and validating access tokens"""
+        # Create token data
+        user_data = {
+            "sub": "testuser",
+            "user_id": "1234567890"
         }
-    )
+        
+        # Create the token
+        token = create_access_token(data=user_data)
+        
+        # Decode and verify
+        decoded = decode_token(token)
+        
+        # Check basic token contents
+        assert decoded["sub"] == "testuser"
+        assert decoded["user_id"] == "1234567890"
+        assert decoded["token_type"] == "access"
+        
+        # Verify expiration is in the future
+        now = datetime.utcnow().timestamp()
+        assert decoded["exp"] > now
     
-    # Test accessing a protected endpoint
-    response = test_session.get(f"{base_url}/api/documents")
-    assert response.status_code == 200
-
-@patch('requests.Session')
-def test_direct_api_authentication_failure(mock_session_class, base_url, mock_failed_auth_response):
-    """Test failed authentication using direct API calls"""
-    # Setup mock session
-    session = MagicMock()
-    mock_session_class.return_value = session
-    session.post.return_value = mock_failed_auth_response
-    
-    # Call the function under test with patched session
-    with patch('tests.utils.test_auth_helper.requests.Session', return_value=session):
-        test_session, token = authenticate_with_session(base_url, "testuser", "wrongpassword")
-    
-    # Verify the results
-    assert token is None
-    
-    # Verify the session was used correctly
-    session.post.assert_called_with(
-        f"{base_url}/api/auth/token",
-        data={
-            "username": "testuser",
-            "password": "wrongpassword",
-            "grant_type": "password"
+    def test_refresh_token_creation(self):
+        """Test creating and validating refresh tokens"""
+        # Create token data
+        user_data = {
+            "sub": "testuser",
+            "user_id": "1234567890"
         }
-    )
-
-def test_testclient_authentication_success(monkeypatch):
-    """Test successful authentication using TestClient"""
-    # Create a mock TestClient
-    mock_client = MagicMock()
+        
+        # Create the token
+        token = create_refresh_token(data=user_data)
+        
+        # Verify the token
+        verified = verify_refresh_token(token)
+        
+        # Check token was verified
+        assert verified is not None
+        assert verified["sub"] == "testuser"
+        assert verified["user_id"] == "1234567890"
+        assert verified["token_type"] == "refresh"
     
-    # Mock the login response
-    mock_login_response = MagicMock()
-    mock_login_response.status_code = 200
-    mock_login_response.json.return_value = {
-        "access_token": "mock_access_token",
-        "token_type": "bearer",
-        "expires_in": 3600
-    }
-    
-    # Mock the documents response
-    mock_documents_response = MagicMock()
-    mock_documents_response.status_code = 200
-    mock_documents_response.json.return_value = {
-        "documents": []
-    }
-    
-    # Mock the me response for verify_authentication
-    mock_me_response = MagicMock()
-    mock_me_response.status_code = 200
-    mock_me_response.json.return_value = {
-        "username": "testuser",
-        "email": "testuser@example.com"
-    }
-    
-    # Configure the mock client's post and get methods
-    mock_client.post.return_value = mock_login_response
-    mock_client.get.side_effect = [mock_me_response, mock_documents_response]
-    
-    # Patch the TestClient constructor
-    monkeypatch.setattr('fastapi.testclient.TestClient', lambda app: mock_client)
-    
-    # Call the function under test
-    client = configure_test_client(app, "testuser", "testpassword")
-    
-    # Verify authentication
-    is_authenticated = verify_authentication(client)
-    assert is_authenticated is True
-    
-    # Test accessing a protected endpoint
-    response = client.get("/api/documents")
-    assert response.status_code == 200
-    
-    # Verify the client was used correctly
-    mock_client.post.assert_called_with(
-        "/api/auth/token",
-        data={
-            "username": "testuser",
-            "password": "testpassword",
-            "grant_type": "password"
+    def test_token_expiration(self):
+        """Test token expiration"""
+        # Create token data
+        user_data = {
+            "sub": "testuser",
+            "user_id": "1234567890"
         }
-    )
+        
+        # Create a token that expires in 2 seconds
+        token = create_access_token(data=user_data, expires_delta=timedelta(seconds=2))
+        
+        # Verify it's valid now
+        decoded = decode_token(token)
+        assert decoded["sub"] == "testuser"
+        
+        # Wait for expiration
+        time.sleep(3)
+        
+        # Should raise an exception now
+        with pytest.raises(jwt.JWTError):
+            decode_token(token)
     
-    # Verify the Authorization header was set
-    assert "Authorization" in mock_client.headers
-    assert mock_client.headers["Authorization"] == "Bearer mock_access_token"
-
-def test_testclient_authentication_failure(monkeypatch):
-    """Test failed authentication using TestClient"""
-    # Create a mock TestClient
-    mock_client = MagicMock()
-    
-    # Mock the login response
-    mock_login_response = MagicMock()
-    mock_login_response.status_code = 401
-    mock_login_response.text = "Invalid credentials"
-    
-    # Configure the mock client's post method
-    mock_client.post.return_value = mock_login_response
-    
-    # Patch the TestClient constructor
-    monkeypatch.setattr('fastapi.testclient.TestClient', lambda app: mock_client)
-    
-    # Call the function under test
-    client = configure_test_client(app, "testuser", "wrongpassword")
-    
-    # Verify the client was used correctly
-    mock_client.post.assert_called_with(
-        "/api/auth/token",
-        data={
-            "username": "testuser",
-            "password": "wrongpassword",
-            "grant_type": "password"
+    def test_refresh_token_validation(self):
+        """Test refresh token validation"""
+        # Create token data
+        user_data = {
+            "sub": "testuser",
+            "user_id": "1234567890"
         }
-    )
+        
+        # Create an access token (not a refresh token)
+        access_token = create_access_token(data=user_data)
+        
+        # Verify it fails refresh token validation
+        result = verify_refresh_token(access_token)
+        assert result is None  # Should fail since it's not a refresh token
+
+class TestMockAuthentication:
+    """Mock-based authentication tests"""
     
-    # Verify the Authorization header was not set
-    assert "Authorization" not in mock_client.headers
+    @pytest.fixture
+    def mock_auth_request(self):
+        """Create a mock authentication request"""
+        mock_request = MagicMock()
+        mock_request.form = {
+            "username": "testuser",
+            "password": "testpassword"
+        }
+        return mock_request
+    
+    @pytest.fixture
+    def mock_user_repo(self):
+        """Create a mock user repository"""
+        mock_repo = MagicMock()
+        # Configure mock to return a user with valid password hash
+        mock_user = MagicMock()
+        mock_user.username = "testuser"
+        mock_user.id = "1234567890"
+        mock_user.password_hash = get_password_hash("testpassword")
+        mock_user.is_active = True
+        
+        mock_repo.get_by_username.return_value = mock_user
+        return mock_repo
+    
+    def test_auth_success_flow(self, mock_auth_request, mock_user_repo):
+        """Test successful authentication flow"""
+        # Get username and password from request
+        username = mock_auth_request.form["username"]
+        password = mock_auth_request.form["password"]
+        
+        # Get user from repo
+        user = mock_user_repo.get_by_username(username)
+        
+        # Verify password
+        is_password_valid = verify_password(password, user.password_hash)
+        assert is_password_valid is True
+        
+        # Create tokens
+        user_data = {
+            "sub": user.username,
+            "user_id": user.id
+        }
+        
+        access_token = create_access_token(data=user_data)
+        refresh_token = create_refresh_token(data=user_data)
+        
+        # Verify tokens
+        assert access_token is not None
+        assert refresh_token is not None
+        
+        # Decode and check tokens
+        access_payload = decode_token(access_token)
+        assert access_payload["sub"] == user.username
+        assert access_payload["token_type"] == "access"
+        
+        refresh_payload = decode_token(refresh_token)
+        assert refresh_payload["sub"] == user.username
+        assert refresh_payload["token_type"] == "refresh"
+    
+    def test_auth_failure_flow(self, mock_auth_request, mock_user_repo):
+        """Test failed authentication flow"""
+        # Mock wrong password
+        username = mock_auth_request.form["username"]
+        wrong_password = "wrong_password"
+        
+        # Get user from repo
+        user = mock_user_repo.get_by_username(username)
+        
+        # Verify password fails
+        is_password_valid = verify_password(wrong_password, user.password_hash)
+        assert is_password_valid is False

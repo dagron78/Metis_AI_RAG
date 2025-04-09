@@ -6,14 +6,14 @@ import os
 import tempfile
 from unittest.mock import MagicMock, AsyncMock
 from fastapi.testclient import TestClient
-import jwt
+from jose import jwt
 from datetime import datetime, timedelta
 
 from app.main import app
-from app.db.base import Base
+from app.db.session import Base
 from app.db.session import get_db
-from app.db.repositories.user import UserRepository
-from app.db.repositories.conversation import ConversationRepository
+from app.db.repositories.user_repository import UserRepository
+from app.db.repositories.conversation_repository import ConversationRepository
 from app.models.user import User
 from app.models.conversation import Conversation, Message
 from app.core.security import get_password_hash, create_access_token

@@ -16,7 +16,7 @@ sys.path.append(project_root)
 from app.rag.document_processor import DocumentProcessor
 from app.rag.document_analysis_service import DocumentAnalysisService
 from app.rag.vector_store import VectorStore
-from app.db.repositories.document import DocumentRepository
+from app.db.repositories.document_repository import DocumentRepository
 from app.db.session import SessionLocal
 from app.models.document import Document
 from app.core.config import SETTINGS

@@ -54,6 +54,8 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
 pythonpath = ["."]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.black]
 line-length = 88

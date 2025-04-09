@@ -19,6 +19,7 @@ class Conversation(Base):
     including messages, metadata, and associated memories.
     """
     __tablename__ = "conversations"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
     title = Column(String(255), nullable=True)
@@ -58,6 +59,7 @@ class Message(Base):
     including the content, role, and associated citations.
     """
     __tablename__ = "messages"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
     conversation_id = Column(PostgresUUID(as_uuid=True), ForeignKey("conversations.id"), nullable=False)
@@ -93,6 +95,7 @@ class Citation(Base):
     to generate a response.
     """
     __tablename__ = "citations"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
     message_id = Column(PostgresUUID(as_uuid=True), ForeignKey("messages.id"), nullable=False)

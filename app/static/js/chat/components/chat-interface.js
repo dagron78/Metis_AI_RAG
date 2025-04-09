@@ -68,6 +68,13 @@ class ChatInterface {
     
     // Set up event listeners
     this.setupEventListeners();
+    
+    // Focus the input element after initialization
+    setTimeout(() => {
+      if (this.inputArea) {
+        this.inputArea.focus();
+      }
+    }, 300); // Short delay to ensure all DOM operations are complete
   }
   
   /**
@@ -135,6 +142,10 @@ class ChatInterface {
       
       // Initialize citations
       this.citations = new Citations();
+      
+      console.log("Chat components initialized successfully");
+    } else {
+      console.error("Chat container element not found");
     }
   }
   
@@ -529,6 +540,9 @@ class ChatInterface {
   sendMessage(message) {
     if (!message) return;
     
+    // Store a reference to the input element for re-focusing after response completes
+    const inputElement = document.getElementById('user-input');
+    
     // Show user message immediately
     this.messageList.addMessage('user', message);
     
@@ -544,6 +558,9 @@ class ChatInterface {
     // Add selected model if available
     if (this.elements.modelSelect) {
       params.model = this.elements.modelSelect.value;
+      console.log(`Using model: ${this.elements.modelSelect.value}`);
+    } else {
+      console.error("Model selection element not found");
     }
     
     // Add RAG-specific parameters if enabled
@@ -743,6 +760,9 @@ class ChatInterface {
     } else {
       this.elements.loadingIndicator.classList.remove('show');
       this.inputArea.setDisabled(false);
+      
+      // Re-focus the input element after response is complete
+      this.inputArea.focus();
     }
   }
   
@@ -772,6 +792,11 @@ class ChatInterface {
     // Reset token usage
     if (this.elements.tokenUsage) {
       this.elements.tokenUsage.style.display = 'none';
+    }
+    
+    // Refocus on the input field
+    if (this.inputArea) {
+      this.inputArea.focus();
     }
   }
   
@@ -805,6 +830,11 @@ class ChatInterface {
     
     // Clean up
     URL.revokeObjectURL(url);
+    
+    // Refocus on the input field after saving
+    if (this.inputArea) {
+      this.inputArea.focus();
+    }
   }
 }
 

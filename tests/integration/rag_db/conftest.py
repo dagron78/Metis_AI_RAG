@@ -11,8 +11,9 @@ from datetime import datetime
 from app.rag.vector_store import VectorStore
 from app.rag.ollama_client import OllamaClient
 from app.rag.engine.rag_engine import RAGEngine
-from app.db.repositories.document import DocumentRepository
-from app.models.document import Document, DocumentChunk
+from app.db.repositories.document_repository import DocumentRepository
+from app.models.document import Document
+from app.db.models import Chunk as DocumentChunk  # Using Chunk from db.models as DocumentChunk for compatibility
 
 @pytest.fixture
 def test_vector_store():

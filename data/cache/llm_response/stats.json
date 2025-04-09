@@ -1,9 +1,9 @@
 {
   "name": "llm_response",
-  "size": 11,
+  "size": 20,
   "max_size": 2000,
   "hits": 0,
-  "misses": 6,
+  "misses": 1,
   "hit_ratio": 0.0,
   "ttl_seconds": 86400,
   "persist": true

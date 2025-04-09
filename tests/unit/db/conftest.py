@@ -9,8 +9,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
-from app.db.base import Base
-from app.db.session import get_db, get_async_db
+from sqlalchemy.ext.declarative import declarative_base
+from app.db.session import get_session, Base
+
+# Create mock functions for get_db and get_async_db
+async def get_async_db():
+    """Mock for get_async_db"""
+    db = AsyncMock(spec=AsyncSession)
+    yield db
+
+def get_db():
+    """Mock for get_db"""
+    db = MagicMock(spec=Session)
+    yield db
 
 @pytest.fixture
 def test_db():

@@ -31,6 +31,7 @@ class HealthCheck(BaseModel):
     ollama_status: str
     vector_db_status: str
     api_version: str
+    server_start_time: Optional[str] = "unknown"
     
     class Config:
         arbitrary_types_allowed = True

@@ -10,9 +10,9 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-from app.db.base import Base
+from app.db.session import Base
 from app.db.session import get_db
-from app.db.repositories.document import DocumentRepository
+from app.db.repositories.document_repository import DocumentRepository
 from app.db.repositories.processing_job import ProcessingJobRepository
 from app.models.document import Document
 from app.models.processing_job import ProcessingJob

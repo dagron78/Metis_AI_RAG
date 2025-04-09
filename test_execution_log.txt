@@ -1,0 +1,371 @@
+Metis RAG Test Execution Log - Started at 2025-04-09 13:52:04
+
+[2025-04-09 13:52:04] Running only section 1: 1. Core Component Unit Tests
+[2025-04-09 13:52:04] 
+================================================================================
+1. Core Component Unit Tests
+================================================================================
+[2025-04-09 13:52:04] Running test: tests/unit/rag/engine/test_rag_engine.py
+[2025-04-09 13:52:05] Test completed in 1.17 seconds with exit code: 0
+[2025-04-09 13:52:05] STDOUT:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- /Users/charleshoward/.pyenv/versions/3.10.16/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/charleshoward/Metis_RAG
+configfile: pyproject.toml
+plugins: asyncio-0.25.3, anyio-3.7.1
+asyncio: mode=strict, asyncio_default_fixture_loop_scope=None
+collecting ... collected 2 items
+
+tests/unit/rag/engine/test_rag_engine.py::test_rag_engine_query_with_rag PASSED [ 50%]
+tests/unit/rag/engine/test_rag_engine.py::test_rag_engine_query_without_rag PASSED [100%]
+
+=============================== warnings summary ===============================
+../.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10
+  /Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 2 passed, 1 warning in 0.93s =========================
+
+[2025-04-09 13:52:05] STDERR:
+/Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+
+[2025-04-09 13:52:05] Test PASSED: tests/unit/rag/engine/test_rag_engine.py
+[2025-04-09 13:52:05] Running test: tests/unit/test_security_utils.py
+[2025-04-09 13:52:08] Test completed in 3.45 seconds with exit code: 1
+[2025-04-09 13:52:08] STDOUT:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- /Users/charleshoward/.pyenv/versions/3.10.16/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/charleshoward/Metis_RAG
+configfile: pyproject.toml
+plugins: asyncio-0.25.3, anyio-3.7.1
+asyncio: mode=strict, asyncio_default_fixture_loop_scope=None
+collecting ... collected 10 items
+
+tests/unit/test_security_utils.py::TestPasswordUtils::test_password_hash_and_verify PASSED [ 10%]
+tests/unit/test_security_utils.py::TestPasswordUtils::test_password_hash_different_each_time PASSED [ 20%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_create_access_token FAILED [ 30%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_create_access_token_with_custom_expiry FAILED [ 40%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_create_refresh_token FAILED [ 50%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_verify_refresh_token PASSED [ 60%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_verify_refresh_token_with_access_token PASSED [ 70%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_decode_token_with_invalid_signature PASSED [ 80%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_decode_token_with_expired_token PASSED [ 90%]
+tests/unit/test_security_utils.py::TestJWTFunctions::test_decode_token_with_malformed_token PASSED [100%]
+
+=================================== FAILURES ===================================
+__________________ TestJWTFunctions.test_create_access_token ___________________
+
+self = <test_security_utils.TestJWTFunctions object at 0x10579a680>
+
+    def test_create_access_token(self):
+        """Test creating an access token"""
+        # Create test data
+        user_id = str(uuid4())
+        username = "testuser"
+        token_data = {
+            "sub": username,
+            "user_id": user_id,
+            "aud": SETTINGS.jwt_audience,
+            "iss": SETTINGS.jwt_issuer,
+            "jti": str(uuid4())
+        }
+    
+        # Create token with default expiry
+        token = create_access_token(data=token_data)
+    
+        # Decode and verify token
+        payload = decode_token(token)
+    
+        # Check claims
+        assert payload["sub"] == username
+        assert payload["user_id"] == user_id
+        assert payload["token_type"] == "access"
+        assert "exp" in payload
+        assert "iat" in payload
+    
+        # Check expiry is in the future
+        now = datetime.utcnow().timestamp()
+        assert payload["exp"] > now
+    
+        # Check expiry is set correctly (within a small margin of error)
+        expected_exp = now + SETTINGS.access_token_expire_minutes * 60
+>       assert abs(payload["exp"] - expected_exp) < 10  # Within 10 seconds
+E       assert 14400.563707113266 < 10
+E        +  where 14400.563707113266 = abs((1744307526 - 1744321926.563707))
+
+tests/unit/test_security_utils.py:90: AssertionError
+_________ TestJWTFunctions.test_create_access_token_with_custom_expiry _________
+
+self = <test_security_utils.TestJWTFunctions object at 0x10579a830>
+
+    def test_create_access_token_with_custom_expiry(self):
+        """Test creating an access token with custom expiry"""
+        # Create test data
+        user_id = str(uuid4())
+        username = "testuser"
+        token_data = {
+            "sub": username,
+            "user_id": user_id
+        }
+    
+        # Create token with custom expiry (30 minutes)
+        custom_expiry = timedelta(minutes=30)
+        token = create_access_token(data=token_data, expires_delta=custom_expiry)
+    
+        # Decode and verify token
+        payload = decode_token(token)
+    
+        # Check expiry is set correctly (within a small margin of error)
+        now = datetime.utcnow().timestamp()
+        expected_exp = now + 30 * 60
+>       assert abs(payload["exp"] - expected_exp) < 10  # Within 10 seconds
+E       assert 14400.583297014236 < 10
+E        +  where 14400.583297014236 = abs((1744222926 - 1744237326.583297))
+
+tests/unit/test_security_utils.py:112: AssertionError
+__________________ TestJWTFunctions.test_create_refresh_token __________________
+
+self = <test_security_utils.TestJWTFunctions object at 0x10579a9e0>
+
+    def test_create_refresh_token(self):
+        """Test creating a refresh token"""
+        # Create test data
+        user_id = str(uuid4())
+        username = "testuser"
+        token_data = {
+            "sub": username,
+            "user_id": user_id,
+            "aud": SETTINGS.jwt_audience,
+            "iss": SETTINGS.jwt_issuer,
+            "jti": str(uuid4())
+        }
+    
+        # Create refresh token
+        token = create_refresh_token(data=token_data)
+    
+        # Decode and verify token
+        payload = decode_token(token)
+    
+        # Check claims
+        assert payload["sub"] == username
+        assert payload["user_id"] == user_id
+        assert payload["token_type"] == "refresh"
+        assert "exp" in payload
+        assert "iat" in payload
+    
+        # Check expiry is in the future
+        now = datetime.utcnow().timestamp()
+        assert payload["exp"] > now
+    
+        # Check expiry is set correctly (within a small margin of error)
+        expected_exp = now + 7 * 24 * 60 * 60  # 7 days in seconds
+>       assert abs(payload["exp"] - expected_exp) < 10  # Within 10 seconds
+E       assert 14400.58499288559 < 10
+E        +  where 14400.58499288559 = abs((1744825926 - 1744840326.584993))
+
+tests/unit/test_security_utils.py:146: AssertionError
+=============================== warnings summary ===============================
+../.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10
+  /Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_security_utils.py::TestJWTFunctions::test_create_access_token
+FAILED tests/unit/test_security_utils.py::TestJWTFunctions::test_create_access_token_with_custom_expiry
+FAILED tests/unit/test_security_utils.py::TestJWTFunctions::test_create_refresh_token
+==================== 3 failed, 7 passed, 1 warning in 3.31s ====================
+
+[2025-04-09 13:52:08] STDERR:
+/Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+
+[2025-04-09 13:52:08] Test FAILED: tests/unit/test_security_utils.py
+[2025-04-09 13:52:08] Critical test failure in core component: tests/unit/test_security_utils.py
+[2025-04-09 13:52:08] Continuing with remaining tests in this section, but higher-level tests may fail.
+[2025-04-09 13:52:08] Running test: tests/unit/test_text_formatting.py
+[2025-04-09 13:52:08] Test completed in 0.20 seconds with exit code: 0
+[2025-04-09 13:52:08] STDOUT:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- /Users/charleshoward/.pyenv/versions/3.10.16/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/charleshoward/Metis_RAG
+configfile: pyproject.toml
+plugins: asyncio-0.25.3, anyio-3.7.1
+asyncio: mode=strict, asyncio_default_fixture_loop_scope=None
+collecting ... collected 9 items
+
+tests/unit/test_text_formatting.py::TestCodeFormatter::test_can_format PASSED [ 11%]
+tests/unit/test_text_formatting.py::TestCodeFormatter::test_format PASSED [ 22%]
+tests/unit/test_text_formatting.py::TestListFormatter::test_can_format PASSED [ 33%]
+tests/unit/test_text_formatting.py::TestListFormatter::test_format PASSED [ 44%]
+tests/unit/test_text_formatting.py::TestTableFormatter::test_can_format PASSED [ 55%]
+tests/unit/test_text_formatting.py::TestTableFormatter::test_format PASSED [ 66%]
+tests/unit/test_text_formatting.py::TestMarkdownFormatter::test_can_format PASSED [ 77%]
+tests/unit/test_text_formatting.py::TestMarkdownFormatter::test_format PASSED [ 88%]
+tests/unit/test_text_formatting.py::TestTextFormattingMonitor::test_record_event PASSED [100%]
+
+=============================== warnings summary ===============================
+../.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10
+  /Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 9 passed, 1 warning in 0.09s =========================
+
+[2025-04-09 13:52:08] STDERR:
+/Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+
+[2025-04-09 13:52:08] Test PASSED: tests/unit/test_text_formatting.py
+[2025-04-09 13:52:08] Running test: tests/unit/db/test_db_connection.py
+[2025-04-09 13:52:09] Test completed in 0.28 seconds with exit code: 0
+[2025-04-09 13:52:09] STDOUT:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- /Users/charleshoward/.pyenv/versions/3.10.16/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/charleshoward/Metis_RAG
+configfile: pyproject.toml
+plugins: asyncio-0.25.3, anyio-3.7.1
+asyncio: mode=strict, asyncio_default_fixture_loop_scope=None
+collecting ... collected 1 item
+
+tests/unit/db/test_db_connection.py::test_connection SKIPPED (async ...) [100%]
+
+=============================== warnings summary ===============================
+../.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10
+  /Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+tests/unit/db/test_db_connection.py::test_connection
+  /Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/_pytest/python.py:148: PytestUnhandledCoroutineWarning: async def functions are not natively supported and have been skipped.
+  You need to install a suitable plugin for your async framework, for example:
+    - anyio
+    - pytest-asyncio
+    - pytest-tornasync
+    - pytest-trio
+    - pytest-twisted
+    warnings.warn(PytestUnhandledCoroutineWarning(msg.format(nodeid)))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 skipped, 2 warnings in 0.01s ========================
+
+[2025-04-09 13:52:09] STDERR:
+/Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+
+[2025-04-09 13:52:09] Test PASSED: tests/unit/db/test_db_connection.py
+[2025-04-09 13:52:09] Running test: tests/unit/db/repositories/test_document_repository.py
+[2025-04-09 13:52:09] Test completed in 0.29 seconds with exit code: 4
+[2025-04-09 13:52:09] STDOUT:
+DATABASE_URL from environment: postgresql+asyncpg://postgres:postgres@localhost:5432/metis_rag
+DATABASE_URL after default construction: postgresql+asyncpg://postgres:postgres@localhost:5432/metis_rag
+Final DATABASE_URL in settings: postgresql+asyncpg://postgres:postgres@localhost:5432/metis_rag
+DATABASE_URL in session.py: postgresql+asyncpg://postgres:postgres@localhost:5432/metis_rag
+
+[2025-04-09 13:52:09] STDERR:
+ImportError while loading conftest '/Users/charleshoward/Metis_RAG/tests/unit/db/repositories/conftest.py'.
+tests/unit/db/repositories/conftest.py:8: in <module>
+    from app.db.repositories.document import DocumentRepository
+E   ModuleNotFoundError: No module named 'app.db.repositories.document'
+
+[2025-04-09 13:52:09] Test FAILED: tests/unit/db/repositories/test_document_repository.py
+[2025-04-09 13:52:09] Critical test failure in core component: tests/unit/db/repositories/test_document_repository.py
+[2025-04-09 13:52:09] Continuing with remaining tests in this section, but higher-level tests may fail.
+[2025-04-09 13:52:09] Running test: tests/unit/rag/test_query_analyzer.py
+[2025-04-09 13:52:10] Test completed in 1.15 seconds with exit code: 0
+[2025-04-09 13:52:10] STDOUT:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- /Users/charleshoward/.pyenv/versions/3.10.16/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/charleshoward/Metis_RAG
+configfile: pyproject.toml
+plugins: asyncio-0.25.3, anyio-3.7.1
+asyncio: mode=strict, asyncio_default_fixture_loop_scope=None
+collecting ... collected 3 items
+
+tests/unit/rag/test_query_analyzer.py::TestQueryAnalyzer::test_analyze_simple_query PASSED [ 33%]
+tests/unit/rag/test_query_analyzer.py::TestQueryAnalyzer::test_analyze_complex_query PASSED [ 66%]
+tests/unit/rag/test_query_analyzer.py::TestQueryAnalyzer::test_analyze_with_json_parsing_failure PASSED [100%]
+
+=============================== warnings summary ===============================
+../.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10
+  /Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 3 passed, 1 warning in 0.93s =========================
+
+[2025-04-09 13:52:10] STDERR:
+/Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+
+[2025-04-09 13:52:10] Test PASSED: tests/unit/rag/test_query_analyzer.py
+[2025-04-09 13:52:10] Running test: tests/unit/rag/tools/test_rag_tool.py
+[2025-04-09 13:52:11] Test completed in 1.16 seconds with exit code: 0
+[2025-04-09 13:52:11] STDOUT:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- /Users/charleshoward/.pyenv/versions/3.10.16/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/charleshoward/Metis_RAG
+configfile: pyproject.toml
+plugins: asyncio-0.25.3, anyio-3.7.1
+asyncio: mode=strict, asyncio_default_fixture_loop_scope=None
+collecting ... collected 2 items
+
+tests/unit/rag/tools/test_rag_tool.py::TestRAGTool::test_rag_tool_execute PASSED [ 50%]
+tests/unit/rag/tools/test_rag_tool.py::TestRAGTool::test_rag_tool_schemas PASSED [100%]
+
+=============================== warnings summary ===============================
+../.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10
+  /Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/starlette/formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 2 passed, 1 warning in 0.01s =========================
+
+[2025-04-09 13:52:11] STDERR:
+/Users/charleshoward/.pyenv/versions/3.10.16/lib/python3.10/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+
+[2025-04-09 13:52:11] Test PASSED: tests/unit/rag/tools/test_rag_tool.py
+[2025-04-09 13:52:11] Running test: tests/unit/middleware/test_authentication.py
+[2025-04-09 13:52:11] Test completed in 0.17 seconds with exit code: 4
+[2025-04-09 13:52:11] STDERR:
+ImportError while loading conftest '/Users/charleshoward/Metis_RAG/tests/unit/middleware/conftest.py'.
+tests/unit/middleware/conftest.py:7: in <module>
+    import jwt
+E   ModuleNotFoundError: No module named 'jwt'
+
+[2025-04-09 13:52:11] Test FAILED: tests/unit/middleware/test_authentication.py
+[2025-04-09 13:52:11] Critical test failure in core component: tests/unit/middleware/test_authentication.py
+[2025-04-09 13:52:11] Continuing with remaining tests in this section, but higher-level tests may fail.
+[2025-04-09 13:52:11] 
+Section 1. Core Component Unit Tests FAILED - Some tests did not pass
+[2025-04-09 13:52:11] 
+================================================================================
+[2025-04-09 13:52:11] TEST EXECUTION SUMMARY
+[2025-04-09 13:52:11] ================================================================================
+[2025-04-09 13:52:11] Some tests FAILED. 3 test(s) failed:
+[2025-04-09 13:52:11]   - tests/unit/test_security_utils.py
+[2025-04-09 13:52:11]   - tests/unit/db/repositories/test_document_repository.py
+[2025-04-09 13:52:11]   - tests/unit/middleware/test_authentication.py
+[2025-04-09 13:52:11] 
+Test execution completed at 2025-04-09 13:52:11
+[2025-04-09 13:52:11] Detailed log available in: /Users/charleshoward/Metis_RAG/test_execution_log.txt

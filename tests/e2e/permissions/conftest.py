@@ -10,10 +10,10 @@ import uuid
 from datetime import datetime, timedelta
 
 from app.main import app
-from app.db.base import Base
+from app.db.session import Base
 from app.db.session import get_db
-from app.db.repositories.user import UserRepository
-from app.db.repositories.document import DocumentRepository
+from app.db.repositories.user_repository import UserRepository
+from app.db.repositories.document_repository import DocumentRepository
 from app.db.repositories.permission import PermissionRepository
 from app.models.user import User
 from app.models.document import Document

@@ -1,9 +1,0 @@
-{
-  "text": "Here's a Python function to calculate the factorial of a number. The function takes an integer as input and returns its factorial. It includes error handling to ensure the input is a non-negative integer. {CODE_BLOCK_0}",
-  "code_blocks": [
-    {
-      "language": "python",
-      "code": "def calculate_factorial(number):\n    \"\"\"Calculates the factorial of a non-negative integer.\n\n    Args:\n        number (int): The number to calculate the factorial of.\n\n    Returns:\n        int: The factorial of the number.\n        None: If the input is not a non-negative integer.\n    \"\"\"\n    if not isinstance(number, int) or number < 0:\n        print(\"Error: Input must be a non-negative integer.\")\n        return None\n\n    if number == 0:\n        return 1\n    else:\n        factorial = 1\n        for i in range(1, number + 1):\n            factorial *= i\n        return factorial"
-    }
-  ]
-}

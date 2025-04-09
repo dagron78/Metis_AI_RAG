@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import os
 
-from app.rag.text_formatting_monitor import get_monitor
+from app.utils.text_formatting.monitor import get_monitor
 
 # Create router
 router = APIRouter(

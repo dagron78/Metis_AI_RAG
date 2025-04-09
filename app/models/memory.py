@@ -19,6 +19,7 @@ class Memory(Base):
     such as preferences, facts, or other information.
     """
     __tablename__ = "memories"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
     conversation_id = Column(PostgresUUID(as_uuid=True), ForeignKey("conversations.id"), nullable=False)

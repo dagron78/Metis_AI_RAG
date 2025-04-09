@@ -16,52 +16,72 @@ import { handleApiError, validateJson } from '../utils/error-handler.js';
  * @returns {AbortController} Controller that can be used to abort the stream
  */
 function sendStreamingMessage(params, onStart, onToken, onComplete, onError) {
+  console.log("Sending streaming message with params:", params);
+  
   // Create abort controller for the fetch
   const controller = new AbortController();
   const signal = controller.signal;
   
+  // Ensure fetchEventSource is available
+  if (typeof window.fetchEventSource !== 'function') {
+    console.error("fetchEventSource is not available - make sure the script is loaded correctly");
+    if (onError) onError(new Error("fetchEventSource is not available"));
+    return controller;
+  }
+  
   // Set up event source for streaming
-  fetchEventSource('/api/chat/query', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getAuthToken()}`
-    },
-    body: JSON.stringify(params),
-    signal: signal,
-    onopen(response) {
-      if (response.ok) {
-        if (onStart) onStart();
-        return; // Connection established successfully
-      }
-      throw new Error(`Failed to connect: ${response.status} ${response.statusText}`);
-    },
-    onmessage(event) {
-      try {
-        if (!event.data) return;
+  try {
+    window.fetchEventSource('/api/chat/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`
+      },
+      body: JSON.stringify(params),
+      signal: signal,
+      onopen(response) {
+        console.log("Stream connection opened with status:", response.status);
+        if (response.ok) {
+          if (onStart) onStart();
+          return; // Connection established successfully
+        }
+        throw new Error(`Failed to connect: ${response.status} ${response.statusText}`);
+      },
+      onmessage(event) {
+        try {
+          if (!event.data) return;
+          
+          console.log("Received stream data:", event.data.substring(0, 50) + (event.data.length > 50 ? '...' : ''));
+          
+          // Attempt to parse JSON response
+          const data = JSON.parse(event.data);
+          
+          // Call the token callback
+          if (onToken) onToken(data);
+        } catch (error) {
+          console.error('Error processing streaming message:', error);
+        }
+      },
+      onerror(err) {
+        console.error('Stream error:', err);
         
-        // Attempt to parse JSON response
-        const data = JSON.parse(event.data);
+        if (onError) onError(err);
         
-        // Call the token callback
-        if (onToken) onToken(data);
-      } catch (error) {
-        console.error('Error processing streaming message:', error);
+        // Close the stream
+        controller.abort();
+      },
+      onclose() {
+        // Stream closed successfully
+        console.log("Stream connection closed successfully");
+        if (onComplete) onComplete();
       }
-    },
-    onerror(err) {
-      console.error('Stream error:', err);
-      
-      if (onError) onError(err);
-      
-      // Close the stream
-      controller.abort();
-    },
-    onclose() {
-      // Stream closed successfully
-      if (onComplete) onComplete();
-    }
-  });
+    });
+    
+    console.log("Stream request initiated");
+  } catch (error) {
+    console.error("Error initiating stream:", error);
+    if (onError) onError(error);
+  }
   
   return controller;
 }

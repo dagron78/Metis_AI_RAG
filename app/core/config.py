@@ -88,6 +88,9 @@ RATE_LIMITING_ENABLED = os.getenv("RATE_LIMITING_ENABLED", "True").lower() == "t
 JWT_AUDIENCE = os.getenv("JWT_AUDIENCE", "metis-rag-api")
 JWT_ISSUER = os.getenv("JWT_ISSUER", "metis-rag")
 
+# Developer mode settings
+DEVELOPER_MODE = os.getenv("DEVELOPER_MODE", "False").lower() == "true"
+
 # Email settings
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
@@ -157,6 +160,7 @@ SETTINGS = SimpleNamespace(
     rate_limiting_enabled=RATE_LIMITING_ENABLED,
     jwt_audience=JWT_AUDIENCE,
     jwt_issuer=JWT_ISSUER,
+    developer_mode=DEVELOPER_MODE,
     
     # Email settings
     smtp_server=SMTP_SERVER,
@@ -177,3 +181,6 @@ SETTINGS = SimpleNamespace(
 )
 
 print(f"Final DATABASE_URL in settings: {SETTINGS.database_url}")  # Debug print
+
+# Add an alias for backward compatibility with tests
+settings = SETTINGS

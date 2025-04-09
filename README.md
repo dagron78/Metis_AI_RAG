@@ -95,9 +95,9 @@ The system includes a comprehensive response quality pipeline to ensure high-qua
 - **Response Refinement**: Iteratively improves responses based on evaluation results
 - **Audit Reporting**: Generates comprehensive audit reports with information source tracking and verification status
 
-### Conversation Memory
+### Conversation Memory and User-Chat Relationship Management
 
-The system maintains persistent memory across conversation turns and browser sessions:
+The system maintains persistent memory across conversation turns and browser sessions with robust user-conversation relationship management:
 
 - **Context Augmentation**: Includes conversation history in the LLM context for more coherent multi-turn dialogues
 - **Memory-Aware Query Analysis**: Analyzes queries in the context of previous conversation turns
@@ -112,6 +112,15 @@ The system maintains persistent memory across conversation turns and browser ses
 - **Persistent Memory Storage**: Stores memories in the database for long-term retention across sessions
 - **Memory Diagnostics**: Provides tools for debugging and monitoring memory functionality
 - **Session Persistence**: Maintains conversation context across page refreshes and browser sessions
+- **User-Conversation Relationship Management**:
+  - Robust permission controls ensuring users can only access their own conversations
+  - Secure user ID tracking for conversation ownership
+  - Smart error handling for unauthorized access attempts
+  - Conversation selection interface to browse and manage past conversations
+  - Conversation preview functionality showing message snippets in conversation list
+  - Conversation metadata tracking with user-specific customization
+  - Security logging for unauthorized access attempts
+  - Automatic new conversation creation with clear user feedback
 
 ### Quality Assurance Features
 
@@ -139,6 +148,29 @@ Metis RAG is built with the following technologies:
 - **Background Task System**: Asynchronous processing with task prioritization and resource management
 - **Testing**: Comprehensive test suite for RAG functionality and response quality
 - **Deployment**: Docker
+- **Text Formatting**: Modular system for formatting code, lists, tables, and markdown
+
+## Text Formatting System
+
+Metis RAG includes a sophisticated text formatting system that enhances the readability and presentation of LLM responses:
+
+### Features
+
+- **Code Block Formatting**: Proper syntax highlighting, language detection, and indentation
+- **List Formatting**: Consistent formatting for ordered and unordered lists
+- **Table Formatting**: Proper alignment and formatting of markdown tables
+- **Markdown Formatting**: Enhanced formatting for headings, emphasis, links, and other markdown elements
+- **Performance Monitoring**: Tracking and analytics for formatting operations
+
+### Architecture
+
+The text formatting system follows a modular approach with clear separation of concerns:
+
+- **Formatters**: Specialized components for different types of formatting (code, lists, tables, markdown)
+- **Rules**: Patterns and replacements for identifying and formatting specific elements
+- **Monitor**: Performance tracking and analytics for formatting operations
+
+For more details, see the [Text Formatting Architecture](docs/technical/text_formatting_architecture.md) documentation.
 
 ## Getting Started
 
@@ -203,15 +235,19 @@ Metis RAG is built with the following technologies:
 ### Chat Interface
 
 The main chat interface allows you to:
-- Send messages to the model
-- Toggle RAG functionality
-- View citations from source documents
-- Control conversation history
-- See quality scores for responses
-- View code with syntax highlighting
-- Copy code blocks with a single click
-- Automatically detect programming languages in code
-- View source attributions and citations
+- Send messages to the model with real-time streaming responses
+- Toggle RAG functionality and other advanced options
+- View citations from source documents with relevance scores
+- Access and navigate through your conversation history
+- Browse past conversations with preview snippets
+- Continue conversations across browser sessions and page refreshes
+- Use memory commands to store and retrieve information
+- See quality scores for responses with confidence metrics
+- View code with syntax highlighting and proper formatting
+- Copy code blocks with a single click for easy use
+- Automatically detect programming languages in code blocks
+- View source attributions and citations from reference documents
+- Switch between light and dark modes for comfortable viewing
 
 ### Document Management
 
@@ -221,14 +257,19 @@ The document management page allows you to:
 - View document information
 - Delete documents
 
-### Authentication
+### Authentication and User Management
 
 The authentication system provides:
-- User registration and login pages
-- Secure access to personal resources
-- Role-based access control
-- Token-based authentication for API access
-- Protection of sensitive operations
+- User registration and login pages with secure credential handling
+- Secure access to personal resources with permission enforcement
+- User-specific conversation history and document management
+- Role-based access control for different permission levels
+- JWT token-based authentication for secure API access
+- Token refresh functionality for persistent sessions
+- Protection of sensitive operations with appropriate authorization
+- Secure error handling that prevents information leakage
+- Security event logging for unauthorized access attempts
+- Sanitization of URL parameters to prevent credential exposure
 
 ### System Management
 
@@ -361,6 +402,9 @@ These test scripts create test documents, process them, and test various aspects
 - Integration tests verify that all components work together correctly in end-to-end workflows
 - Background task tests verify that the task system correctly handles task submission, execution, prioritization, and resource management
 - Authentication tests verify user registration, login, token generation, and access control for resources
+- User-conversation relationship tests verify permission enforcement and conversation management
+- Memory persistence tests verify conversation memory works across sessions and page refreshes
+- Security tests verify proper handling of unauthorized access attempts and input sanitization
 
 ## License
 

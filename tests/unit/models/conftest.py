@@ -6,7 +6,8 @@ from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime
 import uuid
 
-from app.models.document import Document, DocumentChunk
+from app.models.document import Document
+from app.db.models import Chunk as DocumentChunk  # Using Chunk from db.models as DocumentChunk for compatibility
 from app.models.user import User
 from app.models.conversation import Conversation, Message
 from app.models.processing_job import ProcessingJob

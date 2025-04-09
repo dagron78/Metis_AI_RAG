@@ -104,3 +104,6 @@ async def init_db():
     logger.info("Initializing database")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+# Add an alias for backward compatibility with tests
+get_db = get_session

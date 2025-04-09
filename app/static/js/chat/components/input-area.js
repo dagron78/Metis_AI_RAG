@@ -41,12 +41,14 @@ class InputArea {
   setupEventListeners() {
     // Send button click
     this.sendButton.addEventListener('click', () => {
+      console.log("Send button clicked");
       this.sendMessage();
     });
     
     // Enter key press (without shift)
     this.inputElement.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
+        console.log("Enter key pressed (without shift)");
         e.preventDefault();
         this.sendMessage();
       }
@@ -56,6 +58,8 @@ class InputArea {
     this.inputElement.addEventListener('input', () => {
       this.autoResizeTextarea();
     });
+    
+    console.log("Input area event listeners set up successfully");
   }
   
   /**
@@ -63,11 +67,24 @@ class InputArea {
    */
   sendMessage() {
     const message = this.inputElement.value.trim();
-    if (!message) return;
+    if (!message) {
+      console.log("No message to send - input is empty");
+      return;
+    }
+    
+    console.log(`Sending message: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
     
     // Call the onSend callback if provided
     if (typeof this.config.onSend === 'function') {
-      this.config.onSend(message);
+      try {
+        this.config.onSend(message);
+      } catch (error) {
+        console.error("Error in onSend callback:", error);
+        alert("There was an error sending your message. Please try again.");
+        return;
+      }
+    } else {
+      console.error("No onSend callback provided");
     }
     
     // Clear input
@@ -75,6 +92,11 @@ class InputArea {
     
     // Reset height
     this.inputElement.style.height = 'auto';
+    
+    // Keep focus on the input element
+    this.inputElement.focus();
+    
+    console.log("Message sent successfully");
   }
   
   /**
@@ -110,7 +132,16 @@ class InputArea {
    */
   focus() {
     if (this.inputElement) {
-      this.inputElement.focus();
+      // Use setTimeout to ensure focus works even when called during other operations
+      setTimeout(() => {
+        this.inputElement.focus();
+        
+        // Place cursor at the end of any existing text
+        const textLength = this.inputElement.value.length;
+        if (textLength > 0) {
+          this.inputElement.setSelectionRange(textLength, textLength);
+        }
+      }, 0);
     }
   }
   
