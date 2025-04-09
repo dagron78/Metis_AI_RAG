@@ -5,10 +5,15 @@ This is a simplified version that doesn't require authentication.
 """
 
 import os
+import sys
 import json
 import logging
 from datetime import datetime
 import time
+
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
 
 # Configure logging
 logging.basicConfig(
@@ -21,22 +26,22 @@ logger = logging.getLogger("test_metis_rag_e2e_demo")
 # Test documents - paths relative to project root
 TEST_DOCUMENTS = {
     "technical_specs": {
-        "path": "data/test_docs/smart_home_technical_specs.pdf",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_technical_specs.pdf"),
         "type": "pdf",
         "content_type": "application/pdf"
     },
     "user_guide": {
-        "path": "data/test_docs/smart_home_user_guide.txt",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_user_guide.txt"),
         "type": "txt",
         "content_type": "text/plain"
     },
     "device_comparison": {
-        "path": "data/test_docs/smart_home_device_comparison.csv",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_device_comparison.csv"),
         "type": "csv",
         "content_type": "text/csv"
     },
     "developer_reference": {
-        "path": "data/test_docs/smart_home_developer_reference.md",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_developer_reference.md"),
         "type": "md",
         "content_type": "text/markdown"
     }
@@ -147,7 +152,8 @@ def simulate_document_processing():
         logger.info(f"Successfully processed {doc_id} into {chunk_count} chunks")
     
     # Save results to file
-    results_path = "test_e2e_demo_upload_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_demo_upload_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -210,7 +216,8 @@ def simulate_query_responses():
         logger.info(f"Query processed. Facts found: {fact_count}/{len(expected_facts)} ({fact_percentage:.1f}%)")
     
     # Save results to file
-    results_path = "test_e2e_demo_query_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_demo_query_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -245,7 +252,8 @@ def generate_comprehensive_report(doc_results, query_results):
     }
     
     # Save report to file
-    report_path = "test_e2e_demo_comprehensive_report.json"
+    report_path = os.path.join(project_root, "tests", "results", "test_e2e_demo_comprehensive_report.json")
+    os.makedirs(os.path.dirname(report_path), exist_ok=True)
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
     
