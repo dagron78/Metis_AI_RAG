@@ -90,17 +90,62 @@ We are following a test-type-first organization that better mirrors the applicat
    - Updated `Metis_RAG_Test_Files_Inventory.md`
    - Updated `Metis_RAG_Test_Reorganization_Plan.md`
 
+## Phase 5: Complete Directory Structure (In Progress)
+
+1. Created remaining unit test directories ✅
+   - Created `tests/unit/api/`
+   - Created `tests/unit/cache/`
+   - Created `tests/unit/core/`
+   - Created `tests/unit/db/repositories/`
+   - Created `tests/unit/middleware/`
+   - Created `tests/unit/models/`
+   - Created `tests/unit/tasks/`
+   - Created `tests/unit/utils/`
+
+2. Created integration test directories ✅
+   - Created `tests/integration/api_db/`
+   - Created `tests/integration/rag_db/`
+   - Created `tests/integration/middleware_api/`
+   - Created `tests/integration/tasks_db/`
+
+3. Created E2E test directories ✅
+   - Created `tests/e2e/auth/`
+   - Created `tests/e2e/chat/`
+   - Created `tests/e2e/document_processing/`
+   - Created `tests/e2e/permissions/`
+
+4. Created conftest.py files for each directory ✅
+   - Added appropriate fixtures for each test type
+   - Ensured proper mocking of dependencies
+   - Set up database fixtures for integration and E2E tests
+
 ## Next Steps
 
-1. Continue with the remaining test files in a future task:
-   - Remaining unit tests
-   - Remaining integration tests
-   - E2E tests
-   - Legacy tests
+### Phase 6: Move Remaining Tests (Not Started)
 
-2. Focus on the unit tests first, then integration tests
+1. Categorize and move remaining unit tests
+   - Analyze each test file to determine the appropriate directory
+   - Move files to the correct location
+   - Update imports as needed
+   - Run tests to verify functionality
 
-3. Update the test inventory and reorganization plan as we progress
+2. Categorize and move remaining integration tests
+   - Analyze each test file to determine the appropriate directory
+   - Move files to the correct location
+   - Update imports as needed
+   - Run tests to verify functionality
+
+3. Categorize and move remaining E2E tests
+   - Analyze each test file to determine the appropriate directory
+   - Move files to the correct location
+   - Update imports as needed
+   - Run tests to verify functionality
+
+### Phase 7: Final Verification (Not Started)
+
+1. Run all tests to ensure they pass
+2. Update documentation to reflect the final structure
+3. Create a migration guide for developers
 
 ## Tracking Progress
 
@@ -111,5 +156,7 @@ We are following a test-type-first organization that better mirrors the applicat
 | Integration Tests | 8 | 1 | 0 | 7 |
 | E2E Tests | 2 | 0 | 0 | 2 |
 | Legacy Tests | 18 | 0 | 0 | 18 |
-| Verification | N/A | 1 | 0 | 0 |
-| **Total** | **53** | **9** | **0** | **44** |
+| Complete Directory Structure | 18 | 18 | 0 | 0 |
+| Move Remaining Tests | 47 | 0 | 0 | 47 |
+| Final Verification | N/A | 0 | 0 | 1 |
+| **Total** | **100** | **26** | **0** | **74** |
