@@ -28,7 +28,7 @@ def mock_current_user():
     }
     
     # Override the get_current_user dependency
-    def override_get_current_user():
+    async def override_get_current_user():
         return mock_user
     
     # Apply the override
@@ -48,9 +48,10 @@ def auth_headers():
     expiration = datetime.utcnow() + timedelta(minutes=30)
     payload = {
         "sub": "testuser",
+        "user_id": "user123",  # Add user_id field
         "exp": expiration,
         "iat": datetime.utcnow(),
-        "scope": "user"
+        "token_type": "access"  # Add token_type field
     }
     token = jwt.encode(payload, SETTINGS.secret_key, algorithm=SETTINGS.algorithm)
     return {"Authorization": f"Bearer {token}"}
