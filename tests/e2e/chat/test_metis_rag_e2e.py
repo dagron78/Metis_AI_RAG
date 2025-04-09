@@ -21,6 +21,10 @@ from fastapi.testclient import TestClient
 from io import BytesIO
 import requests
 
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -29,12 +33,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger("test_metis_rag_e2e")
 
-import os
 from unittest import mock
 
 # Set environment variables for testing
-os.environ["CHROMA_DB_DIR"] = "test_e2e_chroma"
-os.environ["CACHE_DIR"] = "data/test_cache"
+test_e2e_chroma_dir = os.path.join(project_root, "test_e2e_chroma")
+test_cache_dir = os.path.join(project_root, "data", "test_cache")
+
+os.environ["CHROMA_DB_DIR"] = test_e2e_chroma_dir
+os.environ["CACHE_DIR"] = test_cache_dir
 
 # Import RAG components
 from app.main import app
@@ -47,22 +53,22 @@ client = TestClient(app)
 # Test documents - paths relative to project root
 TEST_DOCUMENTS = {
     "technical_specs": {
-        "path": "data/test_docs/smart_home_technical_specs.pdf",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_technical_specs.pdf"),
         "type": "pdf",
         "content_type": "application/pdf"
     },
     "user_guide": {
-        "path": "data/test_docs/smart_home_user_guide.txt",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_user_guide.txt"),
         "type": "txt",
         "content_type": "text/plain"
     },
     "device_comparison": {
-        "path": "data/test_docs/smart_home_device_comparison.csv",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_device_comparison.csv"),
         "type": "csv",
         "content_type": "text/csv"
     },
     "developer_reference": {
-        "path": "data/test_docs/smart_home_developer_reference.md",
+        "path": os.path.join(project_root, "data/test_docs/smart_home_developer_reference.md"),
         "type": "md",
         "content_type": "text/markdown"
     }
@@ -370,7 +376,8 @@ def test_document_upload_and_processing():
             pytest.fail(f"Error in upload/processing test for {doc_id}: {str(e)}")
     
     # Save results to file
-    results_path = "test_e2e_upload_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_upload_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -430,7 +437,8 @@ def test_single_document_queries():
         assert fact_percentage >= 70, f"Query '{query}' has low factual accuracy: {fact_percentage:.1f}%"
     
     # Save results to file
-    results_path = "test_e2e_single_doc_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_single_doc_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -487,7 +495,8 @@ def test_multi_document_queries():
         assert fact_percentage >= 60, f"Query '{query}' has low factual accuracy: {fact_percentage:.1f}%"
     
     # Save results to file
-    results_path = "test_e2e_multi_doc_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_multi_doc_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -545,7 +554,8 @@ def test_complex_queries():
         assert fact_percentage >= 60, f"Query '{query}' has low factual accuracy: {fact_percentage:.1f}%"
     
     # Save results to file
-    results_path = "test_e2e_complex_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_complex_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -608,7 +618,8 @@ def test_citation_quality():
         assert citation_count > 0, f"Query '{query}' response has no citations"
     
     # Save results to file
-    results_path = "test_e2e_citation_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_citation_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -662,7 +673,8 @@ def test_system_performance():
         assert response_time < 10, f"Query '{query}' has slow response time: {response_time:.2f} seconds"
     
     # Save results to file
-    results_path = "test_e2e_performance_results.json"
+    results_path = os.path.join(project_root, "tests", "results", "test_e2e_performance_results.json")
+    os.makedirs(os.path.dirname(results_path), exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -692,12 +704,12 @@ def test_end_to_end_cleanup():
     
     # Collect all results files
     result_files = [
-        "test_e2e_upload_results.json",
-        "test_e2e_single_doc_results.json",
-        "test_e2e_multi_doc_results.json",
-        "test_e2e_complex_results.json",
-        "test_e2e_citation_results.json",
-        "test_e2e_performance_results.json"
+        os.path.join(project_root, "tests", "results", "test_e2e_upload_results.json"),
+        os.path.join(project_root, "tests", "results", "test_e2e_single_doc_results.json"),
+        os.path.join(project_root, "tests", "results", "test_e2e_multi_doc_results.json"),
+        os.path.join(project_root, "tests", "results", "test_e2e_complex_results.json"),
+        os.path.join(project_root, "tests", "results", "test_e2e_citation_results.json"),
+        os.path.join(project_root, "tests", "results", "test_e2e_performance_results.json")
     ]
     
     # Combine results into a single report
@@ -708,11 +720,12 @@ def test_end_to_end_cleanup():
             with open(file_path, "r") as f:
                 results = json.load(f)
             
-            test_name = file_path.replace("test_e2e_", "").replace("_results.json", "")
+            test_name = os.path.basename(file_path).replace("test_e2e_", "").replace("_results.json", "")
             all_results[test_name] = results
     
     # Save comprehensive report
-    report_path = "test_e2e_comprehensive_report.json"
+    report_path = os.path.join(project_root, "tests", "results", "test_e2e_comprehensive_report.json")
+    os.makedirs(os.path.dirname(report_path), exist_ok=True)
     with open(report_path, "w") as f:
         json.dump({
             "test_name": "Metis RAG End-to-End Test",
@@ -721,6 +734,3 @@ def test_end_to_end_cleanup():
         }, f, indent=2)
     
     logger.info(f"End-to-end test complete. Comprehensive report saved to {os.path.abspath(report_path)}")
-
-if __name__ == "__main__":
-    pytest.main(["-xvs", __file__])
