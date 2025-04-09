@@ -119,7 +119,7 @@ We are following a test-type-first organization that better mirrors the applicat
    - Ensured proper mocking of dependencies
    - Set up database fixtures for integration and E2E tests
 
-## Phase 6: Move Remaining Tests (In Progress)
+## Phase 6: Move Remaining Tests (Completed) ✅
 
 1. Moved authentication tests ✅
    - Moved `tests/test_auth_simple.py` to `tests/unit/middleware/test_auth_simple.py`
@@ -142,24 +142,28 @@ We are following a test-type-first organization that better mirrors the applicat
 
 5. Moved task tests ✅
    - Moved `tests/test_background_tasks.py` to `tests/unit/tasks/test_background_tasks.py`
+   - Moved `tests/test_simplified_performance.py` to `tests/unit/tasks/test_simplified_performance.py`
    - Moved `tests/test_simplified_document_processing.py` to `tests/unit/tasks/test_simplified_document_processing.py`
    - Moved `tests/test_simplified_document_processing_with_db.py` to `tests/integration/tasks_db/test_simplified_document_processing_with_db.py`
 
 6. Moved utility tests ✅
    - Moved `tests/test_code_formatting.py` to `tests/unit/utils/test_code_formatting.py`
    - Moved `tests/test_file_handling.py` to `tests/unit/utils/test_file_handling.py`
+   - Moved `tests/test_structured_code_output.py` to `tests/unit/utils/test_structured_code_output.py`
 
 7. Moved E2E tests ✅
    - Moved `tests/test_document_processing_performance.py` to `tests/e2e/document_processing/test_document_processing_performance.py`
    - Moved `tests/test_metis_rag_e2e.py` to `tests/e2e/chat/test_metis_rag_e2e.py`
    - Moved `tests/test_metis_rag_e2e_demo.py` to `tests/e2e/chat/test_metis_rag_e2e_demo.py`
 
-8. Remaining tests to move (Not Started)
-   - Need to review and categorize any remaining test files
-   - Update imports as needed
-   - Run tests to verify functionality
+### Phase 7: Update Import Paths (In Progress)
 
-### Phase 7: Final Verification (Not Started)
+1. Update import paths in moved files
+   - Update imports to use the new structure
+   - Fix any broken dependencies
+   - Ensure tests can run in the new locations
+
+### Phase 8: Final Verification (Not Started)
 
 1. Run all tests to ensure they pass
 2. Update documentation to reflect the final structure
@@ -170,11 +174,12 @@ We are following a test-type-first organization that better mirrors the applicat
 | Phase | Total Files | Completed | In Progress | Not Started |
 |-------|------------|-----------|-------------|-------------|
 | Create Directory Structure | N/A | 1 | 0 | 0 |
-| Unit Tests | 25 | 6 | 0 | 19 |
-| Integration Tests | 8 | 1 | 0 | 7 |
-| E2E Tests | 2 | 0 | 0 | 2 |
-| Legacy Tests | 18 | 0 | 0 | 18 |
+| Unit Tests | 25 | 25 | 0 | 0 |
+| Integration Tests | 8 | 8 | 0 | 0 |
+| E2E Tests | 5 | 5 | 0 | 0 |
+| Legacy Tests | 18 | 18 | 0 | 0 |
 | Complete Directory Structure | 18 | 18 | 0 | 0 |
-| Move Remaining Tests | 19 | 19 | 0 | 0 |
+| Move Remaining Tests | 21 | 21 | 0 | 0 |
+| Update Import Paths | 56 | 7 | 49 | 0 |
 | Final Verification | N/A | 0 | 0 | 1 |
-| **Total** | **72** | **45** | **0** | **47** |
+| **Total** | **151** | **103** | **49** | **1** |
