@@ -2,11 +2,20 @@
 Fixtures for RAG API integration tests
 """
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock, AsyncMock
+from fastapi.testclient import TestClient
 
+from app.main import app
 from app.rag.vector_store import VectorStore
 from app.rag.ollama_client import OllamaClient
+from app.rag.engine.rag_engine import RAGEngine
 from app.rag.agents.langgraph_rag_agent import LangGraphRAGAgent
+from app.core.dependencies import get_current_user, get_current_active_user
+
+@pytest.fixture
+def test_client():
+    """Return a TestClient instance for API testing"""
+    return TestClient(app)
 
 @pytest.fixture
 def mock_vector_store():
@@ -46,6 +55,30 @@ def mock_ollama_client():
     return MockOllamaClient()
 
 @pytest.fixture
+def mock_rag_engine(mock_vector_store, mock_ollama_client):
+    """Create a mock RAG engine"""
+    engine = MagicMock(spec=RAGEngine)
+    
+    # Mock query method
+    async def mock_query(query, model=None, use_rag=True, stream=False, filter_criteria=None, user_id=None):
+        return {
+            "query": query,
+            "answer": "This is a mock response.",
+            "sources": [
+                {
+                    "chunk_id": "chunk1",
+                    "content": "This is a test chunk",
+                    "metadata": {"document_id": "doc1"},
+                    "distance": 0.1
+                }
+            ] if use_rag else []
+        }
+    
+    engine.query = AsyncMock(side_effect=mock_query)
+    
+    return engine
+
+@pytest.fixture
 def mock_langgraph_rag_agent(mock_vector_store, mock_ollama_client):
     """Create a mock LangGraph RAG Agent"""
     agent = LangGraphRAGAgent(
@@ -53,7 +86,7 @@ def mock_langgraph_rag_agent(mock_vector_store, mock_ollama_client):
         ollama_client=mock_ollama_client
     )
     
-    # Mock the internal components with AsyncMock
+    # Mock the internal components
     agent.chunking_judge = AsyncMock()
     agent.chunking_judge.analyze_query.return_value = {"complexity": "simple"}
     
@@ -79,3 +112,46 @@ def mock_langgraph_rag_agent(mock_vector_store, mock_ollama_client):
     agent.query = mock_query
     
     return agent
+
+@pytest.fixture
+def mock_enhanced_langgraph_rag_agent(mock_vector_store, mock_ollama_client):
+    """Create a mock Enhanced LangGraph RAG Agent"""
+    agent = MagicMock()
+    
+    # Mock query method
+    async def mock_query(query, stream=False, **kwargs):
+        return {
+            "query": query,
+            "answer": "This is a mock response from the enhanced agent.",
+            "sources": [],
+            "reasoning": "This is mock reasoning.",
+            "plan": "This is a mock plan."
+        }
+    
+    agent.query = AsyncMock(side_effect=mock_query)
+    
+    return agent
+
+@pytest.fixture
+def mock_current_user():
+    """Mock the current user dependency"""
+    mock_user = MagicMock()
+    mock_user.id = "user123"
+    mock_user.username = "testuser"
+    mock_user.email = "test@example.com"
+    mock_user.is_active = True
+    mock_user.is_admin = False
+    
+    # Override the get_current_user dependency
+    def override_get_current_user():
+        return mock_user
+    
+    # Apply the override
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_current_active_user] = override_get_current_user
+    
+    yield mock_user
+    
+    # Remove the override
+    app.dependency_overrides.pop(get_current_user, None)
+    app.dependency_overrides.pop(get_current_active_user, None)
