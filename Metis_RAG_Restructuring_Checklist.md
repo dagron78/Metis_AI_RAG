@@ -389,6 +389,13 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
 - [x] Run unit tests
 - [x] Run integration tests
 - [x] Fix any issues that arise
+- [x] Reorganize test files to match new architecture
+  - [x] Move RAG Engine tests to tests/unit/rag/engine/
+  - [x] Move Query Analyzer tests to tests/unit/rag/
+  - [x] Move Process Logger tests to tests/unit/rag/
+  - [x] Move Plan Executor tests to tests/unit/rag/
+  - [x] Split Tool tests into multiple files in tests/unit/rag/tools/
+  - [x] Move LangGraph RAG Agent tests to tests/integration/rag_api/
 
 ### 5.4 Create Git Checkpoint
 - [x] Commit import updates:
@@ -499,79 +506,83 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
 ### A. Chat API Structure
 ```
 app/api/chat/
-├── __init__.py                    # Export router
-├── router.py                      # Define and configure router
+├── __init__.py                  # Exports router
+├── router.py                    # Main router with all endpoints
 ├── handlers/
-│   ├── __init__.py
-│   ├── standard.py                # Standard RAG chat endpoint
-│   ├── langgraph.py               # LangGraph RAG endpoint
-│   ├── enhanced_langgraph.py      # Enhanced LangGraph RAG endpoint
-│   ├── conversation.py            # Conversation management endpoints
-│   └── memory.py                  # Memory-related endpoints
+│   ├── __init__.py              # Exports all handlers
+│   ├── standard.py              # Standard chat endpoint
+│   ├── langgraph.py             # LangGraph chat endpoint
+│   ├── enhanced_langgraph.py    # Enhanced LangGraph chat endpoint
+│   ├── conversation.py          # Conversation management endpoints
+│   └── memory.py                # Memory diagnostics endpoint
 └── utils/
-    ├── __init__.py
-    ├── streaming.py               # Shared streaming functionality
-    ├── error_handling.py          # Shared error handling
-    └── conversation_helpers.py    # Shared conversation operations
+    ├── __init__.py              # Exports all utilities
+    ├── streaming.py             # Streaming response utilities
+    ├── error_handling.py        # Error handling utilities
+    └── conversation_helpers.py  # Conversation management utilities
 ```
 
 ### B. Frontend Structure
 ```
 app/static/js/chat/
-├── index.js                      # Main entry point, imports and initializes components
+├── index.js                     # Main entry point
 ├── api/
-│   ├── chat-service.js           # API calls for chat functionality
-│   └── conversation-service.js   # API calls for conversation management
+│   ├── chat-service.js          # Chat API calls
+│   └── conversation-service.js  # Conversation API calls
 ├── components/
-│   ├── chat-interface.js         # Chat UI components
-│   ├── message-list.js           # Message rendering
-│   ├── input-area.js             # User input handling
-│   └── citations.js              # Citation display and handling
-├── utils/
-│   ├── stream-handler.js         # SSE stream handling
-│   ├── markdown-renderer.js      # Markdown rendering
-│   └── error-handler.js          # Error handling
-└── state/
-    ├── chat-state.js             # Chat state management
-    └── settings-state.js         # User settings state
+│   ├── chat-interface.js        # Main chat UI component
+│   ├── message-list.js          # Message rendering component
+│   ├── input-area.js            # User input component
+│   └── citations.js             # Citation display component
+├── state/
+│   ├── chat-state.js            # Chat state management
+│   └── settings-state.js        # User settings state management
+└── utils/
+    ├── stream-handler.js        # SSE stream handling
+    ├── markdown-renderer.js     # Markdown rendering
+    └── error-handler.js         # Error handling
 ```
 
 ### C. RAG Engine Structure
 ```
 app/rag/engine/
-├── __init__.py                   # Export RAGEngine
-├── rag_engine.py                 # Main RAGEngine class (simplified)
+├── __init__.py                  # Exports RAGEngine
+├── rag_engine.py                # Main RAGEngine class
 ├── components/
-│   ├── __init__.py
-│   ├── retrieval.py              # Retrieval functionality
-│   ├── generation.py             # Generation functionality
-│   ├── memory.py                 # Memory operations
-│   └── context_builder.py        # Context assembly
+│   ├── __init__.py              # Exports all components
+│   ├── retrieval.py             # Retrieval component
+│   ├── generation.py            # Generation component
+│   ├── memory.py                # Memory component
+│   └── context_builder.py       # Context builder component
+├── base/
+│   ├── __init__.py              # Exports base components
+│   ├── base_engine.py           # Base engine class
+│   ├── vector_store_mixin.py    # Vector store mixin
+│   ├── ollama_mixin.py          # Ollama LLM mixin
+│   ├── cache_mixin.py           # Cache mixin
+│   └── security_mixin.py        # Security mixin
 └── utils/
-    ├── __init__.py
-    ├── query_processor.py        # Query processing
-    ├── timing.py                 # Performance timing
-    ├── relevance.py              # Relevance scoring
-    └── error_handler.py          # Error handling
+    ├── __init__.py              # Exports all utilities
+    ├── query_processor.py       # Query processing utilities
+    ├── timing.py                # Performance timing utilities
+    ├── relevance.py             # Relevance scoring utilities
+    └── error_handler.py         # Error handling utilities
 ```
 
 ### D. Text Formatting Structure
 ```
 app/utils/text_formatting/
-├── __init__.py
-├── monitor.py                    # Main monitoring functionality
+├── __init__.py                  # Exports all components
+├── monitor.py                   # Main monitoring functionality
 ├── formatters/
-│   ├── __init__.py
-│   ├── code_formatter.py         # Code block formatting
-│   ├── list_formatter.py         # List formatting
-│   ├── table_formatter.py        # Table formatting
-│   └── markdown_formatter.py     # General markdown formatting
+│   ├── __init__.py              # Exports all formatters
+│   ├── code_formatter.py        # Code block formatting
+│   ├── list_formatter.py        # List formatting
+│   ├── table_formatter.py       # Table formatting
+│   └── markdown_formatter.py    # General markdown formatting
 └── rules/
-    ├── __init__.py
-    ├── code_rules.py             # Rules for code formatting
-    ├── list_rules.py             # Rules for list formatting
-    ├── table_rules.py            # Rules for table formatting
-    └── markdown_rules.py         # Rules for markdown formatting
-```
-
-This checklist provides a comprehensive guide for restructuring the Metis RAG codebase. By following these steps in order, you can ensure a smooth transition with minimal disruption to the existing functionality.
+    ├── __init__.py              # Exports all rules
+    ├── code_rules.py            # Code formatting rules
+    ├── list_rules.py            # List formatting rules
+    ├── table_rules.py           # Table formatting rules
+    └── markdown_rules.py        # Markdown formatting rules
