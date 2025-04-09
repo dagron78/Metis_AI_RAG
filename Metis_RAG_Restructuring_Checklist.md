@@ -426,6 +426,8 @@ This checklist provides a detailed, step-by-step guide for restructuring the lar
 - [x] Run all tests
 - [x] Perform manual testing
 - [x] Fix any remaining issues
+- [x] Create new tests for restructured components
+- [x] Move old tests to legacy directory for reference
 
 ### 6.4 Code Review
 - [x] Conduct code review
