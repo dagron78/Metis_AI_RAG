@@ -20,11 +20,14 @@ logging.basicConfig(
 logger = logging.getLogger("test_entity_preservation")
 
 # Add the project root to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Adjusted for the new directory structure (tests/unit/rag/)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
 
 # Load environment variables from .env.test
 from dotenv import load_dotenv
-load_dotenv(".env.test")
+env_test_path = os.path.join(project_root, ".env.test")
+load_dotenv(env_test_path)
 
 async def test_entity_preservation():
     """Test entity preservation in query refinement"""

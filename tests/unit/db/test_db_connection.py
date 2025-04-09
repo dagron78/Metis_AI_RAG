@@ -1,11 +1,17 @@
 import asyncio
 import os
+import sys
 from sqlalchemy.ext.asyncio import create_async_engine
 from dotenv import load_dotenv
 
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
+
 async def test_connection():
-    # Load environment variables from .env file
-    load_dotenv()
+    # Load environment variables from .env file in the project root
+    env_path = os.path.join(project_root, ".env")
+    load_dotenv(env_path)
     
     # Get database URL from environment
     database_url = os.getenv("DATABASE_URL")

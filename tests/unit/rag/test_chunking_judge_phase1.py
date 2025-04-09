@@ -18,12 +18,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger("chunking_judge_test")
 
-# Add the app directory to the Python path if needed
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the project root directory to the Python path
+# Adjusted for the new directory structure (tests/unit/rag/)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(project_root)
 
 from app.models.document import Document
 from app.rag.agents.chunking_judge import ChunkingJudge
-from app.core.config import USE_CHUNKING_JUDGE
+from app.core.config import SETTINGS
 
 class MockOllamaClient:
     """Mock Ollama client for testing when the real server is not available"""
@@ -100,14 +102,16 @@ async def test_chunking_judge():
     results = []
     
     for filename in test_files:
-        if not os.path.exists(filename):
-            logger.warning(f"Warning: {filename} not found, skipping...")
+        # Use the project root for file paths
+        file_path = os.path.join(project_root, filename)
+        if not os.path.exists(file_path):
+            logger.warning(f"Warning: {file_path} not found, skipping...")
             continue
             
         logger.info(f"\n----- Testing with {filename} -----\n")
         
         # Read document content
-        with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
         
         # Create document object
@@ -139,8 +143,8 @@ async def test_chunking_judge():
         
         logger.info("\n" + "="*50)
     
-    # Save results to a JSON file
-    results_file = "chunking_judge_test_results.json"
+    # Save results to a JSON file in the project root
+    results_file = os.path.join(project_root, "chunking_judge_test_results.json")
     with open(results_file, "w") as f:
         json.dump(results, f, indent=2)
     
@@ -153,7 +157,7 @@ async def main():
     logger.info("Starting Chunking Judge Phase 1 test...")
     
     # Check if Chunking Judge is enabled
-    if not USE_CHUNKING_JUDGE:
+    if not SETTINGS.use_chunking_judge:
         logger.warning("Warning: Chunking Judge is disabled in configuration.")
         logger.warning("To enable it, set USE_CHUNKING_JUDGE=True in .env or app/core/config.py")
     
