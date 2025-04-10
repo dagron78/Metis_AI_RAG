@@ -30,6 +30,10 @@ class DocumentManager {
         this.toggleBtn = document.getElementById('toggle-documents');
         this.processSelectedBtn = document.getElementById('process-selected-btn');
         this.deleteSelectedBtn = document.getElementById('delete-selected-btn');
+        this.clearAllBtn = document.getElementById('clear-all-btn');
+        
+        // Debug log to check if the clear all button is found
+        console.log("Clear All Button:", this.clearAllBtn);
         this.documentCount = document.getElementById('document-count');
         this.tagInput = document.getElementById('doc-tags');
         this.folderSelect = document.getElementById('doc-folder');
@@ -123,6 +127,11 @@ class DocumentManager {
         // Delete selected documents
         if (this.deleteSelectedBtn) {
             this.deleteSelectedBtn.addEventListener('click', () => this.deleteSelected());
+        }
+        
+        // Clear all documents (admin only)
+        if (this.clearAllBtn) {
+            this.clearAllBtn.addEventListener('click', () => this.clearAllDocuments());
         }
         
         // Filter toggle
@@ -1194,6 +1203,56 @@ class DocumentManager {
             .catch(error => {
                 console.error('Error deleting documents:', error);
                 showNotification('Error deleting documents', 'warning');
+            });
+    }
+    
+    
+    clearAllDocuments() {
+        if (!confirm('WARNING: This will permanently delete ALL documents from the system. This action cannot be undone. Are you sure you want to continue?')) {
+            return;
+        }
+        
+        // Double confirmation for destructive action
+        if (!confirm('FINAL WARNING: All documents will be permanently deleted. Proceed?')) {
+            return;
+        }
+        
+        // Show loading state
+        this.docList.innerHTML = '<div class="document-loading">Clearing all documents...</div>';
+        
+        // Call the API endpoint
+        authenticatedFetch('/api/documents/actions/clear-all', {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to clear documents');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show success message
+                this.docList.innerHTML = '<div class="document-empty">All documents have been cleared</div>';
+                this.documents = [];
+                this.selectedDocuments = [];
+                this.updateDocumentCount(0);
+                this.updateBatchButtons();
+                
+                // Reload tags and folders
+                this.loadTagsAndFolders();
+                
+                // Show notification
+                showNotification('success', 'Documents Cleared', `Successfully cleared ${data.document_count} documents from the system.`);
+            })
+            .catch(error => {
+                console.error('Error clearing documents:', error);
+                this.docList.innerHTML = '<div class="document-error">Error clearing documents</div>';
+                
+                // Show error notification
+                showNotification('error', 'Error', 'Failed to clear documents. You may not have admin privileges.');
+                
+                // Reload documents to restore the view
+                this.loadDocuments();
             });
     }
     

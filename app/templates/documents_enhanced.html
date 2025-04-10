@@ -170,7 +170,24 @@
         <div class="batch-actions">
             <button id="process-selected-btn" disabled>Process Selected</button>
             <button id="delete-selected-btn" disabled>Delete Selected</button>
+            <button id="clear-all-btn" class="danger-btn">Clear All Documents</button>
         </div>
+        
+        <style>
+            .danger-btn {
+                background-color: var(--danger-color, #dc3545);
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-left: 10px;
+            }
+            
+            .danger-btn:hover {
+                background-color: #bd2130;
+            }
+        </style>
         
         <div id="document-list" class="document-grid">
             <!-- Documents will be loaded dynamically -->

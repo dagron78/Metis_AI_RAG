@@ -348,10 +348,13 @@ class VectorStore:
         permission_filter = {
             "$or": [
                 {"user_id": user_id_str},                    # Documents owned by the user
-                {"is_public": True},                         # Public documents
-                {"shared_user_ids": {"$contains": user_id_str}}  # Documents shared with the user
+                {"is_public": True}                          # Public documents
+                # We need to handle shared documents in post-processing since $contains isn't supported
             ]
         }
+        
+        # Handle shared_user_ids separately since $contains isn't supported
+        # We'll do a post-retrieval check for shared documents in _post_retrieval_permission_check
         
         # Log the permission filter for debugging
         logger.debug(f"Applied permission filter for user {user_id_str}: {permission_filter}")
@@ -383,24 +386,36 @@ class VectorStore:
             
             # Add tag filter
             if tags:
-                # Since tags are now stored as comma-separated strings, we need to use $contains
-                # to check if any of the requested tags are in the document's tags string
-                tag_conditions = []
-                for tag in tags:
-                    # For each tag, create a condition that checks if it's in the tags string
-                    # We add commas to ensure we match whole tags, not substrings
-                    tag_conditions.append({"$contains": tag})
+                # Since ChromaDB doesn't support $contains for metadata filtering,
+                # we'll use a different approach for tag filtering
                 
-                # Use $or to match any of the tag conditions
-                if "tags" not in filter_criteria:
-                    filter_criteria["tags"] = {"$or": tag_conditions}
-                else:
-                    # If there's already a tags filter, combine with it
-                    existing_filter = filter_criteria["tags"]
-                    filter_criteria["tags"] = {"$and": [existing_filter, {"$or": tag_conditions}]}
+                # For a single tag, we can use direct equality
+                if len(tags) == 1:
+                    tag = tags[0]
+                    # Check if the tag is in the comma-separated tags string
+                    # This is a simplification - we'll rely more on post-filtering
+                    if "tags" not in filter_criteria:
+                        filter_criteria["tags"] = {"$eq": tag}
+                    else:
+                        # If there's already a tags filter, combine with it
+                        existing_filter = filter_criteria["tags"]
+                        filter_criteria["tags"] = {"$and": [existing_filter, {"$eq": tag}]}
+                
+                # For multiple tags, we'll retrieve a broader set and filter post-retrieval
+                # We'll increase top_k to compensate for post-filtering
+                top_k = top_k * 3  # Get more results to account for post-filtering
             
             # Perform search with filters
-            return await self.search(query, top_k, filter_criteria, user_id)
+            results = await self.search(query, top_k, filter_criteria, user_id)
+            
+            # If we have multiple tags, we need to post-filter the results
+            if tags and len(tags) > 1:
+                filtered_results = self._post_filter_by_tags(results, tags)
+                # Limit to the original top_k
+                filtered_results = filtered_results[:top_k // 3]
+                return filtered_results
+            
+            return results
         except Exception as e:
             logger.error(f"Error searching for documents by tags: {str(e)}")
             raise
@@ -534,9 +549,13 @@ class VectorStore:
             
             # Alternative check using shared_user_ids
             elif "shared_user_ids" in metadata:
-                shared_user_ids = metadata["shared_user_ids"].split(",")
-                if user_id_str in shared_user_ids:
-                    has_permission = True
+                # Handle shared_user_ids which can be a comma-separated string
+                try:
+                    shared_user_ids = metadata["shared_user_ids"].split(",")
+                    if user_id_str in shared_user_ids:
+                        has_permission = True
+                except (AttributeError, TypeError):
+                    logger.warning(f"Invalid shared_user_ids format in document {document_id}")
             
             if has_permission:
                 filtered_results.append(result)
@@ -572,3 +591,43 @@ class VectorStore:
             "cache_ttl_seconds": cache_stats["ttl_seconds"],
             "cache_persist": cache_stats["persist"]
         }
+        
+    def _post_filter_by_tags(self, results: List[Dict[str, Any]], tags: List[str]) -> List[Dict[str, Any]]:
+        """
+        Filter search results by tags after retrieval
+        
+        This is used when we can't use the $contains operator in ChromaDB
+        
+        Args:
+            results: List of search results
+            tags: List of tags to filter by
+            
+        Returns:
+            Filtered list of results
+        """
+        if not results or not tags:
+            return results
+            
+        filtered_results = []
+        
+        for result in results:
+            metadata = result.get("metadata", {})
+            doc_tags_str = metadata.get("tags", "")
+            
+            # Skip if no tags
+            if not doc_tags_str:
+                continue
+                
+            # Split tags string into list
+            try:
+                doc_tags = doc_tags_str.split(",")
+                
+                # Check if any of the requested tags are in the document's tags
+                if any(tag in doc_tags for tag in tags):
+                    filtered_results.append(result)
+            except (AttributeError, TypeError):
+                logger.warning(f"Invalid tags format in document {metadata.get('document_id', 'unknown')}")
+                
+        logger.info(f"Post-filtering by tags: {len(filtered_results)}/{len(results)} results passed")
+        
+        return filtered_results

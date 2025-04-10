@@ -1,0 +1,13 @@
+#!/bin/bash
+# run-metis - CLI shortcut to run the Metis RAG application
+
+# Define the project directory (absolute path)
+PROJECT_DIR="/Users/charleshoward/Metis_RAG"
+
+# Change to the project directory
+cd "$PROJECT_DIR"
+
+# Activate the virtual environment and run the application
+source venv_py310/bin/activate && uvicorn app.main:app --reload
+
+# Note: This script will keep running until you press Ctrl+C to stop the application

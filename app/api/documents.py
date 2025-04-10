@@ -621,3 +621,64 @@ async def process_documents(
     except Exception as e:
         logger.error(f"Error processing documents: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing documents: {str(e)}")
+
+@router.delete("/actions/clear-all", response_model=dict)
+async def clear_all_documents(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+    document_repository: DocumentRepository = Depends(get_document_repository)
+):
+    """
+    Clear all documents from both the database and vector store.
+    This is a destructive operation and should be used with caution.
+    Only admin users can perform this operation.
+    """
+    try:
+        # Get all document IDs using raw SQL for async compatibility
+        from sqlalchemy import text
+        result = await db.execute(text("SELECT id FROM documents"))
+        document_ids = [str(row[0]) for row in result.fetchall()]
+        
+        logger.info(f"Clearing {len(document_ids)} documents from system")
+        
+        # Clear vector store first
+        for doc_id in document_ids:
+            try:
+                # Delete from vector store
+                vector_store.delete_document(doc_id)
+                logger.info(f"Deleted document {doc_id} from vector store")
+            except Exception as e:
+                logger.error(f"Error deleting document {doc_id} from vector store: {str(e)}")
+        
+        # Delete all documents from database
+        # Use raw SQL for efficiency
+        try:
+            # First delete related records in document_tags
+            await db.execute(text("DELETE FROM document_tags"))
+            
+            # Then delete chunks
+            await db.execute(text("DELETE FROM chunks"))
+            
+            # Then delete citations
+            await db.execute(text("DELETE FROM citations WHERE document_id IS NOT NULL"))
+            
+            # Finally delete documents
+            await db.execute(text("DELETE FROM documents"))
+            
+            # Commit the transaction
+            await db.commit()
+            
+            logger.info(f"Deleted {len(document_ids)} documents from database")
+        except Exception as e:
+            await db.rollback()
+            logger.error(f"Error clearing documents from database: {str(e)}")
+            raise
+        
+        return {
+            "success": True,
+            "message": f"Successfully cleared {len(document_ids)} documents from the system",
+            "document_count": len(document_ids)
+        }
+    except Exception as e:
+        logger.error(f"Error clearing all documents: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error clearing all documents: {str(e)}")

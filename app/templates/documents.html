@@ -238,6 +238,13 @@
 {% endblock %}
 
 {% block content %}
+<script>
+    console.log("Documents page loaded at", new Date().toISOString());
+</script>
+<div style="position: fixed; top: 10px; right: 10px; z-index: 9999; padding: 20px; background-color: red; border: 5px solid black;">
+    <button id="emergency-clear-btn" style="font-size: 20px; padding: 15px; background-color: yellow; color: black; font-weight: bold; border: 3px solid black;">EMERGENCY CLEAR ALL</button>
+</div>
+
 <div class="documents-container">
     <div class="document-section">
         <div class="section-header">
@@ -387,10 +394,29 @@
             </div>
         </div>
         
-        <div class="batch-actions">
-            <button id="process-selected-btn" disabled>Process Selected</button>
-            <button id="delete-selected-btn" disabled>Delete Selected</button>
+        <div class="batch-actions" style="display: block; margin: 20px 0; padding: 20px; border: 3px solid red; background-color: #ffeeee;">
+            <h2 style="color: red; margin-bottom: 15px;">Document Management Actions</h2>
+            <button id="process-selected-btn" disabled style="display: inline-block; margin: 5px; padding: 10px;">Process Selected</button>
+            <button id="delete-selected-btn" disabled style="display: inline-block; margin: 5px; padding: 10px;">Delete Selected</button>
+            <button id="clear-all-btn" class="danger-btn" style="display: inline-block; margin: 5px; padding: 10px; background-color: #dc3545; color: white; font-weight: bold;">Clear All Documents</button>
+            <button id="clear-all-btn-direct" style="display: inline-block; margin: 5px; padding: 10px; background-color: #ff0000; color: white; font-weight: bold; font-size: 16px; border: 3px solid black;">CLEAR ALL DOCUMENTS (DIRECT)</button>
         </div>
+        
+        <style>
+            .danger-btn {
+                background-color: var(--danger-color, #dc3545);
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-left: 10px;
+            }
+            
+            .danger-btn:hover {
+                background-color: #bd2130;
+            }
+        </style>
         
         <div id="document-list" class="document-grid">
             <!-- Documents will be loaded dynamically -->
@@ -437,8 +463,133 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Add event listener for emergency button -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emergencyBtn = document.getElementById('emergency-clear-btn');
+        if (emergencyBtn) {
+            emergencyBtn.addEventListener('click', function() {
+                console.log("Emergency clear button clicked");
+                
+                if (!confirm('EMERGENCY: This will permanently delete ALL documents from the system. This action cannot be undone. Are you sure you want to continue?')) {
+                    return;
+                }
+                
+                // Double confirmation for destructive action
+                if (!confirm('FINAL EMERGENCY WARNING: All documents will be permanently deleted. Proceed?')) {
+                    return;
+                }
+                
+                // Call the API endpoint
+                fetch('/api/documents/actions/clear-all', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to clear documents');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Show notification
+                    alert(`EMERGENCY CLEAR SUCCESSFUL: Cleared ${data.document_count} documents from the system.`);
+                    
+                    // Reload the page to refresh everything
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error clearing documents:', error);
+                    alert('EMERGENCY CLEAR FAILED: ' + error.message);
+                });
+            });
+            
+            console.log("Emergency clear button initialized");
+        } else {
+            console.error("Emergency clear button not found");
+        }
+    });
+</script>
 <!-- Load the main document manager script first -->
 <script src="{{ url_for('static', path='js/document-manager.js') }}"></script>
+
+<!-- Add direct event listener for the clear all button -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const clearAllBtnDirect = document.getElementById('clear-all-btn-direct');
+        if (clearAllBtnDirect) {
+            clearAllBtnDirect.addEventListener('click', function() {
+                console.log("Direct clear all button clicked");
+                
+                if (!confirm('WARNING: This will permanently delete ALL documents from the system. This action cannot be undone. Are you sure you want to continue?')) {
+                    return;
+                }
+                
+                // Double confirmation for destructive action
+                if (!confirm('FINAL WARNING: All documents will be permanently deleted. Proceed?')) {
+                    return;
+                }
+                
+                // Show loading state
+                const docList = document.getElementById('document-list');
+                if (docList) {
+                    docList.innerHTML = '<div class="document-loading">Clearing all documents...</div>';
+                }
+                
+                // Call the API endpoint
+                fetch('/api/documents/actions/clear-all', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to clear documents');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Show success message
+                    if (docList) {
+                        docList.innerHTML = '<div class="document-empty">All documents have been cleared</div>';
+                    }
+                    
+                    // Show notification
+                    if (typeof showNotification === 'function') {
+                        showNotification('success', 'Documents Cleared', `Successfully cleared ${data.document_count} documents from the system.`);
+                    } else {
+                        alert(`Successfully cleared ${data.document_count} documents from the system.`);
+                    }
+                    
+                    // Reload the page to refresh everything
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('Error clearing documents:', error);
+                    if (docList) {
+                        docList.innerHTML = '<div class="document-error">Error clearing documents</div>';
+                    }
+                    
+                    // Show error notification
+                    if (typeof showNotification === 'function') {
+                        showNotification('error', 'Error', 'Failed to clear documents. You may not have admin privileges.');
+                    } else {
+                        alert('Failed to clear documents. You may not have admin privileges.');
+                    }
+                });
+            });
+            
+            console.log("Direct clear all button initialized");
+        } else {
+            console.error("Direct clear all button not found");
+        }
+    });
+</script>
 
 <!-- Load our enhancement scripts after a small delay to ensure DocumentManager is initialized -->
 <script>
