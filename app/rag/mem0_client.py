@@ -99,7 +99,7 @@ def get_mem0_client() -> Optional[Mem0Client]:
                 )
                 logger.info(f"Created Metis RAG agent with ID: {METIS_AGENT_ID}")
             
-            logger.info(f"Initialized Mem0 client with endpoint: {endpoint}")
+            logger.info(f"Initialized Mem0 client with endpoint: {MEM0_ENDPOINT}")
         except Exception as e:
             logger.error(f"Error initializing Mem0 client: {str(e)}")
             return None

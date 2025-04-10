@@ -5,10 +5,10 @@ from typing import Dict, List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
+from app.db.dependencies import get_db
 from app.db.connection_manager import connection_manager
 from app.db.schema_inspector import schema_inspector
-from app.core.auth import get_current_user
+from app.core.security import get_current_user
 from app.models.user import User
 
 router = APIRouter(
