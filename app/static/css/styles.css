@@ -394,8 +394,15 @@ select:focus {
 
 textarea {
     resize: vertical;
-    min-height: 100px;
+    min-height: 66px;
     line-height: 1.5;
+}
+
+/* Specific styling for chat input */
+textarea#user-input {
+    min-height: 66px;
+    height: 66px;
+    max-height: 133px;
 }
 
 .checkbox-container {

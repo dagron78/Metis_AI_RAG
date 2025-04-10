@@ -108,8 +108,8 @@ class InputArea {
     // Reset height to auto to get the correct scrollHeight
     this.inputElement.style.height = 'auto';
     
-    // Set the height to the scrollHeight
-    const newHeight = Math.min(this.inputElement.scrollHeight, 200); // Max height of 200px
+    // Set the height to the scrollHeight with a reduced max height of 133px (1/3 smaller than 200px)
+    const newHeight = Math.min(this.inputElement.scrollHeight, 133); // Max height reduced from 200px to 133px
     this.inputElement.style.height = `${newHeight}px`;
   }
   
