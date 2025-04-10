@@ -1,0 +1,331 @@
+/**
+ * Structured Output CSS
+ * Styles for the structured output format
+ */
+
+/* Paragraph styling */
+.structured-paragraph {
+  margin-bottom: 1.2em;
+  margin-top: 0;
+  line-height: 1.6;
+  text-align: justify;
+  display: block; /* Ensure paragraphs are block-level elements */
+  white-space: normal; /* Override any white-space settings from parent elements */
+}
+
+/* Heading styling */
+.structured-heading {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.3em;
+}
+
+/* List item styling */
+.structured-list-item {
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+  position: relative;
+  display: list-item; /* Ensure proper list item display */
+}
+
+.structured-list-item::before {
+  content: "•";
+  position: absolute;
+  left: 0.5em;
+  color: #3498db;
+}
+
+/* Numbered and bullet list items for streaming */
+.numbered-list-item, .bullet-list-item {
+  display: list-item;
+  margin-bottom: 0.5em;
+  margin-left: 1.5em;
+}
+
+.numbered-list-item {
+  list-style-type: decimal;
+}
+
+.bullet-list-item {
+  list-style-type: disc;
+}
+
+/* Ensure lists are properly displayed */
+.message-content ul, .message-content ol {
+  padding-left: 2em;
+  margin-bottom: 1.2em;
+  margin-top: 0;
+}
+
+.message-content li {
+  margin-bottom: 0.5em;
+}
+
+/* Quote styling */
+.structured-quote {
+  border-left: 4px solid #3498db;
+  padding-left: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: #555;
+}
+
+/* Code block container */
+.structured-code-block {
+  margin: 1.5em 0;
+  position: relative;
+}
+
+/* Code block header with language */
+.code-block-header {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  padding: 0.3em 0.8em;
+  font-family: monospace;
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+/* Enhanced code block styling */
+.message-content pre {
+  margin: 0;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #e9ecef;
+  background-color: #f8f9fa;
+}
+
+.message-content pre code {
+  padding: 1em;
+  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* Table styling */
+.message-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.message-content table th,
+.message-content table td {
+  border: 1px solid #e9ecef;
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+
+.message-content table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.message-content table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.message-content table caption {
+  margin-bottom: 0.5em;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Image styling */
+.structured-image {
+  margin: 1.5em 0;
+  text-align: center;
+}
+
+.structured-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.structured-image figcaption {
+  margin-top: 0.5em;
+  font-style: italic;
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+/* Math block styling */
+.structured-math {
+  margin: 1.5em 0;
+  overflow-x: auto;
+}
+
+.structured-math-inline {
+  font-style: italic;
+}
+
+.structured-math-display {
+  display: block;
+  text-align: center;
+  padding: 1em;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+/* Paragraph preservation */
+.preserve-paragraphs p {
+  margin-bottom: 1.2em;
+  margin-top: 0;
+  line-height: 1.6;
+  display: block; /* Ensure paragraphs are block-level elements */
+  white-space: normal; /* Override any white-space settings from parent elements */
+}
+
+/* Enhanced paragraph handling */
+.preserve-paragraphs p + p {
+  margin-top: 1em;
+}
+
+/* Ensure paragraphs are properly separated */
+.message-content p {
+  display: block;
+  margin-bottom: 1.2em;
+  margin-top: 0;
+}
+
+/* Ensure newlines are preserved in bot messages */
+.bot-message .message-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Ensure HTML content is properly rendered */
+.bot-message .message-content code {
+  white-space: pre;
+}
+
+/* Ensure HTML examples are properly displayed */
+.bot-message .message-content pre code {
+  white-space: pre;
+  display: block;
+  overflow-x: auto;
+}
+
+/* Ensure consistent paragraph spacing in streaming and non-streaming modes */
+.message-content p {
+  margin-bottom: 1.2em;
+  margin-top: 0;
+}
+
+/* Ensure <br> tags create proper line breaks */
+.message-content br {
+  display: block;
+  content: "";
+  margin-top: 0.5em;
+}
+
+/* Ensure proper spacing between list items */
+.message-content li + li {
+  margin-top: 0.5em;
+}
+
+/* Ensure proper spacing after lists */
+.message-content ul, .message-content ol {
+  margin-bottom: 1.2em;
+}
+
+/* Ensure proper spacing between elements */
+.message-content > * {
+  margin-bottom: 1em;
+}
+
+/* Ensure consistent text rendering */
+.message-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: inherit;
+  white-space: normal; /* Reset any white-space property that might affect paragraph rendering */
+}
+
+/* Ensure proper paragraph structure in markdown processed content */
+.markdown-processed p {
+  display: block;
+  margin-bottom: 1.2em;
+  margin-top: 0;
+}
+
+/* Ensure proper spacing between paragraphs */
+.markdown-processed p + p {
+  margin-top: 1em;
+}
+
+/* Ensure code blocks don't break paragraph flow */
+.message-content pre {
+  margin: 1.2em 0;
+}
+
+/* Fix for streaming text vs markdown processed text */
+.message-content:not(.markdown-processed) {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Ensure HTML content is properly rendered in markdown processed content */
+.markdown-processed pre {
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* Ensure code blocks are properly displayed */
+.markdown-processed code {
+  white-space: pre;
+  font-family: monospace;
+}
+
+/* Add class for markdown processed content */
+.markdown-processed {
+  /* Specific styles for markdown processed content */
+}
+
+/* Theme support */
+.theme-light {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --border-color: #e9ecef;
+  --header-color: #2c3e50;
+  --accent-color: #3498db;
+}
+
+.theme-dark {
+  --bg-color: #2c3e50;
+  --text-color: #f8f9fa;
+  --border-color: #4a5568;
+  --header-color: #f8f9fa;
+  --accent-color: #3498db;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .structured-heading {
+    font-size: 1.3em;
+  }
+  
+  .message-content pre code {
+    font-size: 0.8em;
+  }
+  
+  .message-content table {
+    font-size: 0.9em;
+  }
+  
+  .structured-image figcaption {
+    font-size: 0.8em;
+  }
+}

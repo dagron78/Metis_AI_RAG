@@ -1,0 +1,15 @@
+Here are some problematic code blocks:
+
+```pythonimport math
+print(math.sqrt(16))
+```
+
+```javascriptconst x = 10;
+console.log(x);
+```
+
+```html<div>Hello</div>```
+
+```css.container {
+    width: 100%;
+}```

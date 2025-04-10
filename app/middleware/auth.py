@@ -108,6 +108,8 @@ class AuthMiddleware:
             "/api/auth/register",
             "/api/health",
             "/health",
+            "/api/health/readiness",
+            "/api/health/liveness",
             "/static",
             "/forgot-password",
             "/reset-password"
@@ -127,6 +129,11 @@ class AuthMiddleware:
             The response from the next middleware or route handler
         """
         if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+            
+        # Check if developer mode is enabled
+        if SETTINGS.developer_mode:
+            logger.info("Developer mode is enabled, bypassing authentication")
             return await self.app(scope, receive, send)
             
         # Create a request object
@@ -261,6 +268,28 @@ class AuthMiddleware:
             
             # Check token type
             if payload.get("token_type") != "access":
+                # Log invalid token type
+                client_ip = request.client.host if request.client else "unknown"
+                user_agent = request.headers.get("user-agent", "unknown")
+                logger.warning(
+                    f"Invalid token type: {payload.get('token_type', 'none')}, expected 'access'. "
+                    f"IP: {client_ip}, User-Agent: {user_agent}"
+                )
+                
+                # Create and log security event
+                security_event = SecurityEvent(
+                    event_type="invalid_token_type",
+                    severity="medium",
+                    source_ip=client_ip,
+                    user_agent=user_agent,
+                    details={
+                        "error": "Invalid token type",
+                        "expected": "access",
+                        "found": payload.get("token_type", "none"),
+                        "path": request.url.path
+                    }
+                )
+                log_security_event(security_event)
                 return False
             
             # Token is valid

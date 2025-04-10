@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Code Formatting Test</title>
+    
+    <!-- Highlight.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-case {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: #50c878;
+        }
+        button {
+            background-color: #2e8b57;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background-color: #3a7a5d;
+        }
+        pre {
+            background-color: #282c34;
+            border-radius: 6px;
+            padding: 16px;
+            overflow: auto;
+            margin: 16px 0;
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            tab-size: 4;
+            white-space: pre;
+            word-break: normal;
+            word-spacing: normal;
+            word-wrap: normal;
+            color: #abb2bf;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            max-width: 100%;
+            position: relative;
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            font-size: 1em;
+        }
+        .code-block-container {
+            position: relative;
+            margin: 16px 0;
+        }
+        .copy-code-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #abb2bf;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.2s;
+        }
+        .copy-code-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        #input, #output {
+            width: 100%;
+            height: 200px;
+            background-color: #282c34;
+            color: #abb2bf;
+            border: none;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Code Formatting Test</h1>
+        
+        <h2>Input</h2>
+        <textarea id="input">Here's an example of how you could implement a function in Python to calculate square roots:
+
+```python
+import math
+
+def calculate_square_root(n):
+    """
+    Calculate the square root of a given number.
+    
+    Args:
+        n (float): The input number for which the square root needs to be calculated.
+        
+    Returns:
+        float: The square root of the input number.
+    """
+    if not isinstance(n, (int, float)):
+        raise ValueError("Input must be a number.")
+        
+    if n < 0:
+        return complex(math.sqrt(-n), math.atan(0))
+    else:
+        return math.sqrt(n)
+
+# Example usage
+print(calculate_square_root(9))  # Output: 3.0
+print(calculate_square_root(-16))  # Output: (4+0j)
+```
+
+This function uses the built-in `math.sqrt` function to calculate the square root of a given number.</textarea>
+        
+        <button id="parse-btn">Parse Markdown</button>
+        
+        <h2>Output</h2>
+        <div id="output"></div>
+    </div>
+
+    <!-- Highlight.js and Marked.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const parseBtn = document.getElementById('parse-btn');
+            const input = document.getElementById('input');
+            const output = document.getElementById('output');
+            
+            // Configure marked.js
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        try {
+                            return hljs.highlight(code, { language: lang }).value;
+                        } catch (e) {
+                            console.error('Error highlighting code:', e);
+                        }
+                    }
+                    
+                    try {
+                        return hljs.highlightAuto(code).value;
+                    } catch (e) {
+                        console.error('Error auto-highlighting code:', e);
+                    }
+                    
+                    return code;
+                },
+                breaks: true,
+                gfm: true
+            });
+            
+            // Function to add copy buttons
+            function addCopyButtons() {
+                document.querySelectorAll('pre code').forEach((codeBlock) => {
+                    // Check if the container already exists
+                    let container = codeBlock.closest('.code-block-container');
+                    if (!container) {
+                        // Create container if it doesn't exist
+                        container = document.createElement('div');
+                        container.className = 'code-block-container';
+                        const preElement = codeBlock.parentNode; // Should be <pre>
+                        preElement.parentNode.replaceChild(container, preElement);
+                        container.appendChild(preElement);
+                    }
+                    
+                    // Check if button already exists
+                    if (container.querySelector('.copy-code-button')) {
+                        return;
+                    }
+                    
+                    // Create copy button
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'copy-code-button';
+                    copyButton.textContent = 'Copy';
+                    
+                    // Add click event to copy the code
+                    copyButton.addEventListener('click', () => {
+                        const code = codeBlock.textContent;
+                        navigator.clipboard.writeText(code).then(() => {
+                            copyButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButton.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy code:', err);
+                            copyButton.textContent = 'Failed';
+                            setTimeout(() => {
+                                copyButton.textContent = 'Copy';
+                            }, 2000);
+                        });
+                    });
+                    
+                    container.appendChild(copyButton);
+                });
+            }
+            
+            parseBtn.addEventListener('click', function() {
+                // Parse the markdown
+                output.innerHTML = marked.parse(input.value);
+                
+                // Add copy buttons
+                setTimeout(addCopyButtons, 100);
+            });
+        });
+    </script>
+</body>
+</html>

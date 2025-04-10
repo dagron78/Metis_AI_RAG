@@ -8,6 +8,10 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship, backref
 
 from app.db.session import Base
+from app.models import import_models
+
+# Import all models to ensure they're registered with SQLAlchemy
+import_models()
 
 # Association table for document-tag many-to-many relationship
 document_tags = Table(
@@ -170,6 +174,7 @@ class Conversation(Base):
     # Relationships
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
     user = relationship("User", back_populates="conversations")
+    memories = relationship("Memory", back_populates="conversation", cascade="all, delete-orphan")
 
     # Indexes
     __table_args__ = (

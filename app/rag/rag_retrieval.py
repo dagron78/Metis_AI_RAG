@@ -5,7 +5,7 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple
 from uuid import UUID
 
-from app.rag.rag_engine_base import BaseRAGEngine
+from app.rag.engine.base.base_engine import BaseEngine as BaseRAGEngine
 from app.rag.mem0_client import store_document_interaction
 
 logger = logging.getLogger("app.rag.rag_retrieval")

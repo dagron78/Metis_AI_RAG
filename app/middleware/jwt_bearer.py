@@ -76,9 +76,13 @@ class JWTBearer(HTTPBearer):
         try:
             # Decode the token
             payload = jwt.decode(
-                token, 
-                SETTINGS.secret_key, 
-                algorithms=[SETTINGS.algorithm]
+                token,
+                SETTINGS.secret_key,
+                algorithms=[SETTINGS.algorithm],
+                options={
+                    "verify_signature": True,
+                    "verify_aud": False  # Match the same options used in security.py
+                }
             )
             
             # Check if token has required claims
@@ -87,6 +91,15 @@ class JWTBearer(HTTPBearer):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid token payload",
+                    headers={"WWW-Authenticate": "Bearer"}
+                )
+            
+            # Verify token type is "access"
+            if payload.get("token_type") != "access":
+                self._log_invalid_token(request, token, "Invalid token type")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid token type",
                     headers={"WWW-Authenticate": "Bearer"}
                 )
                 

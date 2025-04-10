@@ -6,7 +6,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 from app.rag.tools.base import Tool
-from app.rag.rag_engine import RAGEngine
+from app.rag.engine.rag_engine import RAGEngine
 
 class RAGTool(Tool):
     """

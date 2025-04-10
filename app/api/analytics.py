@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 import json
 
 from app.db.dependencies import get_db, get_analytics_repository, get_document_repository
@@ -19,7 +19,7 @@ logger = logging.getLogger("app.api.analytics")
 @router.post("/record_query")
 async def record_query(
     query_data: Dict[str, Any],
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     analytics_repository: AnalyticsRepository = Depends(get_analytics_repository)
 ):
     """
@@ -31,13 +31,13 @@ async def record_query(
             query_data["timestamp"] = datetime.now().isoformat()
         
         # Create analytics query record
-        analytics_query = await analytics_repository.create_analytics_query(
+        analytics_query = await analytics_repository.log_query(
             query=query_data.get("query", ""),
             model=query_data.get("model", ""),
             use_rag=query_data.get("use_rag", False),
             response_time_ms=query_data.get("response_time_ms", 0),
             token_count=query_data.get("token_count", 0),
-            document_ids=query_data.get("document_ids", []),
+            document_id_list=query_data.get("document_id_list", query_data.get("document_ids", [])),  # Support both parameter names for backward compatibility
             query_type=query_data.get("query_type", "standard"),
             successful=query_data.get("successful", True)
         )
@@ -52,7 +52,7 @@ async def get_query_stats(
     time_period: Optional[str] = Query("all", description="Time period for stats (all, day, week, month)"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     analytics_repository: AnalyticsRepository = Depends(get_analytics_repository)
 ):
     """
@@ -63,16 +63,16 @@ async def get_query_stats(
         cutoff_date = get_cutoff_date(time_period)
         
         # Get query stats from repository
-        stats = analytics_repository.get_query_stats(cutoff_date)
+        stats = await analytics_repository.get_query_stats(cutoff_date)
         
         # Get most common queries
-        most_common_queries = analytics_repository.get_most_common_queries(
+        most_common_queries = await analytics_repository.get_most_common_queries(
             cutoff_date=cutoff_date,
             limit=10
         )
         
         # Get recent queries with pagination
-        recent_queries = analytics_repository.get_recent_queries(
+        recent_queries = await analytics_repository.get_recent_queries(
             cutoff_date=cutoff_date,
             skip=skip,
             limit=10  # Always get the 10 most recent
@@ -97,7 +97,7 @@ async def get_query_stats(
                     "timestamp": q.timestamp.isoformat() if q.timestamp else None,
                     "response_time_ms": q.response_time_ms,
                     "token_count": q.token_count,
-                    "document_ids": q.document_ids,
+                    "document_ids": q.document_id_list,  # Changed from document_ids to document_id_list
                     "query_type": q.query_type,
                     "successful": q.successful
                 }
@@ -119,7 +119,7 @@ async def get_document_usage(
     time_period: Optional[str] = Query("all", description="Time period for stats (all, day, week, month)"),
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     analytics_repository: AnalyticsRepository = Depends(get_analytics_repository),
     document_repository: DocumentRepository = Depends(get_document_repository)
 ):
@@ -131,21 +131,21 @@ async def get_document_usage(
         cutoff_date = get_cutoff_date(time_period)
         
         # Get document usage stats from repository
-        document_usage = analytics_repository.get_document_usage_stats(
+        document_usage = await analytics_repository.get_document_usage_stats(
             cutoff_date=cutoff_date,
             skip=skip,
             limit=limit
         )
         
         # Get total document count
-        document_count = analytics_repository.count_documents_used(cutoff_date)
+        document_count = await analytics_repository.count_documents_used(cutoff_date)
         
         # Enrich with document metadata
         enriched_usage = []
         for usage in document_usage:
             try:
                 # Get document info
-                document = document_repository.get_by_id(UUID(usage.document_id))
+                document = await document_repository.get_by_id(UUID(usage.document_id))
                 
                 # Add document info to usage stats
                 enriched_usage.append({
@@ -182,7 +182,7 @@ async def get_document_usage(
 
 @router.get("/system_stats")
 async def get_system_stats(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     analytics_repository: AnalyticsRepository = Depends(get_analytics_repository),
     document_repository: DocumentRepository = Depends(get_document_repository)
 ):
@@ -197,14 +197,14 @@ async def get_system_stats(
         vector_stats = vector_store.get_stats()
         
         # Get query stats
-        query_count = analytics_repository.count_queries()
+        query_count = await analytics_repository.count_queries()
         
         # Get document stats
-        document_count = document_repository.count()
+        document_count = await document_repository.count()
         
         # Get additional stats
-        rag_query_count = analytics_repository.count_rag_queries()
-        avg_response_time = analytics_repository.get_avg_response_time()
+        rag_query_count = await analytics_repository.count_rag_queries()
+        avg_response_time = await analytics_repository.get_avg_response_time()
         
         return {
             "vector_store": vector_stats,
@@ -222,7 +222,7 @@ async def get_system_stats(
 @router.get("/model_performance")
 async def get_model_performance(
     time_period: Optional[str] = Query("all", description="Time period for stats (all, day, week, month)"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     analytics_repository: AnalyticsRepository = Depends(get_analytics_repository)
 ):
     """
@@ -233,7 +233,7 @@ async def get_model_performance(
         cutoff_date = get_cutoff_date(time_period)
         
         # Get model performance stats from repository
-        model_stats = analytics_repository.get_model_performance_stats(cutoff_date)
+        model_stats = await analytics_repository.get_model_performance_stats(cutoff_date)
         
         return {
             "models": [
@@ -255,7 +255,7 @@ async def get_model_performance(
 @router.get("/query_types")
 async def get_query_types(
     time_period: Optional[str] = Query("all", description="Time period for stats (all, day, week, month)"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     analytics_repository: AnalyticsRepository = Depends(get_analytics_repository)
 ):
     """
@@ -266,7 +266,7 @@ async def get_query_types(
         cutoff_date = get_cutoff_date(time_period)
         
         # Get query type stats from repository
-        query_type_stats = analytics_repository.get_query_type_stats(cutoff_date)
+        query_type_stats = await analytics_repository.get_query_type_stats(cutoff_date)
         
         return {
             "query_types": [

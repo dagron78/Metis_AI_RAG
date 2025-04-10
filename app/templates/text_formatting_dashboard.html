@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Formatting Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .dashboard-header {
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            font-weight: bold;
+            background-color: #f1f8ff;
+        }
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+        }
+        .stats-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .stats-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .refresh-button {
+            margin-bottom: 20px;
+        }
+        .time-period-selector {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Text Formatting Dashboard</h1>
+            <p class="text-muted">Monitor the performance of the structured output approach</p>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="time-period-selector">
+                    <label for="time-period" class="form-label">Time Period:</label>
+                    <select id="time-period" class="form-select" onchange="refreshDashboard()">
+                        <option value="day">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn btn-primary refresh-button" onclick="refreshDashboard()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-value" id="total-events">-</div>
+                    <div class="stats-label">Total Events</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-value" id="success-rate">-</div>
+                    <div class="stats-label">Success Rate</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-value" id="fallback-count">-</div>
+                    <div class="stats-label">Fallbacks</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-value" id="error-count">-</div>
+                    <div class="stats-label">Errors</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Approach Usage</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="approach-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Content Types</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="content-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Common Errors</div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Error Message</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="error-table-body">
+                                    <tr>
+                                        <td colspan="2" class="text-center">No data available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Fallback Patterns</div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Pattern</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fallback-table-body">
+                                    <tr>
+                                        <td colspan="2" class="text-center">No data available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Success Rate Over Time</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="success-rate-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart objects
+        let approachChart = null;
+        let contentChart = null;
+        let successRateChart = null;
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshDashboard();
+        });
+
+        // Refresh the dashboard data
+        function refreshDashboard() {
+            const timePeriod = document.getElementById('time-period').value;
+            fetchDashboardData(timePeriod);
+        }
+
+        // Fetch dashboard data from the API
+        function fetchDashboardData(timePeriod) {
+            // In a real implementation, this would be an API call
+            // For now, we'll use mock data
+            const mockData = generateMockData(timePeriod);
+            updateDashboard(mockData);
+        }
+
+        // Generate mock data for demonstration
+        function generateMockData(timePeriod) {
+            return {
+                time_period: timePeriod,
+                total_events: Math.floor(Math.random() * 1000) + 500,
+                success_count: Math.floor(Math.random() * 800) + 400,
+                fallback_count: Math.floor(Math.random() * 100) + 50,
+                error_count: Math.floor(Math.random() * 50) + 10,
+                success_rate: (Math.random() * 20 + 80).toFixed(2),
+                approach_usage: {
+                    structured_output: {
+                        count: Math.floor(Math.random() * 600) + 300,
+                        percentage: (Math.random() * 30 + 60).toFixed(2)
+                    },
+                    backend_processing: {
+                        count: Math.floor(Math.random() * 200) + 100,
+                        percentage: (Math.random() * 20 + 20).toFixed(2)
+                    },
+                    frontend_parsing: {
+                        count: Math.floor(Math.random() * 100) + 50,
+                        percentage: (Math.random() * 10 + 10).toFixed(2)
+                    },
+                    css_formatting: {
+                        count: Math.floor(Math.random() * 50) + 10,
+                        percentage: (Math.random() * 5 + 5).toFixed(2)
+                    }
+                },
+                content_types: {
+                    text: Math.floor(Math.random() * 1000) + 500,
+                    code: Math.floor(Math.random() * 500) + 200,
+                    table: Math.floor(Math.random() * 200) + 50,
+                    image: Math.floor(Math.random() * 100) + 20,
+                    math: Math.floor(Math.random() * 50) + 10
+                },
+                common_errors: [
+                    { message: "JSON parsing error: Unexpected token", count: Math.floor(Math.random() * 20) + 10 },
+                    { message: "Schema validation error: Missing required field", count: Math.floor(Math.random() * 15) + 5 },
+                    { message: "Invalid code block reference", count: Math.floor(Math.random() * 10) + 3 },
+                    { message: "Malformed JSON response", count: Math.floor(Math.random() * 8) + 2 },
+                    { message: "Unknown content type", count: Math.floor(Math.random() * 5) + 1 }
+                ],
+                common_fallbacks: [
+                    { pattern: "structured_output -> backend_processing", count: Math.floor(Math.random() * 50) + 30 },
+                    { pattern: "backend_processing -> frontend_parsing", count: Math.floor(Math.random() * 30) + 15 },
+                    { pattern: "frontend_parsing -> css_formatting", count: Math.floor(Math.random() * 20) + 5 }
+                ],
+                success_rate_over_time: [
+                    { date: "2025-04-01", rate: Math.random() * 10 + 85 },
+                    { date: "2025-04-02", rate: Math.random() * 10 + 85 },
+                    { date: "2025-04-03", rate: Math.random() * 10 + 85 },
+                    { date: "2025-04-04", rate: Math.random() * 10 + 85 },
+                    { date: "2025-04-05", rate: Math.random() * 10 + 85 },
+                    { date: "2025-04-06", rate: Math.random() * 10 + 85 },
+                    { date: "2025-04-07", rate: Math.random() * 10 + 85 }
+                ]
+            };
+        }
+
+        // Update the dashboard with the fetched data
+        function updateDashboard(data) {
+            // Update stats cards
+            document.getElementById('total-events').textContent = data.total_events;
+            document.getElementById('success-rate').textContent = data.success_rate + '%';
+            document.getElementById('fallback-count').textContent = data.fallback_count;
+            document.getElementById('error-count').textContent = data.error_count;
+
+            // Update approach usage chart
+            updateApproachChart(data.approach_usage);
+
+            // Update content types chart
+            updateContentChart(data.content_types);
+
+            // Update success rate chart
+            updateSuccessRateChart(data.success_rate_over_time);
+
+            // Update error table
+            updateErrorTable(data.common_errors);
+
+            // Update fallback table
+            updateFallbackTable(data.common_fallbacks);
+        }
+
+        // Update the approach usage chart
+        function updateApproachChart(approachData) {
+            const ctx = document.getElementById('approach-chart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (approachChart) {
+                approachChart.destroy();
+            }
+            
+            // Create new chart
+            approachChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(approachData).map(key => {
+                        const label = key.replace('_', ' ');
+                        return label.charAt(0).toUpperCase() + label.slice(1);
+                    }),
+                    datasets: [{
+                        data: Object.values(approachData).map(value => value.count),
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const percentage = Object.values(approachData)[context.dataIndex].percentage;
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update the content types chart
+        function updateContentChart(contentData) {
+            const ctx = document.getElementById('content-chart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (contentChart) {
+                contentChart.destroy();
+            }
+            
+            // Create new chart
+            contentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(contentData).map(key => {
+                        return key.charAt(0).toUpperCase() + key.slice(1);
+                    }),
+                    datasets: [{
+                        label: 'Count',
+                        data: Object.values(contentData),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update the success rate chart
+        function updateSuccessRateChart(successRateData) {
+            const ctx = document.getElementById('success-rate-chart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (successRateChart) {
+                successRateChart.destroy();
+            }
+            
+            // Create new chart
+            successRateChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: successRateData.map(item => item.date),
+                    datasets: [{
+                        label: 'Success Rate (%)',
+                        data: successRateData.map(item => item.rate),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 80,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update the error table
+        function updateErrorTable(errorData) {
+            const tableBody = document.getElementById('error-table-body');
+            tableBody.innerHTML = '';
+            
+            if (errorData.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="2" class="text-center">No data available</td>';
+                tableBody.appendChild(row);
+                return;
+            }
+            
+            errorData.forEach(error => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${error.message}</td>
+                    <td>${error.count}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update the fallback table
+        function updateFallbackTable(fallbackData) {
+            const tableBody = document.getElementById('fallback-table-body');
+            tableBody.innerHTML = '';
+            
+            if (fallbackData.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="2" class="text-center">No data available</td>';
+                tableBody.appendChild(row);
+                return;
+            }
+            
+            fallbackData.forEach(fallback => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${fallback.pattern}</td>
+                    <td>${fallback.count}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

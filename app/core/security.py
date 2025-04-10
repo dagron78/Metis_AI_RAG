@@ -27,7 +27,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     expires_in: int
-    refresh_token: Optional[str] = None
+    refresh_token: str
 
 class TokenData(BaseModel):
     """Token data model for internal use"""
@@ -78,8 +78,9 @@ def setup_security(app: FastAPI) -> None:
         # Enhanced Content Security Policy
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self'; "
-            "style-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+            "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; "
             "img-src 'self' data:; "
             "connect-src 'self';"
             "form-action 'self';"
@@ -211,12 +212,12 @@ def verify_refresh_token(refresh_token: str) -> Optional[Dict[str, Any]]:
         
         # Check if it's a refresh token
         if payload.get("token_type") != "refresh":
-            logger.warning("Invalid token type for refresh token")
+            logger.warning(f"Invalid token type: {payload.get('token_type', 'none')}, expected 'refresh'")
             return None
         
         # Check required claims
         if "sub" not in payload or "user_id" not in payload:
-            logger.warning("Missing required claims in refresh token")
+            logger.warning("Missing required claims ('sub' and 'user_id') in refresh token")
             return None
         
         return payload

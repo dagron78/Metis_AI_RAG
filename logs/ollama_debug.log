@@ -1,0 +1,13 @@
+2025-04-07 16:34:22 - ollama_debug - INFO - Debug logging enabled for Ollama output comparison
+2025-04-07 16:34:22 - ollama_debug - INFO - Logs will be written to /Users/charleshoward/Metis_RAG/logs/ollama_debug.log
+2025-04-07 16:34:22 - ollama_debug - INFO - ================================================================================
+2025-04-07 16:34:22 - ollama_debug - INFO - DEBUG LOGGING ENABLED FOR OLLAMA OUTPUT COMPARISON
+2025-04-07 16:34:22 - ollama_debug - INFO - ================================================================================
+2025-04-07 16:34:22 - ollama_debug - INFO - To see the raw and processed outputs:
+2025-04-07 16:34:22 - ollama_debug - INFO - 1. Run your application with this logging configuration
+2025-04-07 16:34:22 - ollama_debug - INFO - 2. Make requests to the chat API
+2025-04-07 16:34:22 - ollama_debug - INFO - 3. Check the logs for entries with 'RAW OLLAMA OUTPUT' and 'PROCESSED BACKEND OUTPUT'
+2025-04-07 16:34:22 - ollama_debug - INFO - 4. Use the Query ID to correlate the different stages of processing
+2025-04-07 16:34:22 - ollama_debug - INFO - 
+Alternatively, use the check_ollama_debug_logs.py script to make test requests
+2025-04-07 16:34:22 - ollama_debug - INFO - ================================================================================

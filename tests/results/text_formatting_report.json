@@ -1,0 +1,42 @@
+{
+  "timestamp": "2025-04-07T14:33:22.405389",
+  "total_tests": 5,
+  "successful_tests": 5,
+  "failed_tests": 0,
+  "test_details": [
+    {
+      "name": "code_blocks",
+      "success": true,
+      "raw_text": "Here's a Python code example:\n\n```python\ndef hello_world():\n    print(\"Hello, world!\")\n    \nhello_world()\n```\n\nAnd here's a JavaScript example:\n\n```javascript\nfunction helloWorld() {\n    console.log(\"Hello, world!\");\n}\n\nhelloWorld();\n```",
+      "processed_text": "Here's a Python code example:\n\n```python\n\npython\ndef hello_world():\n print(\"Hello, world! \")\n \nhello_world()\n```python\n\nAnd here's a JavaScript example:\n\n```javascript\n\nfunction helloWorld() {\n console. log(\"Hello, world! \");\n}\n\nhelloWorld();\n```"
+    },
+    {
+      "name": "mixed_content",
+      "success": true,
+      "raw_text": "# Mixed Content Test\n\nThis test contains both paragraphs and code blocks.\n\n## Section 1\n\nHere's some text with a list:\n- Item 1\n- Item 2\n- Item 3\n\n## Section 2\n\n```python\n# Python code\nclass TestClass:\n    def __init__(self):\n        self.value = 42\n        \n    def get_value(self):\n        return self.value\n```\n\nAnd some more text after the code block.\n\n## Section 3\n\nFinal paragraph with some **bold** and *italic* text.",
+      "processed_text": "# Mixed Content Test\n\nThis test contains both paragraphs and code blocks.\n\n## Section 1\n\nHere's some text with a list:\n- Item 1\n- Item 2\n- Item 3\n\n## Section 2\n\n```python\n\npython\n# Python code\nclass TestClass:\n def __init__(self):\n self. value = 42\n \n def get_value(self):\n return self. value\n```python\n\nAnd some more text after the code block.\n\n## Section 3\n\nFinal paragraph with some **bold** and *italic* text. "
+    },
+    {
+      "name": "problematic_code_blocks",
+      "success": true,
+      "raw_text": "Here are some problematic code blocks:\n\n```pythonimport math\nprint(math.sqrt(16))\n```\n\n```javascriptconst x = 10;\nconsole.log(x);\n```\n\n```html<div>Hello</div>```\n\n```css.container {\n    width: 100%;\n}```",
+      "processed_text": "Here are some problematic code blocks:\n\n```python\n\npython\nimport math\nprint(math. sqrt(16))\n```python\n\n```javascript\n\nconst x = 10;\nconsole. log(x);\n```python\n\n```html\n\n<div>Hello</div>\n```python\n\n```css\n\n. container {\n width: 100%;\n}\n```"
+    },
+    {
+      "name": "simple_paragraphs",
+      "success": true,
+      "raw_text": "This is a simple test with multiple paragraphs.\n\nThis is the second paragraph.\n\nThis is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a single paragraph despite having a single newline.\n\nThis is the fourth paragraph.",
+      "processed_text": "This is a simple test with multiple paragraphs.\n\nThis is the second paragraph.\n\nThis is the third paragraph with a longer text that spans multiple lines.\nIt should be treated as a single paragraph despite having a single newline.\n\nThis is the fourth paragraph. "
+    },
+    {
+      "name": "no_paragraph_breaks",
+      "success": true,
+      "raw_text": "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite long, it doesn't have any double newlines. It just keeps going and going without any proper paragraph structure. This is exactly the kind of text we're seeing in some of our responses where paragraph breaks are lost.",
+      "processed_text": "This is a test with no paragraph breaks. It should be a single paragraph. Even though it's quite long, it doesn't have any double newlines. It just keeps going and going without any proper paragraph structure. This is exactly the kind of text we're seeing in some of our responses where paragraph breaks are lost. "
+    }
+  ],
+  "recommendations": [
+    "Paragraph structure is not being preserved. Consider modifying normalize_text() to better handle paragraph breaks.",
+    "Experiment with marked.js breaks: false setting to see if it better preserves paragraph structure."
+  ]
+}

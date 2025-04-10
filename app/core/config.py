@@ -80,13 +80,16 @@ DATABASE_MAX_OVERFLOW = int(os.getenv("DATABASE_MAX_OVERFLOW", "10"))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # Default to 24 hours instead of 30 minutes
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 TOKEN_URL = f"{API_V1_STR}/auth/token"
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 RATE_LIMITING_ENABLED = os.getenv("RATE_LIMITING_ENABLED", "True").lower() == "true"
 JWT_AUDIENCE = os.getenv("JWT_AUDIENCE", "metis-rag-api")
 JWT_ISSUER = os.getenv("JWT_ISSUER", "metis-rag")
+
+# Developer mode settings
+DEVELOPER_MODE = os.getenv("DEVELOPER_MODE", "False").lower() == "true"
 
 # Email settings
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -157,6 +160,7 @@ SETTINGS = SimpleNamespace(
     rate_limiting_enabled=RATE_LIMITING_ENABLED,
     jwt_audience=JWT_AUDIENCE,
     jwt_issuer=JWT_ISSUER,
+    developer_mode=DEVELOPER_MODE,
     
     # Email settings
     smtp_server=SMTP_SERVER,
@@ -168,6 +172,7 @@ SETTINGS = SimpleNamespace(
     email_enabled=EMAIL_ENABLED,
     email_sender=SMTP_SENDER,
     base_url=BASE_URL,
+    api_base_url=BASE_URL,  # Use the same base URL for API endpoints
     
     # Mem0 settings
     mem0_endpoint=MEM0_ENDPOINT,
@@ -176,3 +181,6 @@ SETTINGS = SimpleNamespace(
 )
 
 print(f"Final DATABASE_URL in settings: {SETTINGS.database_url}")  # Debug print
+
+# Add an alias for backward compatibility with tests
+settings = SETTINGS

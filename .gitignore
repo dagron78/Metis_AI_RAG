@@ -1,42 +1,31 @@
-# Python
+# Virtual environment
+venv_py310/
+
+# Data directories that might be large
+data/chroma_db/
+data/uploads/
+test_e2e_chroma/
+test_query_chroma/
+
+# Cache files
+data/cache/
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+.pytest_cache/
 
-# Virtual Environment
-venv/
-ENV/
+# Environment variables
 .env
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+# Log files
+logs/*.log
 
-# Application specific
-uploads/
-chroma_db/
-.env
-mem0_data/
+# Test results
+test_results/
 
-# OS specific
+# OS specific files
 .DS_Store
-Thumbs.db
+
+# Large binary files
+*.zip
+*.bin

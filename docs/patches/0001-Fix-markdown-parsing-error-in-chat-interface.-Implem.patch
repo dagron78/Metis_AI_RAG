@@ -1,0 +1,746 @@
+From d2ce2383c1dd52259ca49754536a081be7c7525f Mon Sep 17 00:00:00 2001
+From: Charles Howard <charleshoward@Charless-Mac-mini.local>
+Date: Tue, 8 Apr 2025 13:06:20 -0400
+Subject: [PATCH] Fix markdown parsing error in chat interface. Implemented
+ custom markdown parser as fallback when marked.js fails with 't.text is not a
+ function' error.
+
+---
+ app/static/js/chat.js            | 250 ++++++++++++++++++++++++-
+ app/static/js/markdown-parser.js | 301 ++++++++++++++++++++++++++++---
+ 2 files changed, 515 insertions(+), 36 deletions(-)
+
+diff --git a/app/static/js/chat.js b/app/static/js/chat.js
+index f716c20..83b9cac 100644
+--- a/app/static/js/chat.js
++++ b/app/static/js/chat.js
+@@ -1,5 +1,55 @@
+ // File: app/static/js/chat.js
+ 
++console.log('CHAT.JS LOADED');
++
++// Debug DevOps panel directly
++window.addEventListener('load', function() {
++    console.log('WINDOW LOADED');
++    
++    const devopsPanel = document.querySelector('.devops-panel');
++    console.log('DevOps Panel (window.load):', devopsPanel);
++    
++    // Debug checkboxes
++    const ragToggle = document.getElementById('rag-toggle');
++    const streamToggle = document.getElementById('stream-toggle');
++    const rawOutputToggle = document.getElementById('raw-output-toggle');
++    const rawLlmOutputToggle = document.getElementById('raw-llm-output-toggle');
++    
++    console.log('Checkboxes found:', {
++        ragToggle,
++        streamToggle,
++        rawOutputToggle,
++        rawLlmOutputToggle
++    });
++    
++    if (devopsPanel) {
++        console.log('DevOps Panel style:', window.getComputedStyle(devopsPanel));
++        // Force visibility
++        devopsPanel.style.display = 'block';
++        devopsPanel.style.visibility = 'visible';
++        devopsPanel.style.opacity = '1';
++        console.log('DevOps Panel style forced visible');
++    }
++    
++    if (devopsPanel) {
++        console.log('DevOps Panel style:', window.getComputedStyle(devopsPanel));
++        // Force visibility
++        devopsPanel.style.display = 'block';
++        devopsPanel.style.visibility = 'visible';
++        devopsPanel.style.opacity = '1';
++        devopsPanel.style.zIndex = '9999';
++        
++        // Force checkboxes to be visible
++        if (ragToggle) ragToggle.style.display = 'inline-block';
++        if (streamToggle) streamToggle.style.display = 'inline-block';
++        if (rawOutputToggle) rawOutputToggle.style.display = 'inline-block';
++        if (rawLlmOutputToggle) rawLlmOutputToggle.style.display = 'inline-block';
++        console.log('DevOps Panel style forced visible');
++    } else {
++        console.error('DevOps Panel not found in DOM!');
++    }
++});
++
+ // Ensure MetisMarkdown is loaded (assuming markdown-parser.js is included before this)
+ if (typeof window.MetisMarkdown === 'undefined') {
+     console.error("Error: markdown-parser.js must be loaded before chat.js");
+@@ -26,12 +76,26 @@ document.addEventListener('DOMContentLoaded', function() {
+     const modelSelect = document.getElementById('model');
+     const ragToggle = document.getElementById('rag-toggle');
+     const streamToggle = document.getElementById('stream-toggle');
++    const rawOutputToggle = document.getElementById('raw-output-toggle');
++    const rawLlmOutputToggle = document.getElementById('raw-llm-output-toggle');
+     const loadingIndicator = document.getElementById('loading');
+     const maxResults = document.getElementById('max-results');
+     const temperature = document.getElementById('temperature');
+     const metadataFilters = document.getElementById('metadata-filters');
++    
++    // Debug DevOps panel
++    const devopsPanel = document.querySelector('.devops-panel');
++    console.log('DevOps Panel:', devopsPanel);
++    if (devopsPanel) {
++        console.log('DevOps Panel style:', window.getComputedStyle(devopsPanel));
++        // Force visibility
++        devopsPanel.style.display = 'block';
++        devopsPanel.style.visibility = 'visible';
++        devopsPanel.style.opacity = '1';
++        console.log('DevOps Panel style forced visible');
++    }
+ 
+-    if (!chatContainer || !userInput || !sendButton || !modelSelect || !ragToggle || !streamToggle || !loadingIndicator || !maxResults || !temperature || !metadataFilters) {
++    if (!chatContainer || !userInput || !sendButton || !modelSelect || !ragToggle || !streamToggle || !rawOutputToggle || !rawLlmOutputToggle || !loadingIndicator || !maxResults || !temperature || !metadataFilters) {
+         console.error("Chat UI elements not found. Chat functionality may be limited.");
+         // return; // Optionally return if core elements are missing
+     }
+@@ -190,9 +254,14 @@ document.addEventListener('DOMContentLoaded', function() {
+         addMessage('user', message); // Add raw user message
+         userInput.value = '';
+         if (loadingIndicator) loadingIndicator.style.display = 'flex'; // Use flex
++// Get the state of the raw output toggles
++const showRawOutput = rawOutputToggle?.checked ?? false;
++const showRawLlmOutput = rawLlmOutputToggle?.checked ?? false;
+ 
++        
+         const query = buildQuery(message);
+         console.log('Sending query:', query);
++        console.log('Raw output mode:', showRawOutput ? 'ENABLED' : 'DISABLED');
+ 
+         // Create placeholder for assistant response
+         const assistantMessageDiv = addMessage('assistant', '', [], true); // Add placeholder
+@@ -238,7 +307,60 @@ document.addEventListener('DOMContentLoaded', function() {
+                     if (processedResponse.match(uuidPattern)) {
+                         processedResponse = processedResponse.replace(uuidPattern, '');
+                     }
+-                    contentDiv.innerHTML = window.MetisMarkdown.processResponse(processedResponse);
++                    
++                    // Log text structure before markdown processing
++                    console.log("TEXT STRUCTURE BEFORE MARKDOWN:", {
++                        paragraphs: (processedResponse.match(/\n\n+/g) || []).length + 1,
++                        singleNewlines: (processedResponse.match(/\n/g) || []).length,
++                        doubleNewlines: (processedResponse.match(/\n\n+/g) || []).length
++                    });
++                    if (showRawLlmOutput) {
++                        console.log("Displaying RAW LLM output (non-streaming).");
++                        // Display raw text, preserving whitespace and line breaks, safely
++                        const pre = document.createElement('pre');
++                        pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
++                        pre.style.wordBreak = 'break-word'; // Break long words without overflow
++                        pre.textContent = processedResponse; // Use textContent for safety
++                        contentDiv.innerHTML = ''; // Clear previous content
++                        contentDiv.appendChild(pre);
++                    } else {
++                        // With breaks=true, we need to preserve single newlines
++                        // but ensure proper list formatting
++                        const preparedText = processedResponse
++                            // Ensure list items have proper formatting
++                            .replace(/^(\d+\.|\*|-)\s+/gm, '$1 ') // Ensure proper spacing after list markers
++                            // Don't convert single newlines to double newlines anymore since breaks=true
++                            
++                        console.log("PREPARED TEXT PREVIEW:", preparedText.substring(0, 200) + "...");
++                        try {
++                            // First check if raw output mode is enabled
++                            if (showRawOutput) {
++                                console.log("Displaying RAW output (non-streaming).");
++                                // Display raw text, preserving whitespace and line breaks, safely
++                                const pre = document.createElement('pre');
++                                pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
++                                pre.style.wordBreak = 'break-word'; // Break long words without overflow
++                                pre.textContent = preparedText; // Use textContent for safety
++                                contentDiv.innerHTML = ''; // Clear previous content
++                                contentDiv.appendChild(pre);
++                            } else {
++                                contentDiv.innerHTML = window.MetisMarkdown.processResponse(preparedText);
++                            }
++                        } catch (markdownError) {
++                            console.error("Error processing markdown:", markdownError);
++                            // Fallback to basic formatting if markdown processing fails
++                            contentDiv.innerHTML = `<pre>${preparedText}</pre>`;
++                        }
++                    }
++                    
++                    // Add class to indicate markdown processing is complete
++                    contentDiv.classList.add('markdown-processed');
++                    
++                    // Log HTML structure after markdown processing
++                    console.log("HTML STRUCTURE AFTER MARKDOWN PROCESSING:", {
++                        paragraphTags: (contentDiv.innerHTML.match(/<p>/g) || []).length,
++                        brTags: (contentDiv.innerHTML.match(/<br>/g) || []).length
++                    });
+ 
+                     addCitations(assistantMessageDiv, data.citations);
+                     scrollToBottom();
+@@ -259,13 +381,18 @@ document.addEventListener('DOMContentLoaded', function() {
+      * @returns {object} The query object.
+      */
+     function buildQuery(message) {
++        // Get the state of the raw output toggles
++        const showRawOutput = rawOutputToggle?.checked ?? false;
++        const showRawLlmOutput = rawLlmOutputToggle?.checked ?? false;
++        
+         const query = {
+             message: message,
+             model: modelSelect?.value || 'gemma3:4b',
+             use_rag: ragToggle?.checked ?? true,
+             conversation_id: currentConversationId,
+             model_parameters: {},
+-            stream: streamToggle?.checked ?? false // Default to false if toggle not found
++            stream: streamToggle?.checked ?? false, // Default to false if toggle not found
++            debug_raw: showRawOutput // Include raw output in response when toggle is checked
+         };
+ 
+         // Safely access values only if elements exist
+@@ -374,13 +501,64 @@ document.addEventListener('DOMContentLoaded', function() {
+                                 });
+                             }
+ 
+-                            // Update UI with RAW accumulated text during stream
++                            // Update UI with accumulated text during stream
+                             let displayResponse = fullResponse;
+                             const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s/i;
+                             if (displayResponse.match(uuidPattern)) {
+                                 displayResponse = displayResponse.replace(uuidPattern, '');
+                             }
+-                            contentDiv.textContent = displayResponse; // Use textContent for raw text during streaming
++                            
++                            // Get the state of the raw output toggles
++                            const showRawLlmOutput = rawLlmOutputToggle?.checked ?? false;
++                            
++                            if (showRawLlmOutput) {
++                                // Display raw text during streaming
++                                const pre = document.createElement('pre');
++                                pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
++                                pre.style.wordBreak = 'break-word'; // Break long words without overflow
++                                pre.textContent = displayResponse; // Use textContent for safety
++                                contentDiv.innerHTML = ''; // Clear any previous raw text
++                                contentDiv.appendChild(pre);
++                            } else {
++                                // During streaming, we need to handle text differently
++                                // Remove markdown-processed class during streaming if it exists
++                                contentDiv.classList.remove('markdown-processed');
++                                
++                                // Improved streaming text formatting
++                                // This preserves both paragraphs and list structures
++                                let formattedStreamingText = displayResponse;
++                                
++                                // First handle list items (preserve their structure)
++                                formattedStreamingText = formattedStreamingText
++                                    // Format numbered lists
++                                    .replace(/^(\d+\.)\s+(.+)$/gm, '<li class="numbered-list-item">$1 $2</li>')
++                                    // Format bullet lists
++                                    .replace(/^(\*|-)\s+(.+)$/gm, '<li class="bullet-list-item">$1 $2</li>');
++                                    
++                                // Then handle paragraphs
++                                formattedStreamingText = formattedStreamingText
++                                    .replace(/\n\n+/g, '</p><p>')
++                                    .replace(/\n/g, '<br>');
++                                
++                                // Wrap in paragraph tags
++                                contentDiv.innerHTML = '<p>' + formattedStreamingText + '</p>';
++                            }
++                            
++                            // Log streaming text structure
++                            if (fullResponse.length % 2000 === 0) {
++                                console.log("STREAMING TEXT STRUCTURE:", {
++                                    paragraphs: (displayResponse.match(/\n\n+/g) || []).length + 1,
++                                    singleNewlines: (displayResponse.match(/\n/g) || []).length,
++                                    doubleNewlines: (displayResponse.match(/\n\n+/g) || []).length
++                                });
++                                
++                                // Log HTML structure during streaming
++                                console.log("STREAMING HTML STRUCTURE:", {
++                                    paragraphTags: (contentDiv.innerHTML.match(/<p>/g) || []).length,
++                                    brTags: (contentDiv.innerHTML.match(/<br>/g) || []).length
++                                });
++                            }
++                            
+                             scrollToBottom();
+ 
+                         } catch (e) {
+@@ -411,11 +589,69 @@ document.addEventListener('DOMContentLoaded', function() {
+                 finalProcessedResponse = finalProcessedResponse.replace(uuidPattern, '');
+             }
+             
+-            console.log("SWITCHING FROM textContent TO innerHTML WITH MARKDOWN PROCESSING");
++            console.log("SWITCHING FROM STREAMING TO FULL MARKDOWN PROCESSING");
++            
++            // Log the final text structure before markdown processing
++            console.log("FINAL TEXT STRUCTURE BEFORE MARKDOWN:", {
++                paragraphs: (finalProcessedResponse.match(/\n\n+/g) || []).length + 1,
++                singleNewlines: (finalProcessedResponse.match(/\n/g) || []).length,
++                doubleNewlines: (finalProcessedResponse.match(/\n\n+/g) || []).length
++            });
++            
+             // Process the complete response for Markdown, highlighting, and copy buttons
+             const markdownStartTime = performance.now();
+-            contentDiv.innerHTML = window.MetisMarkdown.processResponse(finalProcessedResponse);
++            
++            // Get the state of the raw output toggle (in case it changed during streaming)
++            const showRawOutput = rawOutputToggle?.checked ?? false;
++            
++            if (showRawOutput) {
++                console.log("Displaying RAW output (streaming final).");
++                // Display raw text, preserving whitespace and line breaks, safely
++                const pre = document.createElement('pre');
++                pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
++                pre.style.wordBreak = 'break-word'; // Break long words without overflow
++                pre.textContent = finalProcessedResponse; // Use textContent for safety
++                contentDiv.innerHTML = ''; // Clear any previous raw text
++                contentDiv.appendChild(pre);
++            } else {
++                // With breaks=true, we need to preserve single newlines
++                // but ensure proper list formatting
++                const preparedText = finalProcessedResponse
++                    // Ensure list items have proper formatting
++                    .replace(/^(\d+\.|\*|-)\s+/gm, '$1 '); // Ensure proper spacing after list markers
++                    // Don't convert single newlines to double newlines anymore since breaks=true
++                    
++                console.log("FINAL PREPARED TEXT PREVIEW:", preparedText.substring(0, 200) + "...");
++                try {
++                    // First check if raw output mode is enabled
++                    if (showRawOutput) {
++                        console.log("Displaying RAW output (streaming final).");
++                        // Display raw text, preserving whitespace and line breaks, safely
++                        const pre = document.createElement('pre');
++                        pre.style.whiteSpace = 'pre-wrap'; // Allow wrapping
++                        pre.style.wordBreak = 'break-word'; // Break long words without overflow
++                        pre.textContent = preparedText; // Use textContent for safety
++                        contentDiv.innerHTML = ''; // Clear any previous raw text
++                        contentDiv.appendChild(pre);
++                    } else {
++                        contentDiv.innerHTML = window.MetisMarkdown.processResponse(preparedText);
++                    }
++                } catch (markdownError) {
++                    console.error("Error processing markdown in streaming mode:", markdownError);
++                    // Fallback to basic formatting if markdown processing fails
++                    contentDiv.innerHTML = `<pre>${preparedText}</pre>`;
++                }
++                
++                // Add class to indicate markdown processing is complete
++                contentDiv.classList.add('markdown-processed');
++            }
+             const markdownEndTime = performance.now();
++            
++            // Log HTML structure after markdown processing
++            console.log("HTML STRUCTURE AFTER MARKDOWN PROCESSING:", {
++                paragraphTags: (contentDiv.innerHTML.match(/<p>/g) || []).length,
++                brTags: (contentDiv.innerHTML.match(/<br>/g) || []).length
++            });
+             console.log(`Markdown processing completed in ${(markdownEndTime - markdownStartTime).toFixed(2)}ms`);
+             
+             scrollToBottom();
+diff --git a/app/static/js/markdown-parser.js b/app/static/js/markdown-parser.js
+index cee7f35..97ebf8b 100644
+--- a/app/static/js/markdown-parser.js
++++ b/app/static/js/markdown-parser.js
+@@ -2,7 +2,7 @@
+  * Markdown parser utility for Metis RAG
+  */
+ 
+-// Configure marked.js options
++// Check if marked is defined before configuring it
+ console.log("CONFIGURING MARKED.JS OPTIONS");
+ 
+ // Log the current breaks setting and its impact
+@@ -12,11 +12,17 @@ console.log("- When breaks=false: Single newlines are ignored, double newlines (
+ console.log("- If Ollama uses single newlines for line breaks, breaks=true is better");
+ console.log("- If Ollama uses double newlines for paragraphs, breaks=false might be better");
+ 
+-// Current setting: breaks=true
++// Current setting: breaks=false (recommended for proper paragraph structure)
++// When breaks=false, only double newlines (\n\n) create new paragraphs
++// When breaks=true, single newlines (\n) are converted to <br> tags
+ const useBreaks = false;
+ console.log("CURRENT SETTING: breaks=" + useBreaks);
++console.log("This means only double newlines (\\n\\n) will create new paragraphs");
++console.log("Single newlines (\\n) will be ignored unless they're in code blocks");
+ 
+-marked.setOptions({
++// Check if marked is defined
++if (typeof marked !== 'undefined' && typeof hljs !== 'undefined') {
++  marked.setOptions({
+   highlight: function(code, lang) {
+     // Use the provided language tag or fallback to plaintext
+     // The backend handles language tag fixing, so we just use what's provided
+@@ -34,14 +40,33 @@ marked.setOptions({
+       return temp.innerHTML; // Basic escaping
+     }
+   },
+-  breaks: false, // Set to false to only create paragraphs on double newlines (\n\n)
+-  gfm: true,    // Enable GitHub Flavored Markdown (includes fenced code blocks)
++  breaks: true, // Set to true to convert single newlines (\n) to <br> tags
++  gfm: true,     // Enable GitHub Flavored Markdown (includes fenced code blocks)
+   headerIds: false,
++  sanitize: false, // Disable sanitization to allow HTML tags to be rendered
+   mangle: false,
+   // Add a custom renderer to ensure proper code block formatting
+-  renderer: {
+-    ...new marked.Renderer(),
+-    code: function(code, language) {
++  renderer: new marked.Renderer(),
++});
++
++// Add custom renderer methods after initialization
++try {
++  if (typeof marked !== 'undefined' && typeof hljs !== 'undefined') {
++    // Try to get the renderer - different versions of marked.js have different APIs
++    let renderer;
++    try {
++      // Modern API
++      renderer = marked.getRenderer();
++    } catch (e) {
++      // Fallback to older API or create a new renderer
++      console.warn("Could not get renderer with getRenderer(), using fallback:", e);
++      renderer = new marked.Renderer();
++      // Apply the renderer to marked
++      marked.setOptions({ renderer: renderer });
++    }
++    
++    // Custom code renderer
++    renderer.code = function(code, language) {
+       // Ensure proper code block formatting
+       const validLanguage = language && hljs.getLanguage(language) ? language : 'plaintext';
+       console.log("RENDERING CODE BLOCK WITH LANGUAGE:", validLanguage);
+@@ -58,39 +83,71 @@ marked.setOptions({
+                   <pre><code class="hljs language-${validLanguage}">${code}</code></pre>
+                 </div>`;
+       }
+-    },
+-    paragraph: function(text) {
++    };
++    
++    // Custom paragraph renderer
++    renderer.paragraph = function(text) {
+       console.log("RENDERING PARAGRAPH:", text.substring(0, 50) + "...");
++      console.log("PARAGRAPH LENGTH:", text.length);
+       return `<p class="structured-paragraph">${text}</p>`;
+-    },
+-    heading: function(text, level) {
++    };
++    
++    // Custom heading renderer
++    renderer.heading = function(text, level) {
+       // Only apply our custom styling to h2 (##) headings
+       if (level === 2) {
+         return `<h${level} class="structured-heading">${text}</h${level}>`;
+       }
+       return `<h${level}>${text}</h${level}>`;
+-    },
+-    listitem: function(text) {
++    };
++    
++    // Custom list item renderer
++    renderer.listitem = function(text) {
+       return `<li class="structured-list-item">${text}</li>`;
+-    },
+-    blockquote: function(text) {
++    };
++    
++    // Custom blockquote renderer
++    renderer.blockquote = function(text) {
+       return `<blockquote class="structured-quote">${text}</blockquote>`;
+-    }
++    };
+   }
+-});
++} catch (e) {
++  console.error("Error setting up custom renderers:", e);
++}
++} else {
++  console.error("ERROR: marked or hljs is not defined. Make sure to load these libraries before markdown-parser.js");
++  
++  // Define dummy functions to prevent errors
++  window.marked = {
++    parse: function(text) {
++      return `<pre>${text}</pre>`;
++    },
++    setOptions: function() {},
++    getRenderer: function() { return {}; },
++    Renderer: function() { return {}; }
++  };
++  
++  window.hljs = {
++    highlight: function(code, options) {
++      return { value: code };
++    },
++    getLanguage: function() { return null; }
++  };
++}
+ 
+ /**
+- * Sanitize HTML to prevent XSS attacks
++ * Sanitize HTML to prevent XSS attacks while preserving formatting
+  * This is a more comprehensive sanitization than the basic approach
+  * @param {string} html - The HTML to sanitize
+  * @return {string} - Sanitized HTML
+  */
+ function sanitizeHTML(html) {
+-  // Basic sanitization: remove script tags and potentially harmful attributes
++  // Only remove potentially harmful elements while preserving formatting
+   const scriptTagRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+   const eventHandlerRegex = / on\w+="[^"]*"/gi;
+   const inlineJSRegex = /javascript:/gi;
+   
++  // Preserve HTML tags that are safe for formatting
+   let sanitized = html.replace(scriptTagRegex, '')
+                       .replace(eventHandlerRegex, '')
+                       .replace(inlineJSRegex, 'void:');
+@@ -114,7 +171,8 @@ function parseMarkdown(text) {
+   console.log("PARAGRAPH STRUCTURE:", {
+     paragraphs: paragraphCount,
+     singleNewlines: singleNewlineCount,
+-    doubleNewlines: doubleNewlineCount
++    doubleNewlines: doubleNewlineCount,
++    singleToDoubleRatio: singleNewlineCount > 0 ? (singleNewlineCount / (doubleNewlineCount || 1)).toFixed(2) : 0
+   });
+   
+   // Pre-process code blocks to ensure proper formatting
+@@ -137,14 +195,138 @@ function parseMarkdown(text) {
+   // Let marked.js handle everything, including code blocks via the 'highlight' option
+   console.log("CALLING MARKED.PARSE");
+   try {
+-    const rawHtml = marked.parse(text);
++    // Log the first few paragraphs with double newlines to confirm proper structure
++    const paragraphsWithDoubleNewlines = text.split(/\n\n+/);
++    console.log("PARAGRAPHS WITH DOUBLE NEWLINES:", paragraphsWithDoubleNewlines.length);
++    paragraphsWithDoubleNewlines.slice(0, 3).forEach((p, i) => {
++      console.log(`PARAGRAPH ${i+1} WITH DOUBLE NEWLINE:`, p.substring(0, 50) + (p.length > 50 ? "..." : ""));
++    });
++    
++    // Check if marked is defined and use the correct API
++    let rawHtml;
++    if (typeof marked !== 'undefined') {
++      try {
++        // Check if the error is the specific "t.text is not a function" issue
++        // This is a known issue with some versions of marked.js
++        const hasTextFunctionIssue = (function() {
++          try {
++            // Try a minimal test to see if we hit the error
++            const testText = "Test paragraph\n\nAnother paragraph";
++            if (typeof marked.parse === 'function') {
++              marked.parse(testText);
++            } else if (typeof marked === 'function') {
++              marked(testText);
++            }
++            return false; // No error occurred
++          } catch (e) {
++            return e.message.includes("t.text is not a function");
++          }
++        })();
++
++        if (hasTextFunctionIssue) {
++          console.warn("Detected 't.text is not a function' issue, using custom parser");
++          // Use our own simple markdown parser to avoid the issue
++          rawHtml = customMarkdownParser(text);
++        } else {
++          // Try using the modern API first
++          if (typeof marked.parse === 'function') {
++            rawHtml = marked.parse(text);
++          } else if (typeof marked === 'function') {
++            // Some versions expose marked as a function directly
++            rawHtml = marked(text);
++          } else if (typeof marked.Parser === 'function' && typeof marked.Lexer === 'function') {
++            // Fallback to older API if needed
++            const tokens = marked.Lexer.lex(text);
++            rawHtml = marked.Parser.parse(tokens);
++          } else {
++            // Last resort fallback
++            rawHtml = customMarkdownParser(text);
++            console.warn("Could not parse markdown with any available method, using custom parser");
++          }
++        }
++      } catch (parseError) {
++        console.warn("Error parsing markdown, using custom parser:", parseError);
++        rawHtml = customMarkdownParser(text);
++      }
++    } else {
++      rawHtml = `<pre>${text}</pre>`;
++    }
++
++    // Our custom markdown parser function as a fallback
++    function customMarkdownParser(mdText) {
++      if (!mdText) return '<p></p>';
++      
++      // Process code blocks first to avoid interference with other formatting
++      let processedText = mdText.replace(/```(\w*)([\s\S]*?)```/g, function(match, lang, code) {
++        return `<div class="structured-code-block">
++                  <div class="code-block-header">${lang || 'code'}</div>
++                  <pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>
++                </div>`;
++      });
++      
++      // Process inline code
++      processedText = processedText.replace(/`([^`]+)`/g, '<code>$1</code>');
++      
++      // Process headers
++      processedText = processedText.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
++      processedText = processedText.replace(/^## (.*?)$/gm, '<h2 class="structured-heading">$1</h2>');
++      processedText = processedText.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
++      
++      // Process lists
++      processedText = processedText.replace(/^\s*[\*\-]\s+(.*?)$/gm, '<li class="structured-list-item">$1</li>');
++      processedText = processedText.replace(/^\s*(\d+)\.\s+(.*?)$/gm, '<li class="numbered-list-item">$1. $2</li>');
++      
++      // Process paragraphs (must be done after lists)
++      const paragraphs = processedText.split(/\n\n+/);
++      processedText = paragraphs.map(p => {
++        // Skip if already wrapped in HTML tag
++        if (p.trim().startsWith('<') && !p.trim().startsWith('<li')) {
++          return p;
++        }
++        // Convert single newlines to <br> tags
++        p = p.replace(/\n/g, '<br>');
++        // Wrap in paragraph tag if not a list item
++        if (p.includes('<li')) {
++          return `<ul>${p}</ul>`;
++        }
++        return `<p class="structured-paragraph">${p}</p>`;
++      }).join('\n\n');
++      
++      // Process bold and italic
++      processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
++      processedText = processedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
++      
++      // Process links
++      processedText = processedText.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
++      
++      return processedText;
++    }
+     console.log("MARKED.PARSE RETURNED HTML LENGTH:", rawHtml ? rawHtml.length : 0);
+     
+-    // Apply sanitization to the final HTML output
+-    console.log("SANITIZING HTML");
++    // Log the raw HTML to see what marked.js is generating
++    console.log("RAW HTML PREVIEW:", rawHtml ? rawHtml.substring(0, 200) + "..." : "null");
++    
++    // Count paragraph tags in raw HTML
++    const paragraphTagsInRawHtml = (rawHtml.match(/<p>/g) || []).length;
++    console.log("PARAGRAPH TAGS IN RAW HTML:", paragraphTagsInRawHtml);
++    
++    // Compare with paragraphs with double newlines
++    console.log("PARAGRAPH CONVERSION RATE:",
++      paragraphsWithDoubleNewlines.length > 0 ?
++      ((paragraphTagsInRawHtml / paragraphsWithDoubleNewlines.length) * 100).toFixed(2) + "%" : "0%");
++    
++    // Apply minimal sanitization to the final HTML output
++    console.log("SANITIZING HTML (PRESERVING FORMATTING)");
+     const sanitizedHtml = sanitizeHTML(rawHtml);
+     console.log("SANITIZED HTML LENGTH:", sanitizedHtml ? sanitizedHtml.length : 0);
+     
++    // Log HTML structure after sanitization
++    console.log("HTML STRUCTURE AFTER SANITIZATION:", {
++      paragraphTags: (sanitizedHtml.match(/<p>/g) || []).length,
++      brTags: (sanitizedHtml.match(/<br>/g) || []).length,
++      listItems: (sanitizedHtml.match(/<li>/g) || []).length
++    });
++    
+     return sanitizedHtml;
+   } catch (error) {
+     console.error("ERROR IN MARKED.PARSE:", error);
+@@ -401,19 +583,53 @@ function processResponse(response) {
+   // Log HTML structure
+   const paragraphTags = (html.match(/<p>/g) || []).length;
+   const brTags = (html.match(/<br>/g) || []).length;
++  const preBlocks = (html.match(/<pre>/g) || []).length;
++  
++  // Extract and log the first few paragraph tags to see their content
++  const tempDiv = document.createElement('div');
++  tempDiv.innerHTML = html;
++  const pElements = tempDiv.querySelectorAll('p');
++  console.log("FIRST FEW PARAGRAPH ELEMENTS:");
++  Array.from(pElements).slice(0, 3).forEach((p, i) => {
++    console.log(`P ELEMENT ${i+1} (${p.textContent.length} chars):`, p.textContent.substring(0, 50) + (p.textContent.length > 50 ? "..." : ""));
++    console.log(`P ELEMENT ${i+1} BR TAGS:`, (p.innerHTML.match(/<br>/g) || []).length);
++  });
++  
+   console.log("HTML STRUCTURE:", {
+     paragraphTags: paragraphTags,
+-    brTags: brTags
++    brTags: brTags,
++    preBlocks: preBlocks,
++    brToParaRatio: paragraphTags > 0 ? (brTags / paragraphTags).toFixed(2) : 0,
++    averageCharsPerParagraph: pElements.length > 0 ?
++      (Array.from(pElements).reduce((sum, p) => sum + p.textContent.length, 0) / pElements.length).toFixed(2) : 0
+   });
+   
+   // Check if paragraph count matches
+   if (paragraphCount !== paragraphTags) {
+     console.warn("PARAGRAPH COUNT MISMATCH:", {
+       originalParagraphs: paragraphCount,
+-      htmlParagraphs: paragraphTags
++      htmlParagraphs: paragraphTags,
++      difference: paragraphCount - paragraphTags
+     });
+   }
+   
++  // Log the impact of breaks=true setting
++  console.log("BREAKS=TRUE IMPACT:", {
++    singleNewlines: singleNewlineCount,
++    brTags: brTags,
++    conversionRate: singleNewlineCount > 0 ? (brTags / singleNewlineCount).toFixed(2) : 0,
++    effectivenessRating: singleNewlineCount > 0 && brTags > 0 ?
++      ((brTags / singleNewlineCount) * 100).toFixed(2) + "%" : "0%"
++  });
++  
++  // Log overall formatting assessment
++  console.log("FORMATTING ASSESSMENT:", {
++    paragraphPreservation: paragraphCount === paragraphTags ? "Good" : "Needs improvement",
++    lineBreakPreservation: singleNewlineCount > 0 && brTags > 0 ?
++      ((brTags / singleNewlineCount) * 100).toFixed(2) + "%" : "0%",
++    overallQuality: paragraphCount === paragraphTags && brTags > 0 ? "Good" : "Needs improvement"
++  });
++  
+   // Use requestAnimationFrame to ensure DOM is ready for button addition/highlighting
+   requestAnimationFrame(() => {
+     console.log("ADDING COPY BUTTONS AND HIGHLIGHTING");
+@@ -485,12 +701,39 @@ function initializeCodeHighlighting() {
+ }
+ 
+ // Export the functions for use in other scripts
++// Define the MetisMarkdown object with fallbacks
+ window.MetisMarkdown = {
+-  processResponse: processResponse,
+-  initializeHighlighting: initializeCodeHighlighting,
+-  addCopyButtons: addCopyButtons
++  processResponse: function(response) {
++    try {
++      return processResponse(response);
++    } catch (e) {
++      console.error("Error in processResponse:", e);
++      return `<pre>${response}</pre>`;
++    }
++  },
++  initializeHighlighting: function() {
++    try {
++      if (typeof initializeCodeHighlighting === 'function') {
++        initializeCodeHighlighting();
++      }
++    } catch (e) {
++      console.error("Error in initializeCodeHighlighting:", e);
++    }
++  },
++  addCopyButtons: function() {
++    try {
++      if (typeof addCopyButtons === 'function') {
++        addCopyButtons();
++      }
++    } catch (e) {
++      console.error("Error in addCopyButtons:", e);
++    }
++  }
+ };
+ 
++// Log that the MetisMarkdown object is ready
++console.log("MetisMarkdown object initialized and ready for use");
++
+ // Add Font Awesome if not already included
+ if (!document.querySelector('link[href*="font-awesome"]')) {
+   const faLink = document.createElement('link');
+-- 
+2.48.1
+

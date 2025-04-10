@@ -1,0 +1,18 @@
+Here's a Python code example:
+
+```python
+def hello_world():
+    print("Hello, world!")
+    
+hello_world()
+```
+
+And here's a JavaScript example:
+
+```javascript
+function helloWorld() {
+    console.log("Hello, world!");
+}
+
+helloWorld();
+```

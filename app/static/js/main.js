@@ -1,5 +1,8 @@
 // Theme switching functionality
 document.addEventListener('DOMContentLoaded', function() {
+
+
+
     // Check for saved theme preference or default to 'dark'
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -326,15 +329,90 @@ function renderConversation() {
 
 // Authentication functions
 function isAuthenticated() {
-    return localStorage.getItem('access_token') !== null;
+    return localStorage.getItem('metisToken') !== null;
 }
 
 function getToken() {
-    return localStorage.getItem('access_token');
+    // Try localStorage first, then sessionStorage as fallback
+    return localStorage.getItem('metisToken') || sessionStorage.getItem('metisToken') || '';
 }
 
-// Authenticated fetch function
-function authenticatedFetch(url, options = {}) {
+// Check if token is expired or about to expire
+function isTokenExpired() {
+    const token = getToken();
+    if (!token) return true;
+    
+    try {
+        // Parse the JWT payload
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        // Get expiration time in milliseconds
+        const expirationTime = payload.exp * 1000;
+        
+        // Get current time
+        const currentTime = Date.now();
+        
+        // Check if token is expired or will expire in the next 5 minutes
+        return expirationTime < (currentTime + 5 * 60 * 1000);
+    } catch (e) {
+        console.error('Error checking token expiration:', e);
+        return true; // Assume expired if we can't parse the token
+    }
+}
+
+// Refresh the token
+async function refreshToken() {
+    console.log('Attempting to refresh token...');
+    
+    // Get the refresh token
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) {
+        console.error('No refresh token available');
+        return false;
+    }
+    
+    try {
+        const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                refresh_token: refreshToken
+            })
+        });
+        
+        if (!response.ok) {
+            console.error('Token refresh failed:', response.status);
+            return false;
+        }
+        
+        const data = await response.json();
+        
+        // Store the new tokens in both localStorage and sessionStorage
+        localStorage.setItem('metisToken', data.access_token);
+        sessionStorage.setItem('metisToken', data.access_token);
+        
+        if (data.refresh_token) {
+            localStorage.setItem('refresh_token', data.refresh_token);
+            sessionStorage.setItem('refresh_token', data.refresh_token);
+        }
+        
+        // Also update the cookie for server-side authentication
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 7); // 7 days expiration
+        document.cookie = `auth_token=${data.access_token}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Strict`;
+        
+        console.log('Token refreshed successfully');
+        return true;
+    } catch (e) {
+        console.error('Error refreshing token:', e);
+        return false;
+    }
+}
+
+// Authenticated fetch function with token refresh
+async function authenticatedFetch(url, options = {}) {
     // Clone the options to avoid modifying the original
     const fetchOptions = { ...options };
     
@@ -343,13 +421,48 @@ function authenticatedFetch(url, options = {}) {
         fetchOptions.headers = {};
     }
     
+    // Check if token is expired and refresh if needed
+    if (isAuthenticated() && isTokenExpired()) {
+        console.log('Token is expired or about to expire, refreshing...');
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+            // If refresh failed, redirect to login
+            console.warn('Token refresh failed, redirecting to login');
+            logout();
+            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+            throw new Error('Authentication expired');
+        }
+    }
+    
     // Add authorization header if authenticated
     if (isAuthenticated()) {
         fetchOptions.headers['Authorization'] = `Bearer ${getToken()}`;
     }
     
-    // Return the fetch promise
-    return fetch(url, fetchOptions);
+    // Make the request
+    const response = await fetch(url, fetchOptions);
+    
+    // Handle 401 Unauthorized errors
+    if (response.status === 401) {
+        console.log('Received 401 Unauthorized, attempting token refresh');
+        
+        // Try to refresh the token
+        const refreshed = await refreshToken();
+        if (refreshed) {
+            // If refresh succeeded, retry the request with the new token
+            console.log('Token refreshed, retrying request');
+            fetchOptions.headers['Authorization'] = `Bearer ${getToken()}`;
+            return fetch(url, fetchOptions);
+        } else {
+            // If refresh failed, redirect to login
+            console.warn('Token refresh failed after 401, redirecting to login');
+            logout();
+            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+            throw new Error('Authentication expired');
+        }
+    }
+    
+    return response;
 }
 
 // Make authentication functions globally available
@@ -359,9 +472,18 @@ window.authenticatedFetch = authenticatedFetch;
 console.log('Auth functions made global');
 
 function logout() {
-    localStorage.removeItem('access_token');
+    // Clear localStorage
+    localStorage.removeItem('metisToken');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('token_type');
     localStorage.removeItem('username');
+    
+    // Clear sessionStorage
+    sessionStorage.removeItem('metisToken');
+    sessionStorage.removeItem('refresh_token');
+    
+    // Clear auth cookie
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
     updateAuthUI();
     
     // Redirect to login page if on a protected page
@@ -446,6 +568,98 @@ function setupAuthListeners() {
     }
 }
 
+// Check token expiration periodically
+function setupTokenRefreshCheck() {
+    // Check token every 5 minutes
+    setInterval(() => {
+        if (isAuthenticated() && isTokenExpired()) {
+            console.log('Periodic token check: Token is expired or about to expire');
+            refreshToken().then(refreshed => {
+                if (!refreshed) {
+                    console.warn('Periodic token refresh failed');
+                    showNotification('Your session is about to expire. Please log in again.', 'warning');
+                } else {
+                    console.log('Periodic token refresh succeeded');
+                }
+            });
+        }
+        
+        // Also check for server restarts
+        checkServerStatus();
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
+    // Immediate server status check on page load
+    checkServerStatus();
+}
+
+/**
+ * Check if the server has restarted and handle auth token synchronization
+ */
+function checkServerStatus() {
+    // Store a random session ID for server restart detection
+    if (!sessionStorage.getItem('server_session_id')) {
+        sessionStorage.setItem('server_session_id', Math.random().toString(36).substring(2));
+    }
+    
+    const sessionId = sessionStorage.getItem('server_session_id');
+    
+    // Simple health check
+    fetch('/api/health/', {
+        headers: {
+            'X-Client-Session': sessionId
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error('Health check failed');
+    })
+    .then(data => {
+        // If server reports different session than what we've seen before
+        if (data.server_start_time && sessionStorage.getItem('server_start_time') &&
+            sessionStorage.getItem('server_start_time') !== data.server_start_time) {
+            console.log('Server restart detected, synchronizing tokens');
+            
+            // Server has restarted, attempt to refresh token or force re-login
+            if (isAuthenticated()) {
+                refreshToken()
+                    .then(success => {
+                        if (success) {
+                            console.log('Token refreshed after server restart');
+                            // Also sync cookie to ensure consistency
+                            const token = localStorage.getItem('metisToken');
+                            if (token) {
+                                const expirationDate = new Date();
+                                expirationDate.setDate(expirationDate.getDate() + 7); // 7 days expiration
+                                document.cookie = `auth_token=${token}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Strict`;
+                            }
+                        } else {
+                            // Force logout if refresh fails
+                            logout();
+                            showNotification('Your session expired due to server restart. Please log in again.', 'warning');
+                            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}&reason=server_restart`;
+                        }
+                    })
+                    .catch(() => {
+                        // Force logout if refresh fails with error
+                        logout();
+                        showNotification('Your session expired due to server restart. Please log in again.', 'warning');
+                        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}&reason=server_restart`;
+                    });
+            }
+        }
+        
+        // Store server start time for future comparisons
+        if (data.server_start_time) {
+            sessionStorage.setItem('server_start_time', data.server_start_time);
+        }
+    })
+    .catch(error => {
+        console.error('Server status check failed:', error);
+    });
+}
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize conversation
@@ -455,9 +669,14 @@ document.addEventListener('DOMContentLoaded', function() {
     updateAuthUI();
     setupAuthListeners();
     
+    // Set up token refresh check
+    setupTokenRefreshCheck();
+    
+    // DevOps panel is now directly included in chat.html
+    const currentPath = window.location.pathname;
+    
     // Check if we need to redirect to login
     const protectedPages = ['/documents', '/chat', '/analytics', '/system'];
-    const currentPath = window.location.pathname;
     if (protectedPages.includes(currentPath) && !isAuthenticated()) {
         window.location.href = '/login?redirect=' + encodeURIComponent(currentPath);
     }
@@ -483,6 +702,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 advancedIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
                 localStorage.setItem('advancedOptions', 'hidden');
             }
+        });
+    }
+    
+    // Set up DevOps panel toggle
+    const devopsHeader = document.querySelector('.devops-header');
+    const devopsContent = document.querySelector('.devops-content');
+    
+    if (devopsHeader && devopsContent) {
+        // Add toggle indicator
+        const toggleIcon = document.createElement('i');
+        toggleIcon.className = 'fas fa-chevron-down toggle-icon';
+        toggleIcon.style.marginLeft = '8px';
+        toggleIcon.style.cursor = 'pointer';
+        devopsHeader.querySelector('h3').appendChild(toggleIcon);
+        
+        // Set initial state based on preference
+        const devopsPanelOpen = localStorage.getItem('metis_devops_panel_open') !== 'false';
+        if (!devopsPanelOpen) {
+            devopsContent.style.display = 'none';
+            toggleIcon.className = 'fas fa-chevron-right toggle-icon';
+        }
+        
+        // Add click handler
+        devopsHeader.addEventListener('click', function() {
+            const isVisible = devopsContent.style.display !== 'none';
+            devopsContent.style.display = isVisible ? 'none' : 'flex';
+            toggleIcon.className = isVisible 
+                ? 'fas fa-chevron-right toggle-icon' 
+                : 'fas fa-chevron-down toggle-icon';
+            
+            // Store preference
+            localStorage.setItem('metis_devops_panel_open', isVisible ? 'false' : 'true');
         });
     }
     

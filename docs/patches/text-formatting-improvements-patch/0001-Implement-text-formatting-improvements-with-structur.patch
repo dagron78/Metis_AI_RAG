@@ -1,0 +1,2347 @@
+From 99bb5dae68725be5c30b4499056eadb204f990ff Mon Sep 17 00:00:00 2001
+From: Charles Howard <charleshoward@Charless-Mac-mini.local>
+Date: Mon, 7 Apr 2025 14:55:42 -0400
+Subject: [PATCH] Implement text formatting improvements with structured output
+ approach
+
+- Enhanced error handling in structured output parsing
+- Expanded structured output schema to support tables, images, and math
+- Optimized performance with better code block processing
+- Improved frontend experience with enhanced styling
+- Added monitoring and analytics system for text formatting
+---
+ app/api/text_formatting_dashboard.py         | 104 ++++
+ app/main.py                                  |   9 +
+ app/models/structured_output.py              | 117 ++++-
+ app/rag/rag_generation.py                    | 413 +++++++++++++++-
+ app/rag/system_prompts.py                    | 107 ++++-
+ app/rag/text_formatting_monitor.py           | 309 ++++++++++++
+ app/static/css/structured-output.css         |  96 ++++
+ app/static/js/markdown-parser.js             | 184 ++++++--
+ app/templates/text_formatting_dashboard.html | 470 +++++++++++++++++++
+ scripts/run_structured_output_tests.py       |  41 ++
+ tests/test_structured_output_monitoring.py   | 213 +++++++++
+ 11 files changed, 2002 insertions(+), 61 deletions(-)
+ create mode 100644 app/api/text_formatting_dashboard.py
+ create mode 100644 app/rag/text_formatting_monitor.py
+ create mode 100644 app/templates/text_formatting_dashboard.html
+ create mode 100644 scripts/run_structured_output_tests.py
+ create mode 100644 tests/test_structured_output_monitoring.py
+
+diff --git a/app/api/text_formatting_dashboard.py b/app/api/text_formatting_dashboard.py
+new file mode 100644
+index 0000000..80d0f46
+--- /dev/null
++++ b/app/api/text_formatting_dashboard.py
+@@ -0,0 +1,104 @@
++"""
++API routes for the text formatting dashboard
++"""
++from fastapi import APIRouter, Request, Depends, HTTPException
++from fastapi.responses import HTMLResponse
++from fastapi.templating import Jinja2Templates
++from typing import Dict, Any, Optional
++from pathlib import Path
++import os
++
++from app.rag.text_formatting_monitor import get_monitor
++
++# Create router
++router = APIRouter(
++    prefix="/text-formatting",
++    tags=["text-formatting"],
++    responses={404: {"description": "Not found"}},
++)
++
++# Set up templates
++templates_dir = Path(__file__).parent.parent / "templates"
++templates = Jinja2Templates(directory=str(templates_dir))
++
++@router.get("/dashboard", response_class=HTMLResponse)
++async def get_dashboard(request: Request):
++    """
++    Serve the text formatting dashboard HTML
++    """
++    return templates.TemplateResponse(
++        "text_formatting_dashboard.html",
++        {"request": request}
++    )
++
++@router.get("/report")
++async def get_report(time_period: str = "day"):
++    """
++    Generate a report of text formatting performance
++    
++    Args:
++        time_period: Time period for the report (day, week, month)
++        
++    Returns:
++        Report data
++    """
++    # Validate time period
++    if time_period not in ["day", "week", "month"]:
++        raise HTTPException(status_code=400, detail="Invalid time period. Must be 'day', 'week', or 'month'.")
++    
++    # Get the monitor
++    monitor = get_monitor()
++    
++    # Generate the report
++    report = monitor.generate_report(time_period)
++    
++    return report
++
++@router.get("/events")
++async def get_events(time_period: str = "day", approach: Optional[str] = None, event_type: Optional[str] = None):
++    """
++    Get text formatting events
++    
++    Args:
++        time_period: Time period for the events (day, week, month)
++        approach: Filter by approach (structured_output, backend_processing, frontend_parsing, css_formatting)
++        event_type: Filter by event type (success, fallback, error)
++        
++    Returns:
++        List of events
++    """
++    # Validate time period
++    if time_period not in ["day", "week", "month"]:
++        raise HTTPException(status_code=400, detail="Invalid time period. Must be 'day', 'week', or 'month'.")
++    
++    # Get the monitor
++    monitor = get_monitor()
++    
++    # Load events
++    events = monitor._load_events(time_period)
++    
++    # Filter by approach if specified
++    if approach:
++        events = [e for e in events if e["approach"] == approach]
++    
++    # Filter by event type if specified
++    if event_type:
++        events = [e for e in events if e["event"] == event_type]
++    
++    return events
++
++@router.post("/save-events")
++async def save_events():
++    """
++    Save events to disk
++    
++    Returns:
++        Success message
++    """
++    # Get the monitor
++    monitor = get_monitor()
++    
++    # Save events
++    monitor.save_events()
++    
++    return {"message": "Events saved successfully"}
+\ No newline at end of file
+diff --git a/app/main.py b/app/main.py
+index fd35c97..183acc8 100644
+--- a/app/main.py
++++ b/app/main.py
+@@ -26,6 +26,7 @@ from app.api.document_sharing import router as document_sharing_router
+ from app.api.notifications import router as notifications_router
+ from app.api.organizations import router as organizations_router
+ from app.api.schema import router as schema_router
++from app.api.text_formatting_dashboard import router as text_formatting_dashboard_router
+ from app.db.session import init_db, get_session
+ from app.rag.tool_initializer import initialize_tools
+ 
+@@ -82,6 +83,7 @@ app.include_router(document_sharing_router, prefix=f"{API_V1_STR}/sharing", tags
+ app.include_router(notifications_router, prefix=f"{API_V1_STR}/notifications", tags=["notifications"])
+ app.include_router(organizations_router, prefix=f"{API_V1_STR}/organizations", tags=["organizations"])
+ app.include_router(schema_router, tags=["schema"])  # Schema router has its own prefix
++app.include_router(text_formatting_dashboard_router, prefix=f"{API_V1_STR}", tags=["text-formatting"])
+ 
+ @app.get("/", response_class=HTMLResponse)
+ async def read_root(request: Request):
+@@ -132,6 +134,13 @@ async def schema_page(request: Request):
+     """
+     return templates.TemplateResponse("schema.html", {"request": request})
+ 
++@app.get("/text-formatting-dashboard", response_class=HTMLResponse)
++async def text_formatting_dashboard_page(request: Request):
++    """
++    Text formatting dashboard page
++    """
++    return templates.TemplateResponse("text_formatting_dashboard.html", {"request": request})
++
+ @app.get("/test-models", response_class=HTMLResponse)
+ async def test_models_page(request: Request):
+     """
+diff --git a/app/models/structured_output.py b/app/models/structured_output.py
+index 2ee1044..f124f5d 100644
+--- a/app/models/structured_output.py
++++ b/app/models/structured_output.py
+@@ -1,8 +1,8 @@
+ """
+ Structured output models for text and code formatting
+ """
+-from typing import List, Optional, Dict, Any
+-from pydantic import BaseModel, Field
++from typing import List, Optional, Dict, Any, Union
++from pydantic import BaseModel, Field, HttpUrl
+ 
+ 
+ class CodeBlock(BaseModel):
+@@ -32,9 +32,97 @@ class TextBlock(BaseModel):
+     )
+ 
+ 
++class TableCell(BaseModel):
++    """
++    Represents a cell in a table
++    """
++    content: str = Field(description="The content of the cell")
++    is_header: bool = Field(
++        default=False,
++        description="Whether this cell is a header cell"
++    )
++    colspan: int = Field(
++        default=1,
++        description="Number of columns this cell spans"
++    )
++    rowspan: int = Field(
++        default=1,
++        description="Number of rows this cell spans"
++    )
++    align: str = Field(
++        default="left",
++        description="Text alignment in the cell (left, center, right)"
++    )
++
++
++class TableRow(BaseModel):
++    """
++    Represents a row in a table
++    """
++    cells: List[TableCell] = Field(description="The cells in this row")
++    is_header_row: bool = Field(
++        default=False,
++        description="Whether this is a header row"
++    )
++
++
++class Table(BaseModel):
++    """
++    Represents a table with rows and cells
++    """
++    rows: List[TableRow] = Field(description="The rows in the table")
++    caption: Optional[str] = Field(
++        default=None,
++        description="Optional caption for the table"
++    )
++    metadata: Optional[Dict[str, Any]] = Field(
++        default=None,
++        description="Optional metadata about the table"
++    )
++
++
++class Image(BaseModel):
++    """
++    Represents an image with a URL and optional caption
++    """
++    url: str = Field(description="URL or data URI of the image")
++    alt_text: str = Field(description="Alternative text for the image")
++    caption: Optional[str] = Field(
++        default=None,
++        description="Optional caption for the image"
++    )
++    width: Optional[str] = Field(
++        default=None,
++        description="Optional width of the image (e.g., '100px', '50%')"
++    )
++    height: Optional[str] = Field(
++        default=None,
++        description="Optional height of the image (e.g., '100px', '50%')"
++    )
++    metadata: Optional[Dict[str, Any]] = Field(
++        default=None,
++        description="Optional metadata about the image"
++    )
++
++
++class MathBlock(BaseModel):
++    """
++    Represents a mathematical expression using LaTeX syntax
++    """
++    latex: str = Field(description="LaTeX representation of the mathematical expression")
++    display_mode: bool = Field(
++        default=True,
++        description="Whether to display as a block (true) or inline (false)"
++    )
++    metadata: Optional[Dict[str, Any]] = Field(
++        default=None,
++        description="Optional metadata about the math block"
++    )
++
++
+ class FormattedResponse(BaseModel):
+     """
+-    Structured response format that properly handles text and code blocks
++    Structured response format that properly handles various content types
+     """
+     text: str = Field(description="The main text content of the response")
+     code_blocks: List[CodeBlock] = Field(
+@@ -47,7 +135,30 @@ class FormattedResponse(BaseModel):
+         description="Optional list of text blocks for more structured formatting. "
+                    "If provided, these will be used instead of the 'text' field."
+     )
++    tables: List[Table] = Field(
++        default=[],
++        description="List of tables to be inserted into the text. "
++                   "Reference them in the text using {TABLE_0}, {TABLE_1}, etc."
++    )
++    images: List[Image] = Field(
++        default=[],
++        description="List of images to be inserted into the text. "
++                   "Reference them in the text using {IMAGE_0}, {IMAGE_1}, etc."
++    )
++    math_blocks: List[MathBlock] = Field(
++        default=[],
++        description="List of math blocks to be inserted into the text. "
++                   "Reference them in the text using {MATH_0}, {MATH_1}, etc."
++    )
+     preserve_paragraphs: bool = Field(
+         default=True,
+         description="Whether to preserve paragraph structure in the text"
++    )
++    theme: Optional[str] = Field(
++        default=None,
++        description="Optional theme for styling the response (e.g., 'light', 'dark')"
++    )
++    metadata: Optional[Dict[str, Any]] = Field(
++        default=None,
++        description="Optional metadata about the response"
+     )
+\ No newline at end of file
+diff --git a/app/rag/rag_generation.py b/app/rag/rag_generation.py
+index 194f3d9..1376c5d 100644
+--- a/app/rag/rag_generation.py
++++ b/app/rag/rag_generation.py
+@@ -5,7 +5,9 @@ import logging
+ import time
+ import re
+ import asyncio
++import sys
+ from typing import Dict, Any, Optional, List, AsyncGenerator
++from app.rag.text_formatting_monitor import get_monitor, FormattingApproach, FormattingEvent
+ from uuid import UUID
+ 
+ from app.core.config import DEFAULT_MODEL
+@@ -378,10 +380,21 @@ class GenerationMixin:
+         Returns:
+             Processed response text
+         """
++        # Get the monitor
++        monitor = get_monitor()
++        
+         # Check if there was an error in the response
+         if "error" in response:
+             error_message = response.get("error", "Unknown error")
+             logger.warning(f"Model returned an error: {error_message}")
++            
++            # Record the error
++            monitor.record_event(
++                approach=FormattingApproach.STRUCTURED_OUTPUT,
++                event=FormattingEvent.ERROR,
++                error_message=error_message
++            )
++            
+             return response.get("response", f"Error: {error_message}")
+         
+         # Get response text
+@@ -392,17 +405,40 @@ class GenerationMixin:
+             # Try to parse as JSON
+             from app.models.structured_output import FormattedResponse, TextBlock
+             import json
++            import traceback
+             
+             # Check if the response looks like JSON
+             if response_text.strip().startswith('{') and response_text.strip().endswith('}'):
++                # Track the stage of processing for better error reporting
++                processing_stage = "initial"
+                 try:
+                     # Parse the JSON response
+-                    structured_data = json.loads(response_text)
++                    processing_stage = "json_parsing"
++                    try:
++                        structured_data = json.loads(response_text)
++                    except json.JSONDecodeError as json_err:
++                        # Attempt to fix common JSON formatting issues
++                        logger.warning(f"JSON parsing error: {str(json_err)}. Attempting to fix...")
++                        fixed_json = self._attempt_json_repair(response_text)
++                        if fixed_json:
++                            structured_data = json.loads(fixed_json)
++                            logger.info("Successfully repaired malformed JSON")
++                        else:
++                            raise json_err
+                     
+                     # Validate against our schema
+-                    formatted_response = FormattedResponse.model_validate(structured_data)
++                    processing_stage = "schema_validation"
++                    try:
++                        formatted_response = FormattedResponse.model_validate(structured_data)
++                    except Exception as validation_err:
++                        # Try partial validation if full validation fails
++                        logger.warning(f"Schema validation error: {str(validation_err)}. Attempting partial validation...")
++                        formatted_response = self._attempt_partial_validation(structured_data)
++                        if not formatted_response:
++                            raise validation_err
+                     
+                     # Process the structured response
++                    processing_stage = "text_block_processing"
+                     if formatted_response.text_blocks:
+                         # Use the structured text blocks if provided
+                         logger.info(f"Processing structured response with {len(formatted_response.text_blocks)} text blocks")
+@@ -416,6 +452,8 @@ class GenerationMixin:
+                                 text_parts.append(f"## {block.content}")
+                             elif block.format_type == "list_item":
+                                 text_parts.append(f"- {block.content}")
++                            elif block.format_type == "quote":
++                                text_parts.append(f"> {block.content}")
+                             else:
+                                 text_parts.append(block.content)
+                         
+@@ -426,11 +464,70 @@ class GenerationMixin:
+                         main_text = formatted_response.text
+                     
+                     # Replace code block placeholders with properly formatted code blocks
++                    processing_stage = "code_block_processing"
+                     for i, code_block in enumerate(formatted_response.code_blocks):
+                         placeholder = f"{{CODE_BLOCK_{i}}}"
+-                        formatted_block = f"```{code_block.language}\n{code_block.code}\n```"
++                        # Ensure code has proper newlines
++                        code = code_block.code
++                        if code and not code.startswith('\n'):
++                            code = '\n' + code
++                        if code and not code.endswith('\n'):
++                            code = code + '\n'
++                        
++                        formatted_block = f"```{code_block.language}\n{code}\n```"
+                         main_text = main_text.replace(placeholder, formatted_block)
+                     
++                    # Process table placeholders
++                    processing_stage = "table_processing"
++                    if hasattr(formatted_response, 'tables') and formatted_response.tables:
++                        logger.info(f"Processing {len(formatted_response.tables)} tables")
++                        for i, table in enumerate(formatted_response.tables):
++                            placeholder = f"{{TABLE_{i}}}"
++                            formatted_table = self._format_table(table)
++                            main_text = main_text.replace(placeholder, formatted_table)
++                    
++                    # Process image placeholders
++                    processing_stage = "image_processing"
++                    if hasattr(formatted_response, 'images') and formatted_response.images:
++                        logger.info(f"Processing {len(formatted_response.images)} images")
++                        for i, image in enumerate(formatted_response.images):
++                            placeholder = f"{{IMAGE_{i}}}"
++                            formatted_image = self._format_image(image)
++                            main_text = main_text.replace(placeholder, formatted_image)
++                    
++                    # Process math block placeholders
++                    processing_stage = "math_processing"
++                    if hasattr(formatted_response, 'math_blocks') and formatted_response.math_blocks:
++                        logger.info(f"Processing {len(formatted_response.math_blocks)} math blocks")
++                        for i, math_block in enumerate(formatted_response.math_blocks):
++                            placeholder = f"{{MATH_{i}}}"
++                            formatted_math = self._format_math(math_block)
++                            main_text = main_text.replace(placeholder, formatted_math)
++                    
++                    # Check for unreplaced placeholders
++                    placeholder_pattern = r'\{CODE_BLOCK_\d+\}'
++                    import re
++                    if re.search(placeholder_pattern, main_text):
++                        logger.warning("Found unreplaced code block placeholders. Attempting to fix...")
++                        main_text = self._fix_unreplaced_placeholders(main_text, formatted_response.code_blocks)
++                    # Collect content types for monitoring
++                    content_types = ["text"]
++                    if formatted_response.code_blocks:
++                        content_types.append("code")
++                    if hasattr(formatted_response, 'tables') and formatted_response.tables:
++                        content_types.append("table")
++                    if hasattr(formatted_response, 'images') and formatted_response.images:
++                        content_types.append("image")
++                    if hasattr(formatted_response, 'math_blocks') and formatted_response.math_blocks:
++                        content_types.append("math")
++                    
++                    # Record successful structured output processing
++                    monitor = get_monitor()
++                    monitor.record_structured_output_success(
++                        response_size=len(main_text),
++                        content_types=content_types
++                    )
++                    
+                     logger.info(f"Successfully processed structured output response with {len(formatted_response.code_blocks)} code blocks")
+                     
+                     # Apply text normalization to the processed text if preserve_paragraphs is True
+@@ -440,14 +537,62 @@ class GenerationMixin:
+                         # Skip normalization to preserve the exact structure
+                         return main_text
+                 except (json.JSONDecodeError, ValueError) as e:
+-                    logger.warning(f"Failed to parse structured output: {str(e)}")
++                    logger.warning(f"Failed to parse structured output at stage '{processing_stage}': {str(e)}")
++                    logger.debug(f"Error details: {traceback.format_exc()}")
++                    # Log the problematic JSON for debugging
++                    if processing_stage == "json_parsing":
++                        logger.debug(f"Problematic JSON: {response_text[:500]}...")
++                    
++                    # Record structured output error
++                    monitor = get_monitor()
++                    monitor.record_structured_output_error(
++                        error_message=str(e),
++                        processing_stage=processing_stage
++                    )
++                    
++                    # Record fallback to backend processing
++                    monitor.record_fallback(
++                        from_approach=FormattingApproach.STRUCTURED_OUTPUT,
++                        to_approach=FormattingApproach.BACKEND_PROCESSING,
++                        reason=f"Error in {processing_stage}: {str(e)}"
++                    )
++                    
+                     # Fall back to normal processing
+             
+         except Exception as e:
+             logger.warning(f"Error processing structured output: {str(e)}")
++            logger.debug(f"Error details: {traceback.format_exc()}")
++            
++            # Record structured output error
++            monitor = get_monitor()
++            monitor.record_structured_output_error(
++                error_message=str(e),
++                processing_stage="unknown"
++            )
++            
++            # Record fallback to backend processing
++            monitor.record_fallback(
++                from_approach=FormattingApproach.STRUCTURED_OUTPUT,
++                to_approach=FormattingApproach.BACKEND_PROCESSING,
++                reason=f"Unexpected error: {str(e)}"
++            )
++            
+             # Fall back to normal processing
+         
+         # Apply text normalization to improve formatting
++        logger.info("Falling back to backend text processing")
++        
++        # Record backend processing event
++        monitor = get_monitor()
++        monitor.record_event(
++            approach=FormattingApproach.BACKEND_PROCESSING,
++            event=FormattingEvent.SUCCESS,
++            details={
++                "response_size": len(response_text),
++                "content_types": ["text"]
++            }
++        )
++        
+         response_text = self.process_complete_response(response_text)
+         
+         return response_text
+@@ -514,5 +659,265 @@ class GenerationMixin:
+         # Check if paragraphs were lost during processing
+         if paragraphs > final_paragraphs:
+             logger.warning(f"Paragraph count decreased during processing: {paragraphs} -> {final_paragraphs}")
++        return formatted_text
++        
++    def _format_table(self, table) -> str:
++        """
++        Format a table into markdown format
++        
++        Args:
++            table: The Table object to format
++            
++        Returns:
++            Markdown representation of the table
++        """
++        logger = logging.getLogger("app.rag.rag_generation")
++        logger.debug(f"Formatting table with {len(table.rows)} rows")
++        
++        # Start with the caption if available
++        markdown_lines = []
++        if table.caption:
++            markdown_lines.append(f"**{table.caption}**\n")
++        
++        # Process the rows
++        for i, row in enumerate(table.rows):
++            # Create the row content
++            row_cells = []
++            for cell in row.cells:
++                # Apply alignment if specified
++                content = cell.content.strip()
++                if cell.align == "center":
++                    content = f" {content} "
++                elif cell.align == "right":
++                    content = f" {content}"
++                else:  # left alignment (default)
++                    content = f"{content} "
++                
++                row_cells.append(content)
++            
++            # Add the row to the markdown
++            markdown_lines.append(f"| {' | '.join(row_cells)} |")
++            
++            # Add the header separator after the first row if it's a header row
++            if i == 0 and (row.is_header_row or any(cell.is_header for cell in row.cells)):
++                separators = []
++                for cell in row.cells:
++                    if cell.align == "center":
++                        separators.append(":---:")
++                    elif cell.align == "right":
++                        separators.append("---:")
++                    else:  # left alignment (default)
++                        separators.append("---")
++                
++                markdown_lines.append(f"| {' | '.join(separators)} |")
++        
++        # Join the lines with newlines
++        return "\n".join(markdown_lines)
++    
++    def _format_image(self, image) -> str:
++        """
++        Format an image into markdown format
+         
++        Args:
++            image: The Image object to format
++            
++        Returns:
++            Markdown representation of the image
++        """
++        logger = logging.getLogger("app.rag.rag_generation")
++        logger.debug(f"Formatting image with URL: {image.url}")
++        
++        # Create the basic image markdown
++        markdown = f"![{image.alt_text}]({image.url})"
++        
++        # Add the caption if available
++        if image.caption:
++            markdown += f"\n*{image.caption}*"
++        
++        return markdown
++    
++    def _format_math(self, math_block) -> str:
++        """
++        Format a math block into markdown format
++        
++        Args:
++            math_block: The MathBlock object to format
++            
++        Returns:
++            Markdown representation of the math block
++        """
++        logger = logging.getLogger("app.rag.rag_generation")
++        logger.debug("Formatting math block")
++        
++        # Format based on display mode
++        if math_block.display_mode:
++            # Display mode (block)
++            return f"$$\n{math_block.latex}\n$$"
++        else:
++            # Inline mode
++            return f"${math_block.latex}$"
++        
++    def _attempt_json_repair(self, json_text: str) -> str:
++        """
++        Attempt to repair malformed JSON
++        
++        Args:
++            json_text: The malformed JSON text
++            
++        Returns:
++            Repaired JSON text or empty string if repair failed
++        """
++        import re
++        import json
++        
++        logger = logging.getLogger("app.rag.rag_generation")
++        logger.debug("Attempting to repair malformed JSON")
++        
++        try:
++            # Common JSON formatting issues and their fixes
++            
++            # 1. Fix unescaped quotes in strings
++            # Look for patterns like: "key": "value with "quotes" inside"
++            fixed_text = re.sub(r'(?<=[:\s]\s*"[^"]*)"(?=[^"]*"(?:\s*[,}]))', r'\"', json_text)
++            
++            # 2. Fix missing quotes around keys
++            # Look for patterns like: {key: "value"} instead of {"key": "value"}
++            fixed_text = re.sub(r'([{,]\s*)([a-zA-Z0-9_]+)(\s*:)', r'\1"\2"\3', fixed_text)
++            
++            # 3. Fix trailing commas in objects and arrays
++            # Look for patterns like: {"key": "value",} or [1, 2, 3,]
++            fixed_text = re.sub(r',(\s*[}\]])', r'\1', fixed_text)
++            
++            # 4. Fix missing commas between elements
++            # Look for patterns like: {"key1": "value1" "key2": "value2"}
++            fixed_text = re.sub(r'(["\d])\s*"', r'\1, "', fixed_text)
++            
++            # 5. Fix single quotes used instead of double quotes
++            # First, escape any existing double quotes
++            fixed_text = fixed_text.replace('"', '\\"')
++            # Then replace all single quotes with double quotes
++            fixed_text = fixed_text.replace("'", '"')
++            # Finally, fix the double-escaped quotes
++            fixed_text = fixed_text.replace('\\"', '"')
++            
++            # Validate the fixed JSON
++            json.loads(fixed_text)
++            logger.info("JSON repair successful")
++            return fixed_text
++        except Exception as e:
++            logger.warning(f"JSON repair failed: {str(e)}")
++            return ""
++    
++    def _attempt_partial_validation(self, data: dict) -> Optional['FormattedResponse']:
++        """
++        Attempt partial validation of structured output data
++        
++        Args:
++            data: The structured output data
++            
++        Returns:
++            FormattedResponse object or None if validation failed
++        """
++        from app.models.structured_output import FormattedResponse, CodeBlock, TextBlock
++        from typing import Optional
++        
++        logger = logging.getLogger("app.rag.rag_generation")
++        logger.debug("Attempting partial validation of structured output data")
++        
++        try:
++            # Create a minimal valid response
++            minimal_response = {
++                "text": "",
++                "code_blocks": [],
++                "preserve_paragraphs": True
++            }
++            
++            # Copy valid fields from the original data
++            if "text" in data and isinstance(data["text"], str):
++                minimal_response["text"] = data["text"]
++            
++            # Process code blocks if available
++            if "code_blocks" in data and isinstance(data["code_blocks"], list):
++                code_blocks = []
++                for block in data["code_blocks"]:
++                    if isinstance(block, dict):
++                        # Ensure required fields are present
++                        if "language" in block and "code" in block:
++                            code_blocks.append({
++                                "language": block["language"],
++                                "code": block["code"],
++                                "metadata": block.get("metadata")
++                            })
++                minimal_response["code_blocks"] = code_blocks
++            
++            # Process text blocks if available
++            if "text_blocks" in data and isinstance(data["text_blocks"], list):
++                text_blocks = []
++                for block in data["text_blocks"]:
++                    if isinstance(block, dict):
++                        # Ensure required fields are present
++                        if "content" in block:
++                            text_blocks.append({
++                                "content": block["content"],
++                                "format_type": block.get("format_type", "paragraph"),
++                                "metadata": block.get("metadata")
++                            })
++                if text_blocks:
++                    minimal_response["text_blocks"] = text_blocks
++            
++            # Set preserve_paragraphs if available
++            if "preserve_paragraphs" in data and isinstance(data["preserve_paragraphs"], bool):
++                minimal_response["preserve_paragraphs"] = data["preserve_paragraphs"]
++            
++            # Validate the minimal response
++            formatted_response = FormattedResponse.model_validate(minimal_response)
++            logger.info("Partial validation successful")
++            return formatted_response
++        except Exception as e:
++            logger.warning(f"Partial validation failed: {str(e)}")
++            return None
++    
++    def _fix_unreplaced_placeholders(self, text: str, code_blocks: list) -> str:
++        """
++        Fix unreplaced code block placeholders
++        
++        Args:
++            text: The text with unreplaced placeholders
++            code_blocks: The list of code blocks
++            
++        Returns:
++            Text with placeholders replaced or removed
++        """
++        import re
++        
++        logger = logging.getLogger("app.rag.rag_generation")
++        logger.debug("Fixing unreplaced code block placeholders")
++        
++        # Find all unreplaced placeholders
++        placeholder_pattern = r'\{CODE_BLOCK_(\d+)\}'
++        placeholders = re.findall(placeholder_pattern, text)
++        
++        # Replace or remove each placeholder
++        for placeholder_index in placeholders:
++            try:
++                index = int(placeholder_index)
++                placeholder = f"{{CODE_BLOCK_{index}}}"
++                
++                # If we have a code block for this index, replace it
++                if index < len(code_blocks):
++                    code_block = code_blocks[index]
++                    formatted_block = f"```{code_block.language}\n{code_block.code}\n```"
++                    text = text.replace(placeholder, formatted_block)
++                    logger.debug(f"Replaced placeholder {placeholder} with code block")
++                else:
++                    # Otherwise, remove the placeholder
++                    text = text.replace(placeholder, "")
++                    logger.warning(f"Removed placeholder {placeholder} with no corresponding code block")
++            except ValueError:
++                # If the index is not a valid integer, just remove the placeholder
++                logger.warning(f"Found invalid placeholder index: {placeholder_index}")
++                placeholder = f"{{CODE_BLOCK_{placeholder_index}}}"
++                text = text.replace(placeholder, "")
++        
++        return text
+         return formatted_text
+\ No newline at end of file
+diff --git a/app/rag/system_prompts.py b/app/rag/system_prompts.py
+index 274fce2..eeb88ee 100644
+--- a/app/rag/system_prompts.py
++++ b/app/rag/system_prompts.py
+@@ -89,7 +89,7 @@ STRUCTURED OUTPUT FORMAT:
+ You MUST return your response in the following JSON structure:
+ 
+ {
+-  "text": "Your explanation text here. Reference code blocks with {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc.",
++  "text": "Your explanation text here. Reference code blocks with {CODE_BLOCK_0}, tables with {TABLE_0}, images with {IMAGE_0}, and math with {MATH_0}.",
+   "code_blocks": [
+     {
+       "language": "python",
+@@ -114,25 +114,73 @@ You MUST return your response in the following JSON structure:
+       "format_type": "paragraph"
+     }
+   ],
+-  "preserve_paragraphs": true
++  "tables": [
++    {
++      "caption": "Sample Data",
++      "rows": [
++        {
++          "cells": [
++            {"content": "Name", "is_header": true, "align": "left"},
++            {"content": "Age", "is_header": true, "align": "center"},
++            {"content": "Score", "is_header": true, "align": "right"}
++          ],
++          "is_header_row": true
++        },
++        {
++          "cells": [
++            {"content": "Alice", "align": "left"},
++            {"content": "25", "align": "center"},
++            {"content": "95", "align": "right"}
++          ],
++          "is_header_row": false
++        }
++      ]
++    }
++  ],
++  "images": [
++    {
++      "url": "https://example.com/image.jpg",
++      "alt_text": "Example image",
++      "caption": "This is an example image"
++    }
++  ],
++  "math_blocks": [
++    {
++      "latex": "E = mc^2",
++      "display_mode": true
++    }
++  ],
++  "preserve_paragraphs": true,
++  "theme": "light",
++  "metadata": {
++    "generated_at": "2025-04-07T14:30:00Z"
++  }
+ }
+ 
+ GUIDELINES FOR STRUCTURED OUTPUT:
+ 1. Place all explanatory text in the "text" field
+ 2. Place ALL code in the "code_blocks" array, with each block having "language" and "code" fields
+-3. In the "text" field, use {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc. to indicate where code blocks should be inserted
++3. In the "text" field, use placeholders to indicate where special content should be inserted:
++   - {CODE_BLOCK_0}, {CODE_BLOCK_1}, etc. for code blocks
++   - {TABLE_0}, {TABLE_1}, etc. for tables
++   - {IMAGE_0}, {IMAGE_1}, etc. for images
++   - {MATH_0}, {MATH_1}, etc. for math expressions
+ 4. Do NOT include triple backticks in your code blocks - they will be added automatically
+ 5. Ensure proper indentation in code by using \\n for newlines and appropriate spaces
+ 6. The "language" field should be a simple string like "python", "javascript", "html", etc.
+ 7. For better text formatting, use the optional "text_blocks" array to structure your response
+ 8. Each text block should have a "content" field and a "format_type" field
+ 9. Valid format_types include: "paragraph", "heading", "list_item", "quote"
+-10. Set "preserve_paragraphs" to true to maintain paragraph structure
+-11. Make sure your response is valid JSON that can be parsed
++10. For tables, provide rows and cells with proper alignment and header information
++11. For images, provide URL, alt text, and optional caption
++12. For math expressions, provide LaTeX syntax and specify display mode (block or inline)
++13. Set "preserve_paragraphs" to true to maintain paragraph structure
++14. Optionally specify a theme ("light" or "dark") for styling
++15. Make sure your response is valid JSON that can be parsed
+ 
+ EXAMPLE STRUCTURED OUTPUT:
+ {
+-  "text": "Here's a Python function to calculate factorial: {CODE_BLOCK_0}\n\nAnd here's the same function in JavaScript: {CODE_BLOCK_1}",
++  "text": "Here's a Python function to calculate factorial: {CODE_BLOCK_0}\n\nAnd here's the same function in JavaScript: {CODE_BLOCK_1}\n\nHere's a table comparing performance: {TABLE_0}\n\nThe mathematical formula is: {MATH_0}",
+   "code_blocks": [
+     {
+       "language": "python",
+@@ -159,9 +207,52 @@ EXAMPLE STRUCTURED OUTPUT:
+     {
+       "content": "And here's the same function in JavaScript: {CODE_BLOCK_1}",
+       "format_type": "paragraph"
++    },
++    {
++      "content": "Here's a table comparing performance: {TABLE_0}",
++      "format_type": "paragraph"
++    },
++    {
++      "content": "The mathematical formula is: {MATH_0}",
++      "format_type": "paragraph"
++    }
++  ],
++  "tables": [
++    {
++      "caption": "Performance Comparison",
++      "rows": [
++        {
++          "cells": [
++            {"content": "Language", "is_header": true, "align": "left"},
++            {"content": "Time (ms)", "is_header": true, "align": "right"}
++          ],
++          "is_header_row": true
++        },
++        {
++          "cells": [
++            {"content": "Python", "align": "left"},
++            {"content": "12.5", "align": "right"}
++          ],
++          "is_header_row": false
++        },
++        {
++          "cells": [
++            {"content": "JavaScript", "align": "left"},
++            {"content": "8.3", "align": "right"}
++          ],
++          "is_header_row": false
++        }
++      ]
++    }
++  ],
++  "math_blocks": [
++    {
++      "latex": "n! = n \\times (n-1) \\times (n-2) \\times ... \\times 2 \\times 1",
++      "display_mode": true
+     }
+   ],
+-  "preserve_paragraphs": true
++  "preserve_paragraphs": true,
++  "theme": "light"
+ }
+ 
+ IMPORTANT:
+@@ -170,6 +261,8 @@ IMPORTANT:
+ - Ensure all code is properly escaped for JSON
+ - Use text_blocks for better paragraph structure preservation
+ - Always set preserve_paragraphs to true unless specifically instructed otherwise
++- Only include tables, images, and math blocks when they add value to the response
++- For images, prefer using publicly accessible URLs or data URIs
+ """
+ 
+ # Python-specific code generation prompt
+diff --git a/app/rag/text_formatting_monitor.py b/app/rag/text_formatting_monitor.py
+new file mode 100644
+index 0000000..60f4fc5
+--- /dev/null
++++ b/app/rag/text_formatting_monitor.py
+@@ -0,0 +1,309 @@
++"""
++Monitoring and analytics for text formatting
++"""
++import logging
++import time
++import json
++from typing import Dict, Any, List, Optional
++from datetime import datetime
++from enum import Enum
++from pathlib import Path
++
++# Configure logging
++logger = logging.getLogger("app.rag.text_formatting_monitor")
++
++class FormattingApproach(Enum):
++    """Enum for different text formatting approaches"""
++    STRUCTURED_OUTPUT = "structured_output"
++    BACKEND_PROCESSING = "backend_processing"
++    FRONTEND_PARSING = "frontend_parsing"
++    CSS_FORMATTING = "css_formatting"
++
++
++class FormattingEvent(Enum):
++    """Enum for different text formatting events"""
++    SUCCESS = "success"
++    FALLBACK = "fallback"
++    ERROR = "error"
++
++
++class TextFormattingMonitor:
++    """
++    Monitor and analyze text formatting performance
++    """
++    
++    def __init__(self, log_dir: str = None):
++        """
++        Initialize the text formatting monitor
++        
++        Args:
++            log_dir: Directory to store logs (defaults to app/logs/text_formatting)
++        """
++        self.log_dir = log_dir or "app/logs/text_formatting"
++        self.events = []
++        self.start_time = time.time()
++        
++        # Ensure log directory exists
++        Path(self.log_dir).mkdir(parents=True, exist_ok=True)
++        
++        logger.info(f"TextFormattingMonitor initialized with log directory: {self.log_dir}")
++    
++    def record_event(self,
++                    approach: FormattingApproach,
++                    event: FormattingEvent,
++                    details: Dict[str, Any] = None,
++                    error_message: str = None) -> None:
++        """
++        Record a text formatting event
++        
++        Args:
++            approach: The formatting approach used
++            event: The event type
++            details: Additional details about the event
++            error_message: Error message if applicable
++        """
++        timestamp = datetime.now().isoformat()
++        
++        event_data = {
++            "timestamp": timestamp,
++            "approach": approach.value,
++            "event": event.value,
++            "details": details or {},
++        }
++        
++        if error_message:
++            event_data["error_message"] = error_message
++        
++        self.events.append(event_data)
++        
++        # Log the event
++        if event == FormattingEvent.ERROR:
++            logger.error(f"Text formatting error with {approach.value}: {error_message}")
++        elif event == FormattingEvent.FALLBACK:
++            logger.warning(f"Text formatting fallback from {approach.value} to {details.get('fallback_to')}")
++        else:
++            logger.info(f"Text formatting success with {approach.value}")
++        
++        # Periodically save events to disk
++        if len(self.events) >= 100:
++            self.save_events()
++    
++    def record_structured_output_success(self, response_size: int, content_types: List[str]) -> None:
++        """
++        Record a successful structured output formatting
++        
++        Args:
++            response_size: Size of the response in bytes
++            content_types: Types of content in the response (e.g., code, table, image)
++        """
++        self.record_event(
++            approach=FormattingApproach.STRUCTURED_OUTPUT,
++            event=FormattingEvent.SUCCESS,
++            details={
++                "response_size": response_size,
++                "content_types": content_types,
++                "processing_time_ms": round((time.time() - self.start_time) * 1000)
++            }
++        )
++    
++    def record_structured_output_error(self, error_message: str, processing_stage: str) -> None:
++        """
++        Record an error in structured output formatting
++        
++        Args:
++            error_message: The error message
++            processing_stage: The stage where the error occurred
++        """
++        self.record_event(
++            approach=FormattingApproach.STRUCTURED_OUTPUT,
++            event=FormattingEvent.ERROR,
++            details={
++                "processing_stage": processing_stage,
++                "processing_time_ms": round((time.time() - self.start_time) * 1000)
++            },
++            error_message=error_message
++        )
++    
++    def record_fallback(self,
++                       from_approach: FormattingApproach,
++                       to_approach: FormattingApproach,
++                       reason: str) -> None:
++        """
++        Record a fallback from one formatting approach to another
++        
++        Args:
++            from_approach: The original formatting approach
++            to_approach: The fallback formatting approach
++            reason: The reason for the fallback
++        """
++        self.record_event(
++            approach=from_approach,
++            event=FormattingEvent.FALLBACK,
++            details={
++                "fallback_to": to_approach.value,
++                "reason": reason,
++                "processing_time_ms": round((time.time() - self.start_time) * 1000)
++            }
++        )
++    
++    def save_events(self) -> None:
++        """Save events to disk"""
++        if not self.events:
++            return
++        
++        # Create a filename with the current timestamp
++        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
++        filename = f"{self.log_dir}/text_formatting_events_{timestamp}.json"
++        
++        # Save events to file
++        with open(filename, "w") as f:
++            json.dump(self.events, f, indent=2)
++        
++        logger.info(f"Saved {len(self.events)} text formatting events to {filename}")
++        
++        # Clear events
++        self.events = []
++    
++    def generate_report(self, time_period: str = "day") -> Dict[str, Any]:
++        """
++        Generate a report of text formatting performance
++        
++        Args:
++            time_period: Time period for the report (day, week, month)
++            
++        Returns:
++            Report data
++        """
++        # Load events from disk
++        events = self._load_events(time_period)
++        
++        # Calculate statistics
++        total_events = len(events)
++        success_count = sum(1 for e in events if e["event"] == FormattingEvent.SUCCESS.value)
++        fallback_count = sum(1 for e in events if e["event"] == FormattingEvent.FALLBACK.value)
++        error_count = sum(1 for e in events if e["event"] == FormattingEvent.ERROR.value)
++        
++        # Calculate success rate
++        success_rate = (success_count / total_events) * 100 if total_events > 0 else 0
++        
++        # Calculate approach usage
++        approach_usage = {}
++        for approach in FormattingApproach:
++            approach_count = sum(1 for e in events if e["approach"] == approach.value)
++            approach_usage[approach.value] = {
++                "count": approach_count,
++                "percentage": (approach_count / total_events) * 100 if total_events > 0 else 0
++            }
++        
++        # Calculate common error messages
++        error_messages = {}
++        for event in events:
++            if event["event"] == FormattingEvent.ERROR.value and "error_message" in event:
++                error_message = event["error_message"]
++                error_messages[error_message] = error_messages.get(error_message, 0) + 1
++        
++        # Sort error messages by frequency
++        common_errors = sorted(
++            [{"message": msg, "count": count} for msg, count in error_messages.items()],
++            key=lambda x: x["count"],
++            reverse=True
++        )[:10]  # Top 10 errors
++        
++        # Calculate fallback patterns
++        fallback_patterns = {}
++        for event in events:
++            if event["event"] == FormattingEvent.FALLBACK.value:
++                from_approach = event["approach"]
++                to_approach = event["details"].get("fallback_to")
++                if from_approach and to_approach:
++                    key = f"{from_approach} -> {to_approach}"
++                    fallback_patterns[key] = fallback_patterns.get(key, 0) + 1
++        
++        # Sort fallback patterns by frequency
++        common_fallbacks = sorted(
++            [{"pattern": pattern, "count": count} for pattern, count in fallback_patterns.items()],
++            key=lambda x: x["count"],
++            reverse=True
++        )
++        
++        # Calculate content type statistics
++        content_types = {}
++        for event in events:
++            if event["event"] == FormattingEvent.SUCCESS.value:
++                for content_type in event["details"].get("content_types", []):
++                    content_types[content_type] = content_types.get(content_type, 0) + 1
++        
++        # Create the report
++        report = {
++            "time_period": time_period,
++            "total_events": total_events,
++            "success_count": success_count,
++            "fallback_count": fallback_count,
++            "error_count": error_count,
++            "success_rate": success_rate,
++            "approach_usage": approach_usage,
++            "common_errors": common_errors,
++            "common_fallbacks": common_fallbacks,
++            "content_types": content_types,
++            "generated_at": datetime.now().isoformat()
++        }
++        
++        return report
++    
++    def _load_events(self, time_period: str) -> List[Dict[str, Any]]:
++        """
++        Load events from disk for a specific time period
++        
++        Args:
++            time_period: Time period (day, week, month)
++            
++        Returns:
++            List of events
++        """
++        # Calculate the start date based on the time period
++        now = datetime.now()
++        if time_period == "day":
++            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
++        elif time_period == "week":
++            # Start of the week (Monday)
++            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
++            start_date = start_date.replace(day=start_date.day - start_date.weekday())
++        elif time_period == "month":
++            # Start of the month
++            start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
++        else:
++            # Default to day
++            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
++        
++        # Load all event files
++        events = []
++        for file_path in Path(self.log_dir).glob("text_formatting_events_*.json"):
++            try:
++                with open(file_path, "r") as f:
++                    file_events = json.load(f)
++                    
++                    # Filter events by time period
++                    for event in file_events:
++                        event_time = datetime.fromisoformat(event["timestamp"])
++                        if event_time >= start_date:
++                            events.append(event)
++            except Exception as e:
++                logger.error(f"Error loading events from {file_path}: {str(e)}")
++        
++        return events
++
++
++# Singleton instance
++_monitor_instance = None
++
++def get_monitor() -> TextFormattingMonitor:
++    """
++    Get the singleton instance of the text formatting monitor
++    
++    Returns:
++        TextFormattingMonitor instance
++    """
++    global _monitor_instance
++    if _monitor_instance is None:
++        _monitor_instance = TextFormattingMonitor()
++    return _monitor_instance
+\ No newline at end of file
+diff --git a/app/static/css/structured-output.css b/app/static/css/structured-output.css
+index 40a904f..2fd4294 100644
+--- a/app/static/css/structured-output.css
++++ b/app/static/css/structured-output.css
+@@ -78,6 +78,77 @@
+   line-height: 1.5;
+ }
+ 
++/* Table styling */
++.message-content table {
++  border-collapse: collapse;
++  width: 100%;
++  margin: 1.5em 0;
++  overflow-x: auto;
++  display: block;
++}
++
++.message-content table th,
++.message-content table td {
++  border: 1px solid #e9ecef;
++  padding: 0.5em 0.8em;
++  text-align: left;
++}
++
++.message-content table th {
++  background-color: #f8f9fa;
++  font-weight: bold;
++  color: #2c3e50;
++}
++
++.message-content table tr:nth-child(even) {
++  background-color: #f8f9fa;
++}
++
++.message-content table caption {
++  margin-bottom: 0.5em;
++  font-weight: bold;
++  color: #2c3e50;
++}
++
++/* Image styling */
++.structured-image {
++  margin: 1.5em 0;
++  text-align: center;
++}
++
++.structured-image img {
++  max-width: 100%;
++  height: auto;
++  border-radius: 4px;
++  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
++}
++
++.structured-image figcaption {
++  margin-top: 0.5em;
++  font-style: italic;
++  color: #6c757d;
++  font-size: 0.9em;
++}
++
++/* Math block styling */
++.structured-math {
++  margin: 1.5em 0;
++  overflow-x: auto;
++}
++
++.structured-math-inline {
++  font-style: italic;
++}
++
++.structured-math-display {
++  display: block;
++  text-align: center;
++  padding: 1em;
++  background-color: #f8f9fa;
++  border-radius: 4px;
++  border: 1px solid #e9ecef;
++}
++
+ /* Paragraph preservation */
+ .preserve-paragraphs p {
+   margin-bottom: 1.2em;
+@@ -88,6 +159,23 @@
+   margin-bottom: 1em;
+ }
+ 
++/* Theme support */
++.theme-light {
++  --bg-color: #ffffff;
++  --text-color: #333333;
++  --border-color: #e9ecef;
++  --header-color: #2c3e50;
++  --accent-color: #3498db;
++}
++
++.theme-dark {
++  --bg-color: #2c3e50;
++  --text-color: #f8f9fa;
++  --border-color: #4a5568;
++  --header-color: #f8f9fa;
++  --accent-color: #3498db;
++}
++
+ /* Responsive adjustments */
+ @media (max-width: 768px) {
+   .structured-heading {
+@@ -97,4 +185,12 @@
+   .message-content pre code {
+     font-size: 0.8em;
+   }
++  
++  .message-content table {
++    font-size: 0.9em;
++  }
++  
++  .structured-image figcaption {
++    font-size: 0.8em;
++  }
+ }
+\ No newline at end of file
+diff --git a/app/static/js/markdown-parser.js b/app/static/js/markdown-parser.js
+index 5031adb..cee7f35 100644
+--- a/app/static/js/markdown-parser.js
++++ b/app/static/js/markdown-parser.js
+@@ -237,54 +237,144 @@ function processResponse(response) {
+   
+   // Check if the response is a JSON string (structured output)
+   if (response.trim().startsWith('{') && response.trim().endsWith('}')) {
+-    try {
+-      console.log("DETECTED POTENTIAL JSON RESPONSE, ATTEMPTING TO PARSE");
+-      const jsonData = JSON.parse(response);
+-      
+-      // Check if this is our structured output format
+-      if (jsonData.text && (jsonData.code_blocks || jsonData.text_blocks)) {
+-        console.log("DETECTED STRUCTURED OUTPUT FORMAT");
+-        
+-        let processedText = jsonData.text;
+-        
+-        // Process text blocks if available
+-        if (jsonData.text_blocks && jsonData.text_blocks.length > 0) {
+-          console.log(`PROCESSING ${jsonData.text_blocks.length} TEXT BLOCKS`);
+-          
+-          // Combine text blocks into a single text with proper paragraph structure
+-          const textParts = jsonData.text_blocks.map(block => {
+-            if (block.format_type === "paragraph") {
+-              return block.content;
+-            } else if (block.format_type === "heading") {
+-              return `## ${block.content}`;
+-            } else if (block.format_type === "list_item") {
+-              return `- ${block.content}`;
+-            } else if (block.format_type === "quote") {
+-              return `> ${block.content}`;
+-            } else {
+-              return block.content;
+-            }
+-          });
+-          
+-          // Join with double newlines to preserve paragraph structure
+-          processedText = textParts.join("\n\n");
+-        }
+-        
+-        // Process code blocks
+-        if (jsonData.code_blocks && jsonData.code_blocks.length > 0) {
+-          console.log(`PROCESSING ${jsonData.code_blocks.length} CODE BLOCKS`);
++      try {
++          console.log("DETECTED POTENTIAL JSON RESPONSE, ATTEMPTING TO PARSE");
++          const jsonData = JSON.parse(response);
+           
+-          // Replace code block placeholders with properly formatted code blocks
+-          jsonData.code_blocks.forEach((codeBlock, index) => {
+-            const placeholder = `{CODE_BLOCK_${index}}`;
+-            const formattedBlock = `\`\`\`${codeBlock.language}\n${codeBlock.code}\n\`\`\``;
+-            processedText = processedText.replace(placeholder, formattedBlock);
+-          });
+-        }
+-        
+-        console.log("STRUCTURED OUTPUT PROCESSED SUCCESSFULLY");
+-        response = processedText;
+-      }
++          // Check if this is our structured output format
++          if (jsonData.text && (jsonData.code_blocks || jsonData.text_blocks || jsonData.tables || jsonData.images || jsonData.math_blocks)) {
++              console.log("DETECTED STRUCTURED OUTPUT FORMAT");
++              
++              let processedText = jsonData.text;
++              
++              // Process text blocks if available
++              if (jsonData.text_blocks && jsonData.text_blocks.length > 0) {
++                  console.log(`PROCESSING ${jsonData.text_blocks.length} TEXT BLOCKS`);
++                  
++                  // Combine text blocks into a single text with proper paragraph structure
++                  const textParts = jsonData.text_blocks.map(block => {
++                      if (block.format_type === "paragraph") {
++                          return block.content;
++                      } else if (block.format_type === "heading") {
++                          return `## ${block.content}`;
++                      } else if (block.format_type === "list_item") {
++                          return `- ${block.content}`;
++                      } else if (block.format_type === "quote") {
++                          return `> ${block.content}`;
++                      } else {
++                          return block.content;
++                      }
++                  });
++                  
++                  // Join with double newlines to preserve paragraph structure
++                  processedText = textParts.join("\n\n");
++              }
++              
++              // Process code blocks
++              if (jsonData.code_blocks && jsonData.code_blocks.length > 0) {
++                  console.log(`PROCESSING ${jsonData.code_blocks.length} CODE BLOCKS`);
++                  
++                  // Replace code block placeholders with properly formatted code blocks
++                  jsonData.code_blocks.forEach((codeBlock, index) => {
++                      const placeholder = `{CODE_BLOCK_${index}}`;
++                      const formattedBlock = `\`\`\`${codeBlock.language}\n${codeBlock.code}\n\`\`\``;
++                      processedText = processedText.replace(placeholder, formattedBlock);
++                  });
++              }
++              
++              // Process tables
++              if (jsonData.tables && jsonData.tables.length > 0) {
++                  console.log(`PROCESSING ${jsonData.tables.length} TABLES`);
++                  
++                  // Replace table placeholders with markdown tables
++                  jsonData.tables.forEach((table, index) => {
++                      const placeholder = `{TABLE_${index}}`;
++                      let tableMarkdown = "";
++                      
++                      // Add caption if available
++                      if (table.caption) {
++                          tableMarkdown += `**${table.caption}**\n\n`;
++                      }
++                      
++                      // Process rows
++                      table.rows.forEach((row, rowIndex) => {
++                          // Create row content
++                          const rowCells = row.cells.map(cell => {
++                              let content = cell.content.trim();
++                              if (cell.align === "center") {
++                                  content = ` ${content} `;
++                              } else if (cell.align === "right") {
++                                  content = ` ${content}`;
++                              } else { // left alignment (default)
++                                  content = `${content} `;
++                              }
++                              return content;
++                          });
++                          
++                          tableMarkdown += `| ${rowCells.join(' | ')} |\n`;
++                          
++                          // Add header separator after first row if it's a header row
++                          if (rowIndex === 0 && (row.is_header_row || row.cells.some(cell => cell.is_header))) {
++                              const separators = row.cells.map(cell => {
++                                  if (cell.align === "center") {
++                                      return ":---:";
++                                  } else if (cell.align === "right") {
++                                      return "---:";
++                                  } else { // left alignment (default)
++                                      return "---";
++                                  }
++                              });
++                              
++                              tableMarkdown += `| ${separators.join(' | ')} |\n`;
++                          }
++                      });
++                      
++                      processedText = processedText.replace(placeholder, tableMarkdown);
++                  });
++              }
++              
++              // Process images
++              if (jsonData.images && jsonData.images.length > 0) {
++                  console.log(`PROCESSING ${jsonData.images.length} IMAGES`);
++                  
++                  // Replace image placeholders with markdown images
++                  jsonData.images.forEach((image, index) => {
++                      const placeholder = `{IMAGE_${index}}`;
++                      let imageMarkdown = `![${image.alt_text}](${image.url})`;
++                      
++                      // Add caption if available
++                      if (image.caption) {
++                          imageMarkdown += `\n*${image.caption}*`;
++                      }
++                      
++                      processedText = processedText.replace(placeholder, imageMarkdown);
++                  });
++              }
++              
++              // Process math blocks
++              if (jsonData.math_blocks && jsonData.math_blocks.length > 0) {
++                  console.log(`PROCESSING ${jsonData.math_blocks.length} MATH BLOCKS`);
++                  
++                  // Replace math block placeholders with LaTeX
++                  jsonData.math_blocks.forEach((mathBlock, index) => {
++                      const placeholder = `{MATH_${index}}`;
++                      let mathMarkdown = "";
++                      
++                      if (mathBlock.display_mode) {
++                          // Display mode (block)
++                          mathMarkdown = `$$\n${mathBlock.latex}\n$$`;
++                      } else {
++                          // Inline mode
++                          mathMarkdown = `$${mathBlock.latex}$`;
++                      }
++                      
++                      processedText = processedText.replace(placeholder, mathMarkdown);
++                  });
++              }
++              
++              console.log("STRUCTURED OUTPUT PROCESSED SUCCESSFULLY");
++              response = processedText;
++          }
+     } catch (e) {
+       console.warn("FAILED TO PARSE JSON RESPONSE:", e);
+       // Continue with normal processing
+diff --git a/app/templates/text_formatting_dashboard.html b/app/templates/text_formatting_dashboard.html
+new file mode 100644
+index 0000000..7953ffb
+--- /dev/null
++++ b/app/templates/text_formatting_dashboard.html
+@@ -0,0 +1,470 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>Text Formatting Dashboard</title>
++    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
++    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
++    <style>
++        body {
++            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
++            padding: 20px;
++            background-color: #f8f9fa;
++        }
++        .dashboard-header {
++            margin-bottom: 30px;
++            padding-bottom: 10px;
++            border-bottom: 1px solid #dee2e6;
++        }
++        .card {
++            margin-bottom: 20px;
++            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
++        }
++        .card-header {
++            font-weight: bold;
++            background-color: #f1f8ff;
++        }
++        .stats-card {
++            text-align: center;
++            padding: 15px;
++        }
++        .stats-value {
++            font-size: 2rem;
++            font-weight: bold;
++            color: #0d6efd;
++        }
++        .stats-label {
++            font-size: 0.9rem;
++            color: #6c757d;
++        }
++        .chart-container {
++            position: relative;
++            height: 300px;
++            margin-bottom: 20px;
++        }
++        .table-container {
++            max-height: 300px;
++            overflow-y: auto;
++        }
++        .refresh-button {
++            margin-bottom: 20px;
++        }
++        .time-period-selector {
++            margin-bottom: 20px;
++        }
++    </style>
++</head>
++<body>
++    <div class="container">
++        <div class="dashboard-header">
++            <h1>Text Formatting Dashboard</h1>
++            <p class="text-muted">Monitor the performance of the structured output approach</p>
++        </div>
++
++        <div class="row mb-3">
++            <div class="col-md-6">
++                <div class="time-period-selector">
++                    <label for="time-period" class="form-label">Time Period:</label>
++                    <select id="time-period" class="form-select" onchange="refreshDashboard()">
++                        <option value="day">Today</option>
++                        <option value="week">This Week</option>
++                        <option value="month">This Month</option>
++                    </select>
++                </div>
++            </div>
++            <div class="col-md-6 text-end">
++                <button class="btn btn-primary refresh-button" onclick="refreshDashboard()">
++                    <i class="bi bi-arrow-clockwise"></i> Refresh Data
++                </button>
++            </div>
++        </div>
++
++        <div class="row">
++            <div class="col-md-3">
++                <div class="card stats-card">
++                    <div class="stats-value" id="total-events">-</div>
++                    <div class="stats-label">Total Events</div>
++                </div>
++            </div>
++            <div class="col-md-3">
++                <div class="card stats-card">
++                    <div class="stats-value" id="success-rate">-</div>
++                    <div class="stats-label">Success Rate</div>
++                </div>
++            </div>
++            <div class="col-md-3">
++                <div class="card stats-card">
++                    <div class="stats-value" id="fallback-count">-</div>
++                    <div class="stats-label">Fallbacks</div>
++                </div>
++            </div>
++            <div class="col-md-3">
++                <div class="card stats-card">
++                    <div class="stats-value" id="error-count">-</div>
++                    <div class="stats-label">Errors</div>
++                </div>
++            </div>
++        </div>
++
++        <div class="row">
++            <div class="col-md-6">
++                <div class="card">
++                    <div class="card-header">Approach Usage</div>
++                    <div class="card-body">
++                        <div class="chart-container">
++                            <canvas id="approach-chart"></canvas>
++                        </div>
++                    </div>
++                </div>
++            </div>
++            <div class="col-md-6">
++                <div class="card">
++                    <div class="card-header">Content Types</div>
++                    <div class="card-body">
++                        <div class="chart-container">
++                            <canvas id="content-chart"></canvas>
++                        </div>
++                    </div>
++                </div>
++            </div>
++        </div>
++
++        <div class="row">
++            <div class="col-md-6">
++                <div class="card">
++                    <div class="card-header">Common Errors</div>
++                    <div class="card-body">
++                        <div class="table-container">
++                            <table class="table table-striped">
++                                <thead>
++                                    <tr>
++                                        <th>Error Message</th>
++                                        <th>Count</th>
++                                    </tr>
++                                </thead>
++                                <tbody id="error-table-body">
++                                    <tr>
++                                        <td colspan="2" class="text-center">No data available</td>
++                                    </tr>
++                                </tbody>
++                            </table>
++                        </div>
++                    </div>
++                </div>
++            </div>
++            <div class="col-md-6">
++                <div class="card">
++                    <div class="card-header">Fallback Patterns</div>
++                    <div class="card-body">
++                        <div class="table-container">
++                            <table class="table table-striped">
++                                <thead>
++                                    <tr>
++                                        <th>Pattern</th>
++                                        <th>Count</th>
++                                    </tr>
++                                </thead>
++                                <tbody id="fallback-table-body">
++                                    <tr>
++                                        <td colspan="2" class="text-center">No data available</td>
++                                    </tr>
++                                </tbody>
++                            </table>
++                        </div>
++                    </div>
++                </div>
++            </div>
++        </div>
++
++        <div class="row mt-4">
++            <div class="col-12">
++                <div class="card">
++                    <div class="card-header">Success Rate Over Time</div>
++                    <div class="card-body">
++                        <div class="chart-container">
++                            <canvas id="success-rate-chart"></canvas>
++                        </div>
++                    </div>
++                </div>
++            </div>
++        </div>
++    </div>
++
++    <script>
++        // Chart objects
++        let approachChart = null;
++        let contentChart = null;
++        let successRateChart = null;
++
++        // Initialize the dashboard
++        document.addEventListener('DOMContentLoaded', function() {
++            refreshDashboard();
++        });
++
++        // Refresh the dashboard data
++        function refreshDashboard() {
++            const timePeriod = document.getElementById('time-period').value;
++            fetchDashboardData(timePeriod);
++        }
++
++        // Fetch dashboard data from the API
++        function fetchDashboardData(timePeriod) {
++            // In a real implementation, this would be an API call
++            // For now, we'll use mock data
++            const mockData = generateMockData(timePeriod);
++            updateDashboard(mockData);
++        }
++
++        // Generate mock data for demonstration
++        function generateMockData(timePeriod) {
++            return {
++                time_period: timePeriod,
++                total_events: Math.floor(Math.random() * 1000) + 500,
++                success_count: Math.floor(Math.random() * 800) + 400,
++                fallback_count: Math.floor(Math.random() * 100) + 50,
++                error_count: Math.floor(Math.random() * 50) + 10,
++                success_rate: (Math.random() * 20 + 80).toFixed(2),
++                approach_usage: {
++                    structured_output: {
++                        count: Math.floor(Math.random() * 600) + 300,
++                        percentage: (Math.random() * 30 + 60).toFixed(2)
++                    },
++                    backend_processing: {
++                        count: Math.floor(Math.random() * 200) + 100,
++                        percentage: (Math.random() * 20 + 20).toFixed(2)
++                    },
++                    frontend_parsing: {
++                        count: Math.floor(Math.random() * 100) + 50,
++                        percentage: (Math.random() * 10 + 10).toFixed(2)
++                    },
++                    css_formatting: {
++                        count: Math.floor(Math.random() * 50) + 10,
++                        percentage: (Math.random() * 5 + 5).toFixed(2)
++                    }
++                },
++                content_types: {
++                    text: Math.floor(Math.random() * 1000) + 500,
++                    code: Math.floor(Math.random() * 500) + 200,
++                    table: Math.floor(Math.random() * 200) + 50,
++                    image: Math.floor(Math.random() * 100) + 20,
++                    math: Math.floor(Math.random() * 50) + 10
++                },
++                common_errors: [
++                    { message: "JSON parsing error: Unexpected token", count: Math.floor(Math.random() * 20) + 10 },
++                    { message: "Schema validation error: Missing required field", count: Math.floor(Math.random() * 15) + 5 },
++                    { message: "Invalid code block reference", count: Math.floor(Math.random() * 10) + 3 },
++                    { message: "Malformed JSON response", count: Math.floor(Math.random() * 8) + 2 },
++                    { message: "Unknown content type", count: Math.floor(Math.random() * 5) + 1 }
++                ],
++                common_fallbacks: [
++                    { pattern: "structured_output -> backend_processing", count: Math.floor(Math.random() * 50) + 30 },
++                    { pattern: "backend_processing -> frontend_parsing", count: Math.floor(Math.random() * 30) + 15 },
++                    { pattern: "frontend_parsing -> css_formatting", count: Math.floor(Math.random() * 20) + 5 }
++                ],
++                success_rate_over_time: [
++                    { date: "2025-04-01", rate: Math.random() * 10 + 85 },
++                    { date: "2025-04-02", rate: Math.random() * 10 + 85 },
++                    { date: "2025-04-03", rate: Math.random() * 10 + 85 },
++                    { date: "2025-04-04", rate: Math.random() * 10 + 85 },
++                    { date: "2025-04-05", rate: Math.random() * 10 + 85 },
++                    { date: "2025-04-06", rate: Math.random() * 10 + 85 },
++                    { date: "2025-04-07", rate: Math.random() * 10 + 85 }
++                ]
++            };
++        }
++
++        // Update the dashboard with the fetched data
++        function updateDashboard(data) {
++            // Update stats cards
++            document.getElementById('total-events').textContent = data.total_events;
++            document.getElementById('success-rate').textContent = data.success_rate + '%';
++            document.getElementById('fallback-count').textContent = data.fallback_count;
++            document.getElementById('error-count').textContent = data.error_count;
++
++            // Update approach usage chart
++            updateApproachChart(data.approach_usage);
++
++            // Update content types chart
++            updateContentChart(data.content_types);
++
++            // Update success rate chart
++            updateSuccessRateChart(data.success_rate_over_time);
++
++            // Update error table
++            updateErrorTable(data.common_errors);
++
++            // Update fallback table
++            updateFallbackTable(data.common_fallbacks);
++        }
++
++        // Update the approach usage chart
++        function updateApproachChart(approachData) {
++            const ctx = document.getElementById('approach-chart').getContext('2d');
++            
++            // Destroy existing chart if it exists
++            if (approachChart) {
++                approachChart.destroy();
++            }
++            
++            // Create new chart
++            approachChart = new Chart(ctx, {
++                type: 'pie',
++                data: {
++                    labels: Object.keys(approachData).map(key => {
++                        const label = key.replace('_', ' ');
++                        return label.charAt(0).toUpperCase() + label.slice(1);
++                    }),
++                    datasets: [{
++                        data: Object.values(approachData).map(value => value.count),
++                        backgroundColor: [
++                            'rgba(54, 162, 235, 0.7)',
++                            'rgba(255, 99, 132, 0.7)',
++                            'rgba(255, 206, 86, 0.7)',
++                            'rgba(75, 192, 192, 0.7)'
++                        ],
++                        borderWidth: 1
++                    }]
++                },
++                options: {
++                    responsive: true,
++                    maintainAspectRatio: false,
++                    plugins: {
++                        legend: {
++                            position: 'right'
++                        },
++                        tooltip: {
++                            callbacks: {
++                                label: function(context) {
++                                    const label = context.label || '';
++                                    const value = context.raw || 0;
++                                    const percentage = Object.values(approachData)[context.dataIndex].percentage;
++                                    return `${label}: ${value} (${percentage}%)`;
++                                }
++                            }
++                        }
++                    }
++                }
++            });
++        }
++
++        // Update the content types chart
++        function updateContentChart(contentData) {
++            const ctx = document.getElementById('content-chart').getContext('2d');
++            
++            // Destroy existing chart if it exists
++            if (contentChart) {
++                contentChart.destroy();
++            }
++            
++            // Create new chart
++            contentChart = new Chart(ctx, {
++                type: 'bar',
++                data: {
++                    labels: Object.keys(contentData).map(key => {
++                        return key.charAt(0).toUpperCase() + key.slice(1);
++                    }),
++                    datasets: [{
++                        label: 'Count',
++                        data: Object.values(contentData),
++                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
++                        borderColor: 'rgba(54, 162, 235, 1)',
++                        borderWidth: 1
++                    }]
++                },
++                options: {
++                    responsive: true,
++                    maintainAspectRatio: false,
++                    scales: {
++                        y: {
++                            beginAtZero: true
++                        }
++                    }
++                }
++            });
++        }
++
++        // Update the success rate chart
++        function updateSuccessRateChart(successRateData) {
++            const ctx = document.getElementById('success-rate-chart').getContext('2d');
++            
++            // Destroy existing chart if it exists
++            if (successRateChart) {
++                successRateChart.destroy();
++            }
++            
++            // Create new chart
++            successRateChart = new Chart(ctx, {
++                type: 'line',
++                data: {
++                    labels: successRateData.map(item => item.date),
++                    datasets: [{
++                        label: 'Success Rate (%)',
++                        data: successRateData.map(item => item.rate),
++                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
++                        borderColor: 'rgba(75, 192, 192, 1)',
++                        borderWidth: 2,
++                        tension: 0.3,
++                        fill: true
++                    }]
++                },
++                options: {
++                    responsive: true,
++                    maintainAspectRatio: false,
++                    scales: {
++                        y: {
++                            beginAtZero: false,
++                            min: 80,
++                            max: 100
++                        }
++                    }
++                }
++            });
++        }
++
++        // Update the error table
++        function updateErrorTable(errorData) {
++            const tableBody = document.getElementById('error-table-body');
++            tableBody.innerHTML = '';
++            
++            if (errorData.length === 0) {
++                const row = document.createElement('tr');
++                row.innerHTML = '<td colspan="2" class="text-center">No data available</td>';
++                tableBody.appendChild(row);
++                return;
++            }
++            
++            errorData.forEach(error => {
++                const row = document.createElement('tr');
++                row.innerHTML = `
++                    <td>${error.message}</td>
++                    <td>${error.count}</td>
++                `;
++                tableBody.appendChild(row);
++            });
++        }
++
++        // Update the fallback table
++        function updateFallbackTable(fallbackData) {
++            const tableBody = document.getElementById('fallback-table-body');
++            tableBody.innerHTML = '';
++            
++            if (fallbackData.length === 0) {
++                const row = document.createElement('tr');
++                row.innerHTML = '<td colspan="2" class="text-center">No data available</td>';
++                tableBody.appendChild(row);
++                return;
++            }
++            
++            fallbackData.forEach(fallback => {
++                const row = document.createElement('tr');
++                row.innerHTML = `
++                    <td>${fallback.pattern}</td>
++                    <td>${fallback.count}</td>
++                `;
++                tableBody.appendChild(row);
++            });
++        }
++    </script>
++</body>
++</html>
+\ No newline at end of file
+diff --git a/scripts/run_structured_output_tests.py b/scripts/run_structured_output_tests.py
+new file mode 100644
+index 0000000..bdc18ad
+--- /dev/null
++++ b/scripts/run_structured_output_tests.py
+@@ -0,0 +1,41 @@
++#!/usr/bin/env python3
++"""
++Script to run the structured output tests
++"""
++import os
++import sys
++import pytest
++import logging
++from pathlib import Path
++
++# Add the project root to the Python path
++sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
++
++# Configure logging
++logging.basicConfig(
++    level=logging.INFO,
++    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
++    handlers=[
++        logging.StreamHandler(),
++        logging.FileHandler('structured_output_tests.log')
++    ]
++)
++
++logger = logging.getLogger(__name__)
++
++def main():
++    """Run the structured output tests"""
++    logger.info("Running structured output tests...")
++    
++    # Run the tests
++    test_file = os.path.join(os.path.dirname(__file__), '..', 'tests', 'test_structured_output_monitoring.py')
++    result = pytest.main(["-xvs", test_file])
++    
++    if result == 0:
++        logger.info("All structured output tests passed!")
++    else:
++        logger.error(f"Structured output tests failed with exit code: {result}")
++        sys.exit(result)
++
++if __name__ == "__main__":
++    main()
+\ No newline at end of file
+diff --git a/tests/test_structured_output_monitoring.py b/tests/test_structured_output_monitoring.py
+new file mode 100644
+index 0000000..ed13b2d
+--- /dev/null
++++ b/tests/test_structured_output_monitoring.py
+@@ -0,0 +1,213 @@
++"""
++Test the structured output monitoring system
++"""
++import pytest
++import json
++from unittest.mock import AsyncMock, patch, MagicMock
++import os
++import shutil
++from pathlib import Path
++
++from app.rag.text_formatting_monitor import (
++    TextFormattingMonitor,
++    FormattingApproach,
++    FormattingEvent,
++    get_monitor
++)
++from app.models.structured_output import FormattedResponse, CodeBlock, TextBlock
++from app.rag.rag_generation import GenerationMixin
++
++
++@pytest.fixture
++def test_monitor():
++    """Create a test monitor with a temporary log directory"""
++    # Create a temporary log directory
++    test_log_dir = "test_logs/text_formatting"
++    os.makedirs(test_log_dir, exist_ok=True)
++    
++    # Create a test monitor
++    monitor = TextFormattingMonitor(log_dir=test_log_dir)
++    
++    yield monitor
++    
++    # Clean up the temporary log directory
++    shutil.rmtree("test_logs", ignore_errors=True)
++
++
++def test_record_event(test_monitor):
++    """Test recording events"""
++    # Record a success event
++    test_monitor.record_event(
++        approach=FormattingApproach.STRUCTURED_OUTPUT,
++        event=FormattingEvent.SUCCESS,
++        details={"response_size": 1000, "content_types": ["text", "code"]}
++    )
++    
++    # Record a fallback event
++    test_monitor.record_event(
++        approach=FormattingApproach.STRUCTURED_OUTPUT,
++        event=FormattingEvent.FALLBACK,
++        details={"fallback_to": FormattingApproach.BACKEND_PROCESSING.value, "reason": "JSON parsing error"}
++    )
++    
++    # Record an error event
++    test_monitor.record_event(
++        approach=FormattingApproach.STRUCTURED_OUTPUT,
++        event=FormattingEvent.ERROR,
++        error_message="Failed to parse JSON"
++    )
++    
++    # Check that events were recorded
++    assert len(test_monitor.events) == 3
++    assert test_monitor.events[0]["approach"] == FormattingApproach.STRUCTURED_OUTPUT.value
++    assert test_monitor.events[0]["event"] == FormattingEvent.SUCCESS.value
++    assert test_monitor.events[1]["event"] == FormattingEvent.FALLBACK.value
++    assert test_monitor.events[2]["event"] == FormattingEvent.ERROR.value
++    assert "error_message" in test_monitor.events[2]
++
++
++def test_save_events(test_monitor):
++    """Test saving events to disk"""
++    # Record some events
++    test_monitor.record_event(
++        approach=FormattingApproach.STRUCTURED_OUTPUT,
++        event=FormattingEvent.SUCCESS,
++        details={"response_size": 1000, "content_types": ["text", "code"]}
++    )
++    
++    # Save events
++    test_monitor.save_events()
++    
++    # Check that events were saved
++    log_files = list(Path(test_monitor.log_dir).glob("text_formatting_events_*.json"))
++    assert len(log_files) == 1
++    
++    # Check that events were cleared
++    assert len(test_monitor.events) == 0
++    
++    # Check that the saved events are valid JSON
++    with open(log_files[0], "r") as f:
++        saved_events = json.load(f)
++    
++    assert len(saved_events) == 1
++    assert saved_events[0]["approach"] == FormattingApproach.STRUCTURED_OUTPUT.value
++    assert saved_events[0]["event"] == FormattingEvent.SUCCESS.value
++
++
++def test_generate_report(test_monitor):
++    """Test generating a report"""
++    # Record some events
++    test_monitor.record_event(
++        approach=FormattingApproach.STRUCTURED_OUTPUT,
++        event=FormattingEvent.SUCCESS,
++        details={"response_size": 1000, "content_types": ["text", "code"]}
++    )
++    
++    test_monitor.record_event(
++        approach=FormattingApproach.STRUCTURED_OUTPUT,
++        event=FormattingEvent.FALLBACK,
++        details={"fallback_to": FormattingApproach.BACKEND_PROCESSING.value, "reason": "JSON parsing error"}
++    )
++    
++    test_monitor.record_event(
++        approach=FormattingApproach.BACKEND_PROCESSING,
++        event=FormattingEvent.SUCCESS,
++        details={"response_size": 800, "content_types": ["text"]}
++    )
++    
++    # Save events
++    test_monitor.save_events()
++    
++    # Mock _load_events to return our test events
++    with open(list(Path(test_monitor.log_dir).glob("text_formatting_events_*.json"))[0], "r") as f:
++        saved_events = json.load(f)
++    
++    test_monitor._load_events = MagicMock(return_value=saved_events)
++    
++    # Generate a report
++    report = test_monitor.generate_report(time_period="day")
++    
++    # Check the report
++    assert report["total_events"] == 3
++    assert report["success_count"] == 2
++    assert report["fallback_count"] == 1
++    assert report["error_count"] == 0
++    assert report["success_rate"] == (2/3) * 100
++    assert "approach_usage" in report
++    assert "structured_output" in report["approach_usage"]
++    assert "backend_processing" in report["approach_usage"]
++
++
++@pytest.mark.asyncio
++async def test_process_response_text_with_monitoring():
++    """Test that the process_response_text method uses the monitoring system"""
++    # Create a mock monitor
++    mock_monitor = MagicMock()
++    mock_monitor.record_structured_output_success = MagicMock()
++    mock_monitor.record_structured_output_error = MagicMock()
++    mock_monitor.record_fallback = MagicMock()
++    mock_monitor.record_event = MagicMock()
++    
++    # Patch get_monitor to return our mock
++    with patch("app.rag.rag_generation.get_monitor", return_value=mock_monitor):
++        # Create a GenerationMixin instance
++        mixin = GenerationMixin()
++        
++        # Create a sample JSON response with text blocks and code blocks
++        json_response = json.dumps({
++            "text": "This is a sample text with code blocks.\n\nHere's a Python example: {CODE_BLOCK_0}",
++            "code_blocks": [
++                {
++                    "language": "python",
++                    "code": "def hello():\n    print('Hello, world!')"
++                }
++            ],
++            "text_blocks": [
++                {
++                    "content": "Mixed Content Example",
++                    "format_type": "heading"
++                },
++                {
++                    "content": "This is a sample text with proper paragraph structure.",
++                    "format_type": "paragraph"
++                },
++                {
++                    "content": "Here's a Python example: {CODE_BLOCK_0}",
++                    "format_type": "paragraph"
++                },
++                {
++                    "content": "The function above prints a greeting message.",
++                    "format_type": "paragraph"
++                }
++            ],
++            "preserve_paragraphs": True
++        })
++        
++        # Create a mock response object
++        mock_response = {"response": json_response}
++        
++        # Process the response
++        processed_text = mixin._process_response_text(mock_response)
++        
++        # Check that the monitoring methods were called
++        mock_monitor.record_structured_output_success.assert_called_once()
++        assert "code" in mock_monitor.record_structured_output_success.call_args[1]["content_types"]
++        
++        # Check that the text was processed correctly
++        assert "## Mixed Content Example" in processed_text
++        assert "```python" in processed_text
++        assert "def hello():" in processed_text
++        assert "```" in processed_text
++        
++        # Test error case
++        mock_response = {"response": "{invalid json}"}
++        processed_text = mixin._process_response_text(mock_response)
++        
++        # Check that the error monitoring methods were called
++        mock_monitor.record_structured_output_error.assert_called_once()
++        mock_monitor.record_fallback.assert_called_once()
++        mock_monitor.record_event.assert_called_once()
++
++
++if __name__ == "__main__":
++    pytest.main(["-xvs", "test_structured_output_monitoring.py"])
+\ No newline at end of file
+-- 
+2.48.1
+
