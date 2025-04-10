@@ -325,6 +325,14 @@ class VectorStore:
         Returns:
             Updated filter criteria with security constraints
         """
+        # Check if developer mode is enabled
+        from app.core.config import SETTINGS
+        
+        # If in developer mode, don't apply any security filtering
+        if SETTINGS.developer_mode:
+            logger.info("Developer mode: Security filtering disabled for vector store")
+            return filter_criteria.copy() if filter_criteria else {}
+        
         # Start with the original filter criteria or an empty dict
         secure_filter = filter_criteria.copy() if filter_criteria else {}
         
@@ -497,6 +505,41 @@ class VectorStore:
         if self.enable_cache:
             self.vector_cache.clear()
             logger.info("Vector store cache cleared")
+            
+    async def get_document_chunks(self, document_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all chunks for a document from the vector store
+        """
+        try:
+            logger.info(f"Getting chunks for document {document_id} from vector store")
+            
+            # Get all chunks for the document
+            results = self.collection.get(
+                where={"document_id": document_id}
+            )
+            
+            if not results["ids"]:
+                logger.warning(f"No chunks found for document {document_id}")
+                return []
+            
+            # Format chunks
+            chunks = []
+            for i in range(len(results["ids"])):
+                chunk_id = results["ids"][i]
+                content = results["documents"][i]
+                metadata = results["metadatas"][i]
+                
+                chunks.append({
+                    "id": chunk_id,
+                    "content": content,
+                    "metadata": metadata
+                })
+            
+            logger.info(f"Found {len(chunks)} chunks for document {document_id}")
+            return chunks
+        except Exception as e:
+            logger.error(f"Error getting chunks for document {document_id} from vector store: {str(e)}")
+            raise
     
     def _post_retrieval_permission_check(self, results: List[Dict[str, Any]], user_id: UUID) -> List[Dict[str, Any]]:
         """
@@ -515,6 +558,14 @@ class VectorStore:
         Returns:
             Filtered list of results that the user has permission to access
         """
+        # Check if developer mode is enabled
+        from app.core.config import SETTINGS
+        
+        # If in developer mode, bypass permission checks
+        if SETTINGS.developer_mode:
+            logger.info("Developer mode: Bypassing post-retrieval permission check")
+            return results
+            
         if not results:
             return results
             

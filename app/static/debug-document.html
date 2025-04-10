@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Document Processing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        textarea {
+            height: 200px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+            color: #856404;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 15px;
+            background-color: #2a5885;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .nav-links a:hover {
+            background-color: #1e3c5a;
+        }
+        .loading {
+            display: none;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .loading-text {
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #documentDetails, #processResult {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Document Debug Console</h1>
+        <p>Advanced tool for debugging document processing issues</p>
+        
+        <div class="nav-links">
+            <a href="/static/simple-document-upload.html">Upload Documents</a>
+            <a href="/static/file-explorer.html">Document Explorer</a>
+            <a href="/">Chat Interface</a>
+        </div>
+        
+        <div class="section">
+            <h2>1. Check Document</h2>
+            <div>
+                <label for="docId">Document ID:</label>
+                <input type="text" id="docId" placeholder="Enter document ID" value="6c98572e-9ac1-43c6-b47b-07e0e58ed38b">
+                <button id="checkButton">Check Document</button>
+            </div>
+            
+            <div class="loading" id="checkLoading">
+                <div class="loading-text">Checking document...</div>
+                <div class="spinner"></div>
+            </div>
+            
+            <div class="status" id="checkStatus" style="display:none;"></div>
+        </div>
+        
+        <div class="section" id="documentDetails">
+            <h2>2. Document Details</h2>
+            <div id="detailsContent"></div>
+            
+            <div class="actions">
+                <button id="reprocessButton" class="secondary">Reprocess Document</button>
+                <button id="deleteButton" class="danger">Delete from Vector Store</button>
+            </div>
+            
+            <div class="loading" id="actionLoading">
+                <div class="loading-text" id="actionLoadingText">Processing...</div>
+                <div class="spinner"></div>
+            </div>
+            
+            <div class="status" id="actionStatus" style="display:none;"></div>
+        </div>
+        
+        <div class="section" id="processResult">
+            <h2>3. Processing Result</h2>
+            <div id="resultContent"></div>
+            
+            <div class="actions">
+                <button id="testQueryButton" class="secondary">Test Search Query</button>
+            </div>
+            
+            <div>
+                <label for="queryInput">Test Query:</label>
+                <input type="text" id="queryInput" placeholder="Enter a query to test" value="What is the Quantum Resonance Modulator?">
+                <div class="loading" id="queryLoading">
+                    <div class="loading-text">Searching...</div>
+                    <div class="spinner"></div>
+                </div>
+                <div class="status" id="queryStatus" style="display:none;"></div>
+                <div id="queryResult" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const docIdInput = document.getElementById('docId');
+            const checkButton = document.getElementById('checkButton');
+            const reprocessButton = document.getElementById('reprocessButton');
+            const deleteButton = document.getElementById('deleteButton');
+            const testQueryButton = document.getElementById('testQueryButton');
+            const queryInput = document.getElementById('queryInput');
+            
+            // Status elements
+            const checkStatus = document.getElementById('checkStatus');
+            const actionStatus = document.getElementById('actionStatus');
+            const queryStatus = document.getElementById('queryStatus');
+            
+            // Loading indicators
+            const checkLoading = document.getElementById('checkLoading');
+            const actionLoading = document.getElementById('actionLoading');
+            const actionLoadingText = document.getElementById('actionLoadingText');
+            const queryLoading = document.getElementById('queryLoading');
+            
+            // Content sections
+            const documentDetails = document.getElementById('documentDetails');
+            const detailsContent = document.getElementById('detailsContent');
+            const processResult = document.getElementById('processResult');
+            const resultContent = document.getElementById('resultContent');
+            const queryResult = document.getElementById('queryResult');
+            
+            // Current document data
+            let currentDocument = null;
+            
+            // Function to show a status message
+            function showStatus(element, message, type) {
+                element.textContent = message;
+                element.className = `status ${type}`;
+                element.style.display = 'block';
+            }
+            
+            // Function to hide a status message
+            function hideStatus(element) {
+                element.style.display = 'none';
+            }
+            
+            // Check document
+            checkButton.addEventListener('click', async function() {
+                const docId = docIdInput.value.trim();
+                if (!docId) {
+                    alert('Please enter a document ID');
+                    return;
+                }
+                
+                // Reset UI
+                hideStatus(checkStatus);
+                documentDetails.style.display = 'none';
+                processResult.style.display = 'none';
+                
+                // Show loading
+                checkLoading.style.display = 'block';
+                
+                try {
+                    // Manually check file first
+                    const response = await fetch(`/api/documents/dev-document?id=${encodeURIComponent(docId)}`);
+                    const data = await response.json();
+                    
+                    // Hide loading
+                    checkLoading.style.display = 'none';
+                    
+                    if (data.success) {
+                        // Document found
+                        currentDocument = data.document;
+                        
+                        // Show success message
+                        showStatus(checkStatus, 'Document found on disk', 'success');
+                        
+                        // Show document details
+                        documentDetails.style.display = 'block';
+                        
+                        // Get chunk info
+                        const hasChunks = data.document.chunks && data.document.chunks.length > 0;
+                        const chunkStatus = hasChunks 
+                            ? `<span class="success">Document has ${data.document.chunks.length} chunks in vector store</span>` 
+                            : `<span class="error">Document has NO chunks in vector store</span>`;
+                        
+                        // Format the document details
+                        detailsContent.innerHTML = `
+                            <div>
+                                <p><strong>Document ID:</strong> ${docId}</p>
+                                <p><strong>Filename:</strong> ${data.document.filename}</p>
+                                <p><strong>Content Length:</strong> ${data.document.content.length} characters</p>
+                                <p><strong>Vector Store Status:</strong> ${chunkStatus}</p>
+                                
+                                <h3>Content Preview</h3>
+                                <pre>${data.document.content.substring(0, 300)}${data.document.content.length > 300 ? '...' : ''}</pre>
+                                
+                                ${hasChunks ? `
+                                <h3>Chunks (${data.document.chunks.length})</h3>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    ${data.document.chunks.map((chunk, i) => `
+                                        <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                                            <p><strong>Chunk ${i+1} ID:</strong> ${chunk.id}</p>
+                                            <pre>${chunk.content}</pre>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else {
+                        // Document not found
+                        showStatus(checkStatus, `Error: ${data.message}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    checkLoading.style.display = 'none';
+                    showStatus(checkStatus, `Error: ${error.message}`, 'error');
+                }
+            });
+            
+            // Reprocess document
+            reprocessButton.addEventListener('click', async function() {
+                if (!currentDocument) {
+                    alert('No document loaded');
+                    return;
+                }
+                
+                // Reset UI
+                hideStatus(actionStatus);
+                processResult.style.display = 'none';
+                
+                // Show loading
+                actionLoading.style.display = 'block';
+                actionLoadingText.textContent = 'Reprocessing document... This may take a minute.';
+                
+                try {
+                    // Create document data manually from the current document
+                    const docData = {
+                        id: currentDocument.id,
+                        filename: currentDocument.filename,
+                        content: currentDocument.content,
+                        force_delete: true  // Always delete old document first
+                    };
+                    
+                    // Make a manual request
+                    const response = await fetch('/api/documents/dev-manual-process', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(docData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Hide loading
+                    actionLoading.style.display = 'none';
+                    
+                    if (data.success) {
+                        // Processing successful
+                        showStatus(actionStatus, `Success: ${data.message}`, 'success');
+                        
+                        // Show process result
+                        processResult.style.display = 'block';
+                        
+                        // Format chunks
+                        let chunksHtml = '';
+                        if (data.chunks && data.chunks.length > 0) {
+                            chunksHtml = `
+                                <h3>Generated Chunks (${data.chunks.length})</h3>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    ${data.chunks.map((chunk, i) => `
+                                        <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                                            <p><strong>Chunk ${i+1} ID:</strong> ${chunk.id}</p>
+                                            <pre>${chunk.content}</pre>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
+                        
+                        // Display results
+                        resultContent.innerHTML = `
+                            <div>
+                                <p><strong>Processing Time:</strong> ${data.processing_time.toFixed(2)} seconds</p>
+                                <p><strong>Chunks Created:</strong> ${data.chunk_count}</p>
+                                <p><strong>Chunks in Vector Store:</strong> ${data.vector_store_chunks}</p>
+                                
+                                ${chunksHtml}
+                            </div>
+                        `;
+                        
+                        // Update current document with chunks
+                        currentDocument.chunks = data.chunks;
+                        
+                        // Refresh document details
+                        checkButton.click();
+                    } else {
+                        // Processing failed
+                        showStatus(actionStatus, `Error: ${data.message}`, 'error');
+                        
+                        // Show error details
+                        processResult.style.display = 'block';
+                        resultContent.innerHTML = `
+                            <div class="error" style="padding: 15px;">
+                                <h3>Processing Error</h3>
+                                <p><strong>Error:</strong> ${data.message}</p>
+                                ${data.error_trace ? `<pre>${data.error_trace}</pre>` : ''}
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    actionLoading.style.display = 'none';
+                    showStatus(actionStatus, `Error: ${error.message}`, 'error');
+                }
+            });
+            
+            // Delete document from vector store
+            deleteButton.addEventListener('click', async function() {
+                if (!currentDocument) {
+                    alert('No document loaded');
+                    return;
+                }
+                
+                if (!confirm(`Are you sure you want to delete document ${currentDocument.id} from the vector store?`)) {
+                    return;
+                }
+                
+                // Reset UI
+                hideStatus(actionStatus);
+                
+                // Show loading
+                actionLoading.style.display = 'block';
+                actionLoadingText.textContent = 'Deleting document from vector store...';
+                
+                try {
+                    // Make delete request
+                    const response = await fetch('/api/documents/dev-delete-vector', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ document_id: currentDocument.id })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Hide loading
+                    actionLoading.style.display = 'none';
+                    
+                    if (data.success) {
+                        // Delete successful
+                        showStatus(actionStatus, `Success: ${data.message}`, 'success');
+                        
+                        // Refresh document details
+                        setTimeout(() => {
+                            checkButton.click();
+                        }, 500);
+                    } else {
+                        // Delete failed
+                        showStatus(actionStatus, `Error: ${data.message}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    actionLoading.style.display = 'none';
+                    showStatus(actionStatus, `Error: ${error.message}`, 'error');
+                }
+            });
+            
+            // Test query
+            testQueryButton.addEventListener('click', async function() {
+                const query = queryInput.value.trim();
+                if (!query) {
+                    alert('Please enter a query');
+                    return;
+                }
+                
+                if (!currentDocument) {
+                    alert('No document loaded');
+                    return;
+                }
+                
+                // Reset UI
+                hideStatus(queryStatus);
+                queryResult.style.display = 'none';
+                
+                // Show loading
+                queryLoading.style.display = 'block';
+                
+                try {
+                    // Send search query
+                    const response = await fetch('/api/documents/dev-search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: query })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Hide loading
+                    queryLoading.style.display = 'none';
+                    
+                    // Check if current document is in results
+                    const documentFound = data.results.some(result => 
+                        result.metadata && result.metadata.document_id === currentDocument.id
+                    );
+                    
+                    if (data.success) {
+                        // Search successful
+                        if (documentFound) {
+                            showStatus(queryStatus, `Success: Your document was found in the search results!`, 'success');
+                        } else if (data.results.length > 0) {
+                            showStatus(queryStatus, `Warning: Search returned ${data.results.length} results, but your document was not among them`, 'warning');
+                        } else {
+                            showStatus(queryStatus, `Warning: Search returned no results`, 'warning');
+                        }
+                        
+                        // Show search results
+                        queryResult.style.display = 'block';
+                        queryResult.innerHTML = `
+                            <h3>Search Results (${data.results.length})</h3>
+                            ${data.results.length === 0 ? '<p>No results found</p>' : ''}
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${data.results.map((result, i) => {
+                                    const isCurrentDoc = result.metadata && result.metadata.document_id === currentDocument.id;
+                                    const docId = result.metadata ? result.metadata.document_id : 'unknown';
+                                    
+                                    return `
+                                        <div style="margin-bottom: 10px; padding: 10px; border: 1px solid ${isCurrentDoc ? '#4CAF50' : '#ddd'}; border-radius: 4px; background-color: ${isCurrentDoc ? '#f0fff0' : '#fff'};">
+                                            <p><strong>Result ${i+1}${isCurrentDoc ? ' (YOUR DOCUMENT)' : ''}</strong></p>
+                                            <p><strong>Document ID:</strong> ${docId}</p>
+                                            <p><strong>Distance:</strong> ${result.distance !== undefined ? result.distance.toFixed(4) : 'N/A'}</p>
+                                            <pre>${result.content}</pre>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    } else {
+                        // Search failed
+                        showStatus(queryStatus, `Error: ${data.message}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    queryLoading.style.display = 'none';
+                    showStatus(queryStatus, `Error: ${error.message}`, 'error');
+                }
+            });
+
+            // Auto-check if document ID is pre-filled
+            if (docIdInput.value.trim()) {
+                checkButton.click();
+            }
+        });
+    </script>
+</body>
+</html>

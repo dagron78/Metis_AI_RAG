@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document File Explorer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .file-explorer {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        .file-list {
+            margin-top: 20px;
+        }
+        .document-card {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        .document-card h3 {
+            margin-top: 0;
+            color: #2a5885;
+        }
+        .document-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .document-actions {
+            margin-top: 10px;
+        }
+        .document-actions button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .document-actions button.process-button {
+            background-color: #2196F3;
+        }
+        .document-actions button:hover {
+            opacity: 0.9;
+        }
+        .document-actions button.process-button:hover {
+            background-color: #0b7dda;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #777;
+        }
+        .search-bar {
+            margin-bottom: 15px;
+        }
+        .search-bar input {
+            width: 70%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-bar button {
+            padding: 8px 15px;
+            background-color: #2a5885;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .upload-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            background-color: #2a5885;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .upload-link:hover {
+            background-color: #1e3c5a;
+        }
+        .chat-link {
+            display: inline-block;
+            margin-left: 10px;
+            margin-bottom: 20px;
+            background-color: #673AB7;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .chat-link:hover {
+            background-color: #5E35B1;
+        }
+        .process-result {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Document File Explorer</h1>
+    <p>This page allows you to browse and view files uploaded via the development endpoint.</p>
+    
+    <a href="/static/simple-document-upload.html" class="upload-link">Go to Upload Page</a>
+    <a href="/chat" class="chat-link">Go to Chat Interface</a>
+    
+    <div class="file-explorer">
+        <h2>Uploaded Files</h2>
+        
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search by filename...">
+            <button id="searchButton">Search</button>
+        </div>
+        
+        <div id="fileList" class="file-list">
+            <div class="loading">Loading files...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileList = document.getElementById('fileList');
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            
+            // Function to fetch file list
+            async function fetchFiles() {
+                fileList.innerHTML = '<div class="loading">Loading files...</div>';
+                
+                try {
+                    const response = await fetch('/api/documents/dev-list');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    displayFiles(data.files);
+                } catch (error) {
+                    console.error('Error fetching files:', error);
+                    fileList.innerHTML = `<div class="document-card">
+                        <h3>Error Loading Files</h3>
+                        <p>${error.message}</p>
+                        <p>This is likely because the /api/documents/dev-list endpoint is not yet implemented. 
+                        You can still upload files at the <a href="/static/simple-document-upload.html">upload page</a>.</p>
+                    </div>`;
+                }
+            }
+            
+            // Function to display file list
+            function displayFiles(files) {
+                if (!files || files.length === 0) {
+                    fileList.innerHTML = '<div class="document-card"><h3>No files found</h3></div>';
+                    return;
+                }
+                
+                let html = '';
+                files.forEach(file => {
+                    const created = new Date(file.created * 1000).toLocaleString();
+                    
+                    html += `
+                    <div class="document-card" data-id="${file.id}" data-filename="${file.filename}">
+                        <h3>${file.filename}</h3>
+                        <div class="document-info">
+                            <span>ID: ${file.id}</span>
+                            <span>Created: ${created}</span>
+                        </div>
+                        <div class="document-info">
+                            <span>Size: ${formatBytes(file.size)}</span>
+                            <span>Path: ${file.path}</span>
+                        </div>
+                        <div class="document-actions">
+                            <button class="view-button" data-id="${file.id}" data-path="${file.path}">View Content</button>
+                            <button class="process-button" data-id="${file.id}">Process Document</button>
+                        </div>
+                        <pre class="file-content" id="content-${file.id}"></pre>
+                        <div class="process-result" id="process-result-${file.id}" style="display: none;"></div>
+                    </div>
+                    `;
+                });
+                
+                fileList.innerHTML = html;
+                
+                // Add event listeners for view buttons
+                document.querySelectorAll('.view-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        const path = this.getAttribute('data-path');
+                        const contentElement = document.getElementById(`content-${id}`);
+                        
+                        if (contentElement.style.display === 'block') {
+                            contentElement.style.display = 'none';
+                            this.textContent = 'View Content';
+                        } else {
+                            // Fetch and display content
+                            fetchFileContent(path, contentElement);
+                            contentElement.style.display = 'block';
+                            this.textContent = 'Hide Content';
+                        }
+                    });
+                });
+                
+                // Add event listeners for process buttons
+                document.querySelectorAll('.process-button').forEach(button => {
+                    button.addEventListener('click', async function() {
+                        const id = this.getAttribute('data-id');
+                        const resultElement = document.getElementById(`process-result-${id}`);
+                        
+                        // Show processing
+                        resultElement.style.display = 'block';
+                        resultElement.innerHTML = '<div class="loading">Processing document... This may take a few moments.</div>';
+                        
+                        try {
+                            const response = await fetch('/api/documents/dev-process', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ document_id: id })
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                resultElement.innerHTML = `
+                                    <div class="document-card" style="background-color: #d4edda; border-color: #c3e6cb;">
+                                        <h3>Processing Successful</h3>
+                                        <p>${data.message}</p>
+                                        <p>Chunk count: ${data.chunk_count}</p>
+                                        <p>The document has been processed and added to the vector store. You can now query it through the chat interface.</p>
+                                    </div>
+                                `;
+                            } else {
+                                resultElement.innerHTML = `
+                                    <div class="document-card" style="background-color: #f8d7da; border-color: #f5c6cb;">
+                                        <h3>Processing Failed</h3>
+                                        <p>${data.message}</p>
+                                    </div>
+                                `;
+                            }
+                        } catch (error) {
+                            console.error('Error processing document:', error);
+                            resultElement.innerHTML = `
+                                <div class="document-card" style="background-color: #f8d7da; border-color: #f5c6cb;">
+                                    <h3>Processing Error</h3>
+                                    <p>An error occurred while processing the document: ${error.message}</p>
+                                </div>
+                            `;
+                        }
+                    });
+                });
+            }
+            
+            // Function to fetch file content
+            async function fetchFileContent(path, element) {
+                element.textContent = 'Loading content...';
+                
+                try {
+                    const response = await fetch(`/api/documents/dev-content?path=${encodeURIComponent(path)}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    element.textContent = data.content;
+                } catch (error) {
+                    console.error('Error fetching file content:', error);
+                    element.textContent = `Error loading content: ${error.message}`;
+                }
+            }
+            
+            // Function to filter files by search term
+            function searchFiles() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const cards = document.querySelectorAll('.document-card');
+                
+                cards.forEach(card => {
+                    const filename = card.getAttribute('data-filename').toLowerCase();
+                    if (filename.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Helper function to format file size
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+            
+            // Search event listeners
+            searchButton.addEventListener('click', searchFiles);
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    searchFiles();
+                }
+            });
+            
+            // Load files when page loads
+            fetchFiles();
+        });
+    </script>
+</body>
+</html>

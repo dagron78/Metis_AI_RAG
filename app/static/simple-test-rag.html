@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple RAG Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            display: inline-block;
+            background-color: #2a5885;
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .nav-links a:hover {
+            background-color: #1e3c5a;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple RAG Test</h1>
+    <p>Test the RAG system directly by searching for documents.</p>
+    
+    <div class="nav-links">
+        <a href="/static/simple-document-upload.html">Upload Documents</a>
+        <a href="/static/file-explorer.html">Document Explorer</a>
+        <a href="/">Chat Interface</a>
+    </div>
+    
+    <div class="container">
+        <h2>Search Documents</h2>
+        <div class="form-group">
+            <label for="query">Search Query:</label>
+            <input type="text" id="query" placeholder="Enter your search query..." value="Quantum Resonance Modulator">
+        </div>
+        <button id="searchButton">Search Documents</button>
+        
+        <div id="searchResult" class="result" style="display: none;"></div>
+    </div>
+    
+    <div class="container">
+        <h2>View Document Content</h2>
+        <div class="form-group">
+            <label for="document_id">Document ID:</label>
+            <input type="text" id="document_id" placeholder="Enter document ID to view content">
+        </div>
+        <button id="viewButton">View Content</button>
+        
+        <div id="viewResult" class="result" style="display: none;"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const queryInput = document.getElementById('query');
+            const documentIdInput = document.getElementById('document_id');
+            const searchButton = document.getElementById('searchButton');
+            const viewButton = document.getElementById('viewButton');
+            const searchResult = document.getElementById('searchResult');
+            const viewResult = document.getElementById('viewResult');
+            
+            // Search documents
+            searchButton.addEventListener('click', async function() {
+                const query = queryInput.value.trim();
+                if (!query) {
+                    alert('Please enter a search query');
+                    return;
+                }
+                
+                searchResult.style.display = 'block';
+                searchResult.textContent = 'Searching...';
+                searchResult.className = 'result';
+                
+                try {
+                    const response = await fetch('/api/documents/dev-search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: query })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        searchResult.className = 'result success';
+                        searchResult.innerHTML = `<h3>Search Results</h3>
+                        <p>Found ${data.results.length} matching documents</p>
+                        <pre>${JSON.stringify(data.results, null, 2)}</pre>`;
+                    } else {
+                        searchResult.className = 'result error';
+                        searchResult.textContent = `Error: ${data.message}`;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    searchResult.className = 'result error';
+                    searchResult.textContent = `Error: ${error.message}`;
+                }
+            });
+            
+            // View document content
+            viewButton.addEventListener('click', async function() {
+                const documentId = documentIdInput.value.trim();
+                if (!documentId) {
+                    alert('Please enter a document ID');
+                    return;
+                }
+                
+                viewResult.style.display = 'block';
+                viewResult.textContent = 'Loading...';
+                viewResult.className = 'result';
+                
+                try {
+                    const response = await fetch(`/api/documents/dev-document?id=${encodeURIComponent(documentId)}`);
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        viewResult.className = 'result success';
+                        viewResult.innerHTML = `<h3>Document Content</h3>
+                        <p><strong>ID:</strong> ${data.document.id}</p>
+                        <p><strong>Filename:</strong> ${data.document.filename}</p>
+                        <h4>Content:</h4>
+                        <pre>${data.document.content}</pre>
+                        <h4>Chunks (${data.document.chunks ? data.document.chunks.length : 0}):</h4>
+                        <pre>${JSON.stringify(data.document.chunks || [], null, 2)}</pre>`;
+                    } else {
+                        viewResult.className = 'result error';
+                        viewResult.textContent = `Error: ${data.message}`;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    viewResult.className = 'result error';
+                    viewResult.textContent = `Error: ${error.message}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

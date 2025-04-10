@@ -43,17 +43,15 @@ async def validate_file(file: UploadFile) -> tuple[bool, str]:
     # Get max file size for this extension
     max_file_size = ALLOWED_EXTENSIONS.get(ext, DEFAULT_MAX_FILE_SIZE) * 1024 * 1024
     
-    # Check file size
+    # Check file size - FastAPI's UploadFile doesn't have tell/seek methods
+    # so we need to use file.file which is a SpooledTemporaryFile
     try:
-        # Save current position
-        current_position = await file.tell()
+        # Read the file content into memory for validation
+        content = await file.read()
+        file_size = len(content)
         
-        # Move to end to get size
-        await file.seek(0, 2)  # Seek to end
-        file_size = await file.tell()
-        
-        # Reset position
-        await file.seek(current_position)
+        # Reset the file pointer for subsequent reads
+        await file.seek(0)
         
         if file_size > max_file_size:
             error_msg = f"File exceeds maximum size of {max_file_size/(1024*1024):.1f}MB"
@@ -61,18 +59,9 @@ async def validate_file(file: UploadFile) -> tuple[bool, str]:
             return False, error_msg
             
         # Basic content validation for specific file types
-        if ext == ".pdf":
-            # Save current position
-            current_position = await file.tell()
-            
+        if ext == ".pdf" and file_size >= 5:
             # Check PDF header
-            await file.seek(0)
-            header = await file.read(5)
-            
-            # Reset position
-            await file.seek(current_position)
-            
-            if header != b"%PDF-":
+            if content[:5] != b"%PDF-":
                 error_msg = "Invalid PDF file format"
                 logger.warning(error_msg)
                 return False, error_msg

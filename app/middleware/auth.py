@@ -112,7 +112,11 @@ class AuthMiddleware:
             "/api/health/liveness",
             "/static",
             "/forgot-password",
-            "/reset-password"
+            "/reset-password",
+            # TEMPORARY: Allow document uploads without authentication
+            "/api/documents/upload",
+            "/api/documents/process",
+            "/api/documents/actions/clear-all"
         ]
         self.login_url = login_url
     

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Document Existence</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Check Document in Vector Store</h1>
+        <p>Enter a document ID to check if it exists in the vector store</p>
+        
+        <div>
+            <label for="docId">Document ID:</label>
+            <input type="text" id="docId" placeholder="Enter document ID" value="6c98572e-9ac1-43c6-b47b-07e0e58ed38b">
+            <button id="checkButton">Check Document</button>
+        </div>
+        
+        <div class="status" id="status" style="display:none;"></div>
+        
+        <div id="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const docIdInput = document.getElementById('docId');
+            const checkButton = document.getElementById('checkButton');
+            const resultDiv = document.getElementById('result');
+            const statusDiv = document.getElementById('status');
+            
+            checkButton.addEventListener('click', async function() {
+                const docId = docIdInput.value.trim();
+                if (!docId) {
+                    alert('Please enter a document ID');
+                    return;
+                }
+                
+                // Show loading status
+                statusDiv.style.display = 'block';
+                statusDiv.textContent = 'Checking document...';
+                statusDiv.className = 'status';
+                
+                // Hide previous results
+                resultDiv.style.display = 'none';
+                
+                try {
+                    // First check if document exists in vector store
+                    const response = await fetch(`/api/documents/dev-document?id=${encodeURIComponent(docId)}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Document exists, show details
+                        statusDiv.textContent = 'Document found!';
+                        statusDiv.className = 'status success';
+                        
+                        // Display document details
+                        resultDiv.style.display = 'block';
+                        
+                        // Check if document has chunks
+                        const hasChunks = data.document.chunks && data.document.chunks.length > 0;
+                        
+                        const docDetails = {
+                            filename: data.document.filename,
+                            content_preview: data.document.content.substring(0, 200) + '...',
+                            chunk_count: hasChunks ? data.document.chunks.length : 0,
+                            chunks: hasChunks ? data.document.chunks : 'No chunks found in vector store',
+                            content_length: data.document.content.length
+                        };
+                        
+                        resultDiv.innerHTML = `
+                            <h3>Document Details</h3>
+                            <p><strong>ID:</strong> ${docId}</p>
+                            <p><strong>Filename:</strong> ${docDetails.filename}</p>
+                            <p><strong>Content Length:</strong> ${docDetails.content_length} characters</p>
+                            <p><strong>Content Preview:</strong> ${docDetails.content_preview}</p>
+                            <p><strong>Chunk Count:</strong> ${docDetails.chunk_count}</p>
+                            
+                            <h3>Chunks</h3>
+                            <pre>${JSON.stringify(docDetails.chunks, null, 2)}</pre>
+                        `;
+                    } else {
+                        // Document doesn't exist
+                        statusDiv.textContent = `Error: ${data.message}`;
+                        statusDiv.className = 'status error';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    statusDiv.textContent = `Error: ${error.message}`;
+                    statusDiv.className = 'status error';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

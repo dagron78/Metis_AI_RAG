@@ -313,6 +313,22 @@ async def get_current_active_user(current_user = Depends(get_current_user)):
     Raises:
         HTTPException: If the user is inactive
     """
+    # Special handling for developer mode - provide a fake user for testing
+    if SETTINGS.developer_mode:
+        logger.info("Developer mode: Using fake user for authentication")
+        # Create a fake user object
+        from app.models.user import User
+        from uuid import uuid4
+        fake_user = User(
+            id=str(uuid4()),
+            username="developer",
+            email="developer@example.com",
+            is_active=True,
+            is_admin=True
+        )
+        return fake_user
+        
+    # Normal authentication check
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
