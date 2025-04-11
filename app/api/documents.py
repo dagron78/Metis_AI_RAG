@@ -38,7 +38,7 @@ logger = logging.getLogger("app.api.documents")
 document_processor = DocumentProcessor()
 
 # Vector store
-vector_store = VectorStore()
+vector_store = VectorStore.get_instance()
 
 # Special no-auth upload endpoint for developer mode
 @router.post("/dev-upload", include_in_schema=False)

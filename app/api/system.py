@@ -21,7 +21,7 @@ router = APIRouter()
 logger = logging.getLogger("app.api.system")
 
 # Vector store
-vector_store = VectorStore()
+vector_store = VectorStore.get_instance()
 
 @router.get("/stats", response_model=SystemStats)
 async def get_stats(
@@ -42,7 +42,7 @@ async def get_stats(
         vector_store_stats = vector_store.get_stats()
         
         # Get document count and total chunks from repository
-        documents = document_repository.get_all()
+        documents = await document_repository.get_all()
         total_chunks = sum(len(doc.chunks) if hasattr(doc, 'chunks') else 0 for doc in documents)
         
         return SystemStats(

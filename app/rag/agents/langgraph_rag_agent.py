@@ -17,7 +17,7 @@ from app.rag.vector_store import VectorStore
 from app.rag.agents.chunking_judge import ChunkingJudge
 from app.rag.agents.retrieval_judge import RetrievalJudge
 from app.rag.chunkers.semantic_chunker import SemanticChunker
-from app.core.config import CHUNKING_JUDGE_MODEL, RETRIEVAL_JUDGE_MODEL, DEFAULT_MODEL
+from app.core.config import SETTINGS
 
 logger = logging.getLogger("app.rag.agents.langgraph_rag_agent")
 
@@ -107,7 +107,7 @@ class LangGraphRAGAgent:
             retrieval_judge: Judge for query refinement and context optimization
             semantic_chunker: Chunker for intelligent text splitting
         """
-        self.vector_store = vector_store or VectorStore()
+        self.vector_store = vector_store or VectorStore.get_instance()
         self.ollama_client = ollama_client or OllamaClient()
         self.chunking_judge = chunking_judge or ChunkingJudge(ollama_client=self.ollama_client)
         self.retrieval_judge = retrieval_judge or RetrievalJudge(ollama_client=self.ollama_client)
@@ -171,13 +171,14 @@ class LangGraphRAGAgent:
     async def query(
         self,
         query: str,
-        model: str = DEFAULT_MODEL,
+        model: str = None,
         system_prompt: Optional[str] = None,
         stream: bool = False,
         model_parameters: Optional[Dict[str, Any]] = None,
         conversation_context: Optional[str] = None,
         metadata_filters: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
+        model = model or SETTINGS.default_model
         """
         Query the RAG agent with the state machine
         

@@ -6,7 +6,7 @@ import logging
 from typing import Optional, Dict, Any, List, Union
 
 # Import Mem0Client only if USE_MEM0 is True
-from app.core.config import MEM0_ENDPOINT, MEM0_API_KEY, USE_MEM0
+from app.core.config import SETTINGS
 
 # Define a dummy Mem0Client class to use when mem0 is not available
 class DummyMem0Client:
@@ -24,9 +24,12 @@ class DummyMem0Client:
     
     def create_human(self, *args, **kwargs):
         return None
-    
     def append_message(self, *args, **kwargs):
         return None
+    
+    def store_message(self, *args, **kwargs):
+        return None
+    
     
     def get_recall_memory(self, *args, **kwargs):
         return []
@@ -42,7 +45,7 @@ class DummyMem0Client:
 
 # Try to import Mem0Client, fall back to dummy if not available
 try:
-    if USE_MEM0:
+    if SETTINGS.use_mem0:
         from mem0.client import Mem0Client
     else:
         Mem0Client = DummyMem0Client
@@ -75,20 +78,24 @@ def get_mem0_client() -> Optional[Mem0Client]:
     """
     global _mem0_client
     
+    # Always check if Mem0 is enabled, even if _mem0_client is already initialized
+    # This allows the setting to be changed at runtime
+    if not SETTINGS.use_mem0:
+        if _mem0_client is not None:
+            logger.info("Mem0 integration was disabled in configuration, returning None")
+            _mem0_client = None  # Reset the client so it will be reinitialized if enabled again
+        return None
+    
+    # Initialize the client if it doesn't exist
     if _mem0_client is None:
         try:
-            # Check if Mem0 is enabled
-            if not USE_MEM0:
-                logger.info("Mem0 integration is disabled in configuration")
-                return None
-                
             # Initialize the client (API key is optional for local development)
-            if MEM0_API_KEY:
-                _mem0_client = Mem0Client(api_key=MEM0_API_KEY, endpoint=MEM0_ENDPOINT)
-                logger.info(f"Initialized Mem0 client with API key and endpoint: {MEM0_ENDPOINT}")
+            if SETTINGS.mem0_api_key:
+                _mem0_client = Mem0Client(api_key=SETTINGS.mem0_api_key, endpoint=SETTINGS.mem0_endpoint)
+                logger.info(f"Initialized Mem0 client with API key and endpoint: {SETTINGS.mem0_endpoint}")
             else:
-                _mem0_client = Mem0Client(endpoint=MEM0_ENDPOINT)
-                logger.info(f"Initialized Mem0 client without API key at endpoint: {MEM0_ENDPOINT}")
+                _mem0_client = Mem0Client(endpoint=SETTINGS.mem0_endpoint)
+                logger.info(f"Initialized Mem0 client without API key at endpoint: {SETTINGS.mem0_endpoint}")
             
             # Ensure the Metis RAG agent exists
             if not _mem0_client.get_agent(METIS_AGENT_ID):
@@ -99,7 +106,7 @@ def get_mem0_client() -> Optional[Mem0Client]:
                 )
                 logger.info(f"Created Metis RAG agent with ID: {METIS_AGENT_ID}")
             
-            logger.info(f"Initialized Mem0 client with endpoint: {MEM0_ENDPOINT}")
+            logger.info(f"Initialized Mem0 client with endpoint: {SETTINGS.mem0_endpoint}")
         except Exception as e:
             logger.error(f"Error initializing Mem0 client: {str(e)}")
             return None

@@ -1,0 +1,668 @@
+
+{% extends "base.html" %}
+
+{% block title %}DevOps Dashboard - Metis RAG{% endblock %}
+
+{% block head %}
+<style>
+    /* Override styles for the main content area */
+    html, body {
+        overflow-y: scroll !important;
+        height: 100% !important;
+        color: #f0f0f0 !important; /* Brighter text color */
+        min-height: 100vh !important;
+    }
+    
+    /* Force scrolling */
+    html {
+        overflow-y: scroll !important;
+    }
+    
+    .app-container {
+        overflow-y: visible !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+    
+    .main-content {
+        overflow-y: visible !important;
+        min-height: 100vh !important;
+        position: static !important;
+        color: #f0f0f0 !important; /* Brighter text color */
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+    
+    .devops-container {
+        max-width: 1200px;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 30px !important;
+        height: auto !important;
+        margin: 0 auto;
+        padding: 20px;
+        overflow-y: visible;
+        padding-bottom: 500px; /* Extra padding at bottom to ensure scrolling */
+    }
+    
+    /* Make sure sections are visible */
+    .section {
+        display: block !important;
+        margin-bottom: 50px !important;
+        width: 100% !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="devops-container" style="display: flex; flex-direction: column; gap: 30px; padding-bottom: 100px;">
+    <h1 style="color: #50c878; font-weight: bold; font-size: 2.5em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); margin-bottom: 30px;">DevOps Dashboard</h1>
+
+    <div class="section" style="background-color: #2a2a2a; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 30px;">
+        <h2 style="color: #50c878; font-weight: bold; font-size: 1.8em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">System Settings</h2>
+        <div class="card-grid">
+            <div class="card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <h3 style="color: #50c878; font-weight: bold; font-size: 1.5em;">RAG Settings</h3>
+                <div class="card-content">
+                    <div class="form-group checkbox-container">
+                        <input type="checkbox" id="rag-toggle" name="use_rag" value="true" checked style="width: 20px; height: 20px;">
+                        <label for="rag-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Use RAG</label>
+                        <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Enable or disable Retrieval Augmented Generation</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <h3 style="color: #50c878; font-weight: bold; font-size: 1.5em;">Response Settings</h3>
+                <div class="card-content">
+                    <div class="form-group checkbox-container">
+                        <input type="checkbox" id="stream-toggle" name="use_stream" value="true" checked style="width: 20px; height: 20px;">
+                        <label for="stream-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Use Streaming</label>
+                        <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Enable or disable streaming responses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <h3 style="color: #50c878; font-weight: bold; font-size: 1.5em;">Debug Settings</h3>
+                <div class="card-content">
+                    <div class="form-group checkbox-container">
+                        <input type="checkbox" id="raw-output-toggle" name="show_raw_output" value="true" style="width: 20px; height: 20px;">
+                        <label for="raw-output-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Show Raw Output</label>
+                        <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Display raw output from the system</p>
+                    </div>
+                    <div class="form-group checkbox-container" style="margin-top: 15px;">
+                        <input type="checkbox" id="raw-llm-toggle" name="show_raw_llm" value="true" style="width: 20px; height: 20px;">
+                        <label for="raw-llm-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Show Raw LLM Output</label>
+                        <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Display raw output from the language model</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+            <h3 style="color: #50c878; font-weight: bold; font-size: 1.5em;">Agent Controls</h3>
+            <div class="card-content">
+                <div class="form-group checkbox-container">
+                    <input type="checkbox" id="mem0-toggle" name="use_mem0" value="true" checked style="width: 20px; height: 20px;">
+                    <label for="mem0-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Mem0 Agent</label>
+                    <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Enable or disable the Mem0 memory agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="mem0-sensitivity" style="display: block; margin-bottom: 5px; color: #ffffff;">Sensitivity: <span id="mem0-sensitivity-value">50</span>%</label>
+                        <input type="range" id="mem0-sensitivity" name="mem0_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container" style="margin-top: 15px;">
+                    <input type="checkbox" id="chunking-judge-toggle" name="use_chunking_judge" value="true" checked style="width: 20px; height: 20px;">
+                    <label for="chunking-judge-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Chunking Judge</label>
+                    <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Enable or disable the chunking judge agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="chunking-judge-sensitivity" style="display: block; margin-bottom: 5px; color: #ffffff;">Sensitivity: <span id="chunking-judge-sensitivity-value">50</span>%</label>
+                        <input type="range" id="chunking-judge-sensitivity" name="chunking_judge_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container" style="margin-top: 15px;">
+                    <input type="checkbox" id="retrieval-judge-toggle" name="use_retrieval_judge" value="true" checked style="width: 20px; height: 20px;">
+                    <label for="retrieval-judge-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Retrieval Judge</label>
+                    <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Enable or disable the retrieval judge agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="retrieval-judge-sensitivity" style="display: block; margin-bottom: 5px; color: #ffffff;">Sensitivity: <span id="retrieval-judge-sensitivity-value">50</span>%</label>
+                        <input type="range" id="retrieval-judge-sensitivity" name="retrieval_judge_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container" style="margin-top: 15px;">
+                    <input type="checkbox" id="langgraph-rag-toggle" name="use_langgraph_rag" value="true" checked style="width: 20px; height: 20px;">
+                    <label for="langgraph-rag-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">LangGraph RAG</label>
+                    <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Enable or disable the LangGraph RAG agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="langgraph-rag-sensitivity" style="display: block; margin-bottom: 5px; color: #ffffff;">Sensitivity: <span id="langgraph-rag-sensitivity-value">50</span>%</label>
+                        <input type="range" id="langgraph-rag-sensitivity" name="langgraph_rag_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container" style="margin-top: 15px;">
+                    <input type="checkbox" id="enhanced-langgraph-rag-toggle" name="use_enhanced_langgraph_rag" value="true" checked style="width: 20px; height: 20px;">
+                    <label for="enhanced-langgraph-rag-toggle" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Enhanced LangGraph RAG</label>
+                    <p class="setting-description" style="color: #cccccc; font-size: 1em; margin-top: 8px;">Enable or disable the enhanced LangGraph RAG agent</p>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: right;">
+                    <button id="save-agent-settings" class="btn btn-primary" style="background-color: #50c878; color: #000000; font-weight: bold; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">Save Agent Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="background-color: #2a2a2a; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 30px;">
+        <h2 style="color: #50c878; font-weight: bold; font-size: 1.8em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">System Health</h2>
+        <div class="health-status" id="health-status">
+            <div class="health-item" style="background-color: #2a2a2a; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <div class="health-indicator unknown"></div>
+                <div class="health-name" style="color: #ffffff; font-weight: bold; font-size: 1.2em;">Overall Health</div>
+                <div class="health-details" id="health-overall" style="color: #ffffff; font-size: 1.1em; font-weight: bold;">Checking...</div>
+                <button class="btn btn-primary refresh-btn" id="refresh-health-btn" style="background-color: #50c878; color: #000000; font-weight: bold; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">REFRESH</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="margin-top: 50px; background-color: #2a2a2a; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+        <h2 style="color: #50c878; font-weight: bold; font-size: 1.8em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">System Statistics</h2>
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <div class="stat-label" style="font-size: 1.2em; color: #ffffff; font-weight: bold;">Documents</div>
+                <div class="stat-value" id="docs-count" style="font-size: 2.2em; color: #50c878; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">-</div>
+            </div>
+            <div class="stat-card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <div class="stat-label" style="font-size: 1.2em; color: #ffffff; font-weight: bold;">Chunks</div>
+                <div class="stat-value" id="chunks-count" style="font-size: 2.2em; color: #50c878; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="background-color: #2a2a2a; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 30px;">
+        <h2 style="color: #50c878; font-weight: bold; font-size: 1.8em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Maintenance Operations</h2>
+        <div class="card-grid">
+            <div class="card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <h3 style="color: #50c878; font-weight: bold; font-size: 1.5em;">Vector Store</h3>
+                <div class="card-content">
+                    <p style="color: #ffffff; font-size: 1.1em; margin-bottom: 10px;">Clear all documents and embeddings from the vector store.</p>
+                    <p style="color: #ff6b6b; font-weight: bold; font-size: 1.1em; margin-bottom: 15px;">Warning: This operation cannot be undone.</p>
+                </div>
+                <div class="card-actions" style="display: flex; justify-content: flex-end;">
+                    <button class="btn btn-danger" id="clear-vector-store-btn" style="background-color: #dc3545; color: white; font-weight: bold; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">Clear Vector Store</button>
+                </div>
+            </div>
+            <div class="card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <h3 style="color: #50c878; font-weight: bold; font-size: 1.5em;">Cache</h3>
+                <div class="card-content">
+                    <p style="color: #ffffff; font-size: 1.1em; margin-bottom: 15px;">Clear the vector search cache to ensure fresh results.</p>
+                </div>
+                <div class="card-actions" style="display: flex; justify-content: flex-end;">
+                    <button class="btn btn-warning" id="clear-cache-btn" style="background-color: #ffc107; color: #212529; font-weight: bold; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">Clear Cache</button>
+                </div>
+            </div>
+            <div class="card" style="background-color: #333; border: 2px solid #50c878; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <h3 style="color: #50c878; font-weight: bold; font-size: 1.5em;">Models</h3>
+                <div class="card-content">
+                    <p style="color: #ffffff; font-size: 1.1em; margin-bottom: 15px;">View and manage available models.</p>
+                </div>
+                <div class="card-actions" style="display: flex; justify-content: flex-end;">
+                    <button class="btn btn-primary" id="view-models-btn" style="background-color: #50c878; color: #000000; font-weight: bold; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">View Models</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM Elements
+        const refreshHealthBtn = document.getElementById('refresh-health-btn');
+        const clearVectorStoreBtn = document.getElementById('clear-vector-store-btn');
+        const clearCacheBtn = document.getElementById('clear-cache-btn');
+        const viewModelsBtn = document.getElementById('view-models-btn');
+        const ragToggle = document.getElementById('rag-toggle');
+        const streamToggle = document.getElementById('stream-toggle');
+        const rawOutputToggle = document.getElementById('raw-output-toggle');
+        const rawLlmToggle = document.getElementById('raw-llm-toggle');
+        
+        // Get agent toggle elements
+        const mem0Toggle = document.getElementById('mem0-toggle');
+        const chunkingJudgeToggle = document.getElementById('chunking-judge-toggle');
+        const retrievalJudgeToggle = document.getElementById('retrieval-judge-toggle');
+        const langgraphRagToggle = document.getElementById('langgraph-rag-toggle');
+        const enhancedLanggraphRagToggle = document.getElementById('enhanced-langgraph-rag-toggle');
+        
+        // Get sensitivity sliders
+        const mem0Sensitivity = document.getElementById('mem0-sensitivity');
+        const chunkingJudgeSensitivity = document.getElementById('chunking-judge-sensitivity');
+        const retrievalJudgeSensitivity = document.getElementById('retrieval-judge-sensitivity');
+        const langgraphRagSensitivity = document.getElementById('langgraph-rag-sensitivity');
+        
+        // Get sensitivity value displays
+        const mem0SensitivityValue = document.getElementById('mem0-sensitivity-value');
+        const chunkingJudgeSensitivityValue = document.getElementById('chunking-judge-sensitivity-value');
+        const retrievalJudgeSensitivityValue = document.getElementById('retrieval-judge-sensitivity-value');
+        const langgraphRagSensitivityValue = document.getElementById('langgraph-rag-sensitivity-value');
+        
+        // Get save button
+        const saveAgentSettingsBtn = document.getElementById('save-agent-settings');
+        // Load initial data
+        loadSystemStats();
+        checkHealth();
+        loadSettings();
+        
+        // Event Listeners
+        if (refreshHealthBtn) refreshHealthBtn.addEventListener('click', checkHealth);
+        if (clearVectorStoreBtn) clearVectorStoreBtn.addEventListener('click', confirmClearVectorStore);
+        if (clearCacheBtn) clearCacheBtn.addEventListener('click', confirmClearCache);
+        if (viewModelsBtn) viewModelsBtn.addEventListener('click', viewModels);
+        if (ragToggle) ragToggle.addEventListener('change', updateRagSetting);
+        if (streamToggle) streamToggle.addEventListener('change', updateStreamSetting);
+        if (rawOutputToggle) rawOutputToggle.addEventListener('change', updateRawOutputSetting);
+        if (rawLlmToggle) rawLlmToggle.addEventListener('change', updateRawLlmSetting);
+        
+        // Add event listeners for sensitivity sliders
+        if (mem0Sensitivity) {
+            mem0Sensitivity.addEventListener('input', function() {
+                mem0SensitivityValue.textContent = this.value;
+            });
+        }
+        
+        if (chunkingJudgeSensitivity) {
+            chunkingJudgeSensitivity.addEventListener('input', function() {
+                chunkingJudgeSensitivityValue.textContent = this.value;
+            });
+        }
+        
+        if (retrievalJudgeSensitivity) {
+            retrievalJudgeSensitivity.addEventListener('input', function() {
+                retrievalJudgeSensitivityValue.textContent = this.value;
+            });
+        }
+        
+        if (langgraphRagSensitivity) {
+            langgraphRagSensitivity.addEventListener('input', function() {
+                langgraphRagSensitivityValue.textContent = this.value;
+            });
+        }
+        
+        // Add event listener for save button
+        if (saveAgentSettingsBtn) {
+            saveAgentSettingsBtn.addEventListener('click', saveAgentSettings);
+        }
+        
+        // Functions
+        function loadSystemStats() {
+            fetch('/api/devops/stats')
+                .then(response => response.json())
+                .then(stats => {
+                    document.getElementById('docs-count').textContent = stats.documents_count;
+                    document.getElementById('chunks-count').textContent = stats.total_chunks;
+                })
+                .catch(error => {
+                    console.error('Error loading system stats:', error);
+                });
+        }
+        
+        function checkHealth() {
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(health => {
+                    const overallIndicator = document.querySelector('.health-item:nth-child(1) .health-indicator');
+                    overallIndicator.className = `health-indicator ${health.status}`;
+                    document.getElementById('health-overall').textContent = health.status.charAt(0).toUpperCase() + health.status.slice(1);
+                })
+                .catch(error => {
+                    console.error('Error checking health:', error);
+                    document.getElementById('health-overall').textContent = 'Error checking health';
+                });
+        }
+        
+        function confirmClearVectorStore() {
+            if (confirm('Are you sure you want to clear the vector store? This will remove all documents and embeddings. This action cannot be undone.')) {
+                clearVectorStore();
+            }
+        }
+        
+        function clearVectorStore() {
+            // Show loading state
+            const btn = document.getElementById('clear-vector-store-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+            
+            // Call API
+            fetch('/api/devops/clear-vector-store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show success
+                alert(data.message || 'Vector store cleared successfully');
+                
+                // Reset button
+                btn.textContent = originalText;
+                btn.disabled = false;
+                
+                // Refresh stats
+                loadSystemStats();
+            })
+            .catch(error => {
+                // Show error
+                alert(`Error: ${error.message}`);
+                
+                // Reset button
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        }
+        
+        function confirmClearCache() {
+            if (confirm('Are you sure you want to clear the vector search cache?')) {
+                clearCache();
+            }
+        }
+        
+        function clearCache() {
+            // Show loading state
+            const btn = document.getElementById('clear-cache-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+            
+            // Call API
+            fetch('/api/devops/clear-cache', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show success
+                alert(data.message || 'Cache cleared successfully');
+                
+                // Reset button
+                btn.textContent = originalText;
+                btn.disabled = false;
+                
+                // Refresh stats
+                loadSystemStats();
+            })
+            .catch(error => {
+                // Show error
+                alert(`Error: ${error.message}`);
+                
+                // Reset button
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        }
+        
+        function viewModels() {
+            // Call API to get models
+            fetch('/api/system/models')
+                .then(response => response.json())
+                .then(models => {
+                    // Format models data
+                    let modelInfo = 'Available Models:\n\n';
+                    
+                    if (models.length === 0) {
+                        modelInfo += 'No models found';
+                    } else {
+                        models.forEach(model => {
+                            modelInfo += `Name: ${model.name}\n`;
+                            if (model.size) modelInfo += `Size: ${formatBytes(parseInt(model.size))}\n`;
+                            if (model.modified_at) modelInfo += `Modified: ${new Date(model.modified_at).toLocaleString()}\n`;
+                            if (model.description) modelInfo += `Description: ${model.description}\n`;
+                            modelInfo += '\n';
+                        });
+                    }
+                    
+                    // Show models in alert
+                    alert(modelInfo);
+                })
+                .catch(error => {
+                    console.error('Error loading models:', error);
+                    alert(`Error loading models: ${error.message}`);
+                });
+        }
+        
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+        
+        function loadSettings() {
+            // Load settings from localStorage or API
+            const useRag = localStorage.getItem('use_rag') !== 'false'; // Default to true
+            const useStream = localStorage.getItem('use_stream') !== 'false'; // Default to true
+            const showRawOutput = localStorage.getItem('show_raw_output') === 'true'; // Default to false
+            const showRawLlm = localStorage.getItem('show_raw_llm') === 'true'; // Default to false
+            
+            // Set checkbox states
+            if (ragToggle) ragToggle.checked = useRag;
+            if (streamToggle) streamToggle.checked = useStream;
+            if (rawOutputToggle) rawOutputToggle.checked = showRawOutput;
+            if (rawLlmToggle) rawLlmToggle.checked = showRawLlm;
+            
+            // Load agent settings from server
+            loadAgentSettings();
+        }
+        
+        // Function to load agent settings from server
+        function loadAgentSettings() {
+            fetch('/api/devops/agent-settings')
+                .then(response => response.json())
+                .then(settings => {
+                    // Update toggle states
+                    if (mem0Toggle) mem0Toggle.checked = settings.use_mem0;
+                    if (chunkingJudgeToggle) chunkingJudgeToggle.checked = settings.use_chunking_judge;
+                    if (retrievalJudgeToggle) retrievalJudgeToggle.checked = settings.use_retrieval_judge;
+                    if (langgraphRagToggle) langgraphRagToggle.checked = settings.use_langgraph_rag;
+                    if (enhancedLanggraphRagToggle) enhancedLanggraphRagToggle.checked = settings.use_enhanced_langgraph_rag;
+                    
+                    // Update sensitivity sliders
+                    if (mem0Sensitivity) {
+                        mem0Sensitivity.value = settings.mem0_sensitivity;
+                        mem0SensitivityValue.textContent = settings.mem0_sensitivity;
+                    }
+                    
+                    if (chunkingJudgeSensitivity) {
+                        chunkingJudgeSensitivity.value = settings.chunking_judge_sensitivity;
+                        chunkingJudgeSensitivityValue.textContent = settings.chunking_judge_sensitivity;
+                    }
+                    
+                    if (retrievalJudgeSensitivity) {
+                        retrievalJudgeSensitivity.value = settings.retrieval_judge_sensitivity;
+                        retrievalJudgeSensitivityValue.textContent = settings.retrieval_judge_sensitivity;
+                    }
+                    
+                    if (langgraphRagSensitivity) {
+                        langgraphRagSensitivity.value = settings.langgraph_rag_sensitivity;
+                        langgraphRagSensitivityValue.textContent = settings.langgraph_rag_sensitivity;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading agent settings:', error);
+                });
+        }
+        
+        // Function to save agent settings to server
+        function saveAgentSettings() {
+            // Disable save button
+            saveAgentSettingsBtn.disabled = true;
+            saveAgentSettingsBtn.textContent = 'Saving...';
+            
+            // Prepare settings object
+            const settings = {
+                use_mem0: mem0Toggle.checked,
+                use_chunking_judge: chunkingJudgeToggle.checked,
+                use_retrieval_judge: retrievalJudgeToggle.checked,
+                use_langgraph_rag: langgraphRagToggle.checked,
+                use_enhanced_langgraph_rag: enhancedLanggraphRagToggle.checked,
+                
+                mem0_sensitivity: parseInt(mem0Sensitivity.value),
+                chunking_judge_sensitivity: parseInt(chunkingJudgeSensitivity.value),
+                retrieval_judge_sensitivity: parseInt(retrievalJudgeSensitivity.value),
+                langgraph_rag_sensitivity: parseInt(langgraphRagSensitivity.value)
+            };
+            
+            // Send settings to server
+            fetch('/api/devops/agent-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show success notification
+                alert('Agent settings saved successfully');
+                
+                // Re-enable save button
+                saveAgentSettingsBtn.disabled = false;
+                saveAgentSettingsBtn.textContent = 'Save Agent Settings';
+            })
+            .catch(error => {
+                // Show error notification
+                alert(`Error saving agent settings: ${error.message}`);
+                
+                // Re-enable save button
+                saveAgentSettingsBtn.disabled = false;
+                saveAgentSettingsBtn.textContent = 'Save Agent Settings';
+            });
+        }
+        
+        function updateRagSetting(event) {
+            const useRag = event.target.checked;
+            localStorage.setItem('use_rag', useRag);
+            
+            // Call API to update setting
+            fetch('/api/system/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    use_rag: useRag
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error('Error updating RAG setting:', error);
+            });
+        }
+        
+        function updateStreamSetting(event) {
+            const useStream = event.target.checked;
+            localStorage.setItem('use_stream', useStream);
+            
+            // Call API to update setting
+            fetch('/api/system/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    use_stream: useStream
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error('Error updating streaming setting:', error);
+            });
+        }
+        
+        function updateRawOutputSetting(event) {
+            const showRawOutput = event.target.checked;
+            localStorage.setItem('show_raw_output', showRawOutput);
+            
+            // Call API to update setting
+            fetch('/api/system/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    show_raw_output: showRawOutput
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error('Error updating raw output setting:', error);
+            });
+        }
+        
+        function updateRawLlmSetting(event) {
+            const showRawLlm = event.target.checked;
+            localStorage.setItem('show_raw_llm', showRawLlm);
+            
+            // Call API to update setting
+            fetch('/api/system/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    show_raw_llm: showRawLlm
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error('Error updating raw LLM setting:', error);
+            });
+        }
+    });
+</script>
+{% endblock %}

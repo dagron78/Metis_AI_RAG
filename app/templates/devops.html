@@ -1,0 +1,1156 @@
+{% extends "base.html" %}
+
+{% block title %}DevOps - Metis RAG{% endblock %}
+
+{% block head %}
+<style>
+    .devops-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        overflow-y: auto;
+        height: 100%;
+    }
+
+    .section {
+        margin-bottom: 30px;
+        background-color: white;
+        border-radius: 5px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .section h2 {
+        margin-top: 0;
+        color: var(--primary-color);
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        background-color: #f9f9f9;
+    }
+
+    .card h3 {
+        margin-top: 0;
+        color: var(--secondary-color);
+    }
+
+    .card-content {
+        margin-bottom: 15px;
+    }
+
+    .card-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .stat-card {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        text-align: center;
+        background-color: white;
+    }
+
+    .stat-value {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin: 10px 0;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .health-status {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .health-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: white;
+        border: 1px solid #ddd;
+    }
+
+    .health-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .health-indicator.healthy {
+        background-color: #28a745;
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .checkbox-container input[type="checkbox"] {
+        margin-right: 10px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    .checkbox-container label {
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .setting-description {
+        margin-top: 5px;
+        color: #666;
+        font-size: 0.9em;
+        margin-left: 28px;
+    }
+
+    .health-indicator.unhealthy {
+        background-color: #dc3545;
+    }
+
+    .health-indicator.unknown {
+        background-color: #ffc107;
+    }
+
+    .health-indicator.disabled {
+        background-color: #6c757d;
+    }
+
+    .health-name {
+        font-weight: 500;
+        width: 150px;
+    }
+
+    .health-details {
+        flex-grow: 1;
+        color: #666;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 5px;
+        width: 50%;
+        max-width: 500px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+    }
+
+    .close-modal {
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        margin-bottom: 20px;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .refresh-btn {
+        margin-left: auto;
+    }
+
+    .log-container {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+        margin-top: 15px;
+    }
+
+    .log-entry {
+        margin-bottom: 5px;
+        line-height: 1.4;
+    }
+
+    .log-entry.info {
+        color: #0c5460;
+    }
+
+    .log-entry.warning {
+        color: #856404;
+    }
+
+    .log-entry.error {
+        color: #721c24;
+    }
+
+    .log-entry.success {
+        color: #155724;
+    }
+
+    .operation-result {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+    }
+
+    .operation-result.success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+
+    .operation-result.error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* Override styles for DevOps page */
+    .main-content {
+        overflow-y: auto !important;
+        height: 100vh !important;
+    }
+    
+    .devops-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        overflow-y: auto;
+        height: auto;
+    }
+</style>
+<div class="devops-container">
+    <h1>DevOps Dashboard</h1>
+    <div style="margin-bottom: 20px;">
+        <a href="/devops-dashboard" class="btn btn-primary" style="background-color: #50c878; color: #000; font-weight: bold; padding: 8px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">
+            <i class="fas fa-tachometer-alt"></i> Advanced Dashboard
+        </a>
+        <p style="margin-top: 8px; color: #666;">Access the enhanced DevOps Dashboard with additional features and improved scrolling</p>
+    </div>
+
+    <div class="section">
+        <h2>System Settings</h2>
+        <div class="card-grid">
+            <div class="card">
+                <h3>RAG Settings</h3>
+                <div class="card-content">
+                    <div class="form-group checkbox-container">
+                        <input type="checkbox" id="rag-toggle" name="use_rag" value="true" checked>
+                        <label for="rag-toggle">Use RAG</label>
+                        <p class="setting-description">Enable or disable Retrieval Augmented Generation</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Response Settings</h3>
+                <div class="card-content">
+                    <div class="form-group checkbox-container">
+                        <input type="checkbox" id="stream-toggle" name="use_stream" value="true" checked>
+                        <label for="stream-toggle">Use Streaming</label>
+                        <p class="setting-description">Enable or disable streaming responses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Debug Settings</h3>
+                <div class="card-content">
+                    <div class="form-group checkbox-container">
+                        <input type="checkbox" id="raw-output-toggle" name="raw_output" value="true">
+                        <label for="raw-output-toggle">Show Raw Output</label>
+                        <p class="setting-description">Display raw output from the system</p>
+                    </div>
+                    <div class="form-group checkbox-container">
+                        <input type="checkbox" id="raw-llm-output-toggle" name="raw_llm_output">
+                        <label for="raw-llm-output-toggle">Show Raw LLM Output</label>
+                        <p class="setting-description">Display raw output from the language model</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Agent Controls</h3>
+            <div class="card-content">
+                <div class="form-group checkbox-container">
+                    <input type="checkbox" id="mem0-toggle" name="use_mem0" value="true" checked>
+                    <label for="mem0-toggle">Mem0 Agent</label>
+                    <p class="setting-description">Enable or disable the Mem0 memory agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="mem0-sensitivity" style="display: block; margin-bottom: 5px;">Sensitivity: <span id="mem0-sensitivity-value">50</span>%</label>
+                        <input type="range" id="mem0-sensitivity" name="mem0_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container">
+                    <input type="checkbox" id="chunking-judge-toggle" name="use_chunking_judge" value="true" checked>
+                    <label for="chunking-judge-toggle">Chunking Judge</label>
+                    <p class="setting-description">Enable or disable the chunking judge agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="chunking-judge-sensitivity" style="display: block; margin-bottom: 5px;">Sensitivity: <span id="chunking-judge-sensitivity-value">50</span>%</label>
+                        <input type="range" id="chunking-judge-sensitivity" name="chunking_judge_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container">
+                    <input type="checkbox" id="retrieval-judge-toggle" name="use_retrieval_judge" value="true" checked>
+                    <label for="retrieval-judge-toggle">Retrieval Judge</label>
+                    <p class="setting-description">Enable or disable the retrieval judge agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="retrieval-judge-sensitivity" style="display: block; margin-bottom: 5px;">Sensitivity: <span id="retrieval-judge-sensitivity-value">50</span>%</label>
+                        <input type="range" id="retrieval-judge-sensitivity" name="retrieval_judge_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container">
+                    <input type="checkbox" id="langgraph-rag-toggle" name="use_langgraph_rag" value="true" checked>
+                    <label for="langgraph-rag-toggle">LangGraph RAG</label>
+                    <p class="setting-description">Enable or disable the LangGraph RAG agent</p>
+                    <div class="sensitivity-slider" style="margin-left: 28px; margin-top: 10px; margin-bottom: 20px;">
+                        <label for="langgraph-rag-sensitivity" style="display: block; margin-bottom: 5px;">Sensitivity: <span id="langgraph-rag-sensitivity-value">50</span>%</label>
+                        <input type="range" id="langgraph-rag-sensitivity" name="langgraph_rag_sensitivity" min="0" max="100" value="50" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-container">
+                    <input type="checkbox" id="enhanced-langgraph-rag-toggle" name="use_enhanced_langgraph_rag" value="true" checked>
+                    <label for="enhanced-langgraph-rag-toggle">Enhanced LangGraph RAG</label>
+                    <p class="setting-description">Enable or disable the enhanced LangGraph RAG agent</p>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: right;">
+                    <button id="save-agent-settings" class="btn btn-primary">Save Agent Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>System Health</h2>
+        <div class="health-status" id="health-status">
+            <div class="health-item">
+                <div class="health-indicator unknown"></div>
+                <div class="health-name">Overall Health</div>
+                <div class="health-details" id="health-overall">Checking...</div>
+                <button class="btn btn-primary refresh-btn" id="refresh-health-btn">Refresh</button>
+            </div>
+            <div class="health-item">
+                <div class="health-indicator unknown"></div>
+                <div class="health-name">Database</div>
+                <div class="health-details" id="health-database">Checking...</div>
+            </div>
+            <div class="health-item">
+                <div class="health-indicator unknown"></div>
+                <div class="health-name">Vector Store</div>
+                <div class="health-details" id="health-vectordb">Checking...</div>
+            </div>
+            <div class="health-item">
+                <div class="health-indicator unknown"></div>
+                <div class="health-name">Ollama</div>
+                <div class="health-details" id="health-ollama">Checking...</div>
+            </div>
+            <div class="health-item">
+                <div class="health-indicator unknown"></div>
+                <div class="health-name">Mem0</div>
+                <div class="health-details" id="health-mem0">Checking...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>System Statistics</h2>
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Documents</div>
+                <div class="stat-value" id="docs-count">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Chunks</div>
+                <div class="stat-value" id="chunks-count">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Vector Store Entries</div>
+                <div class="stat-value" id="vectors-count">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Available Models</div>
+                <div class="stat-value" id="models-count">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cache Hit Ratio</div>
+                <div class="stat-value" id="cache-hit-ratio">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cache Size</div>
+                <div class="stat-value" id="cache-size">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Maintenance Operations</h2>
+        <div class="card-grid">
+            <div class="card">
+                <h3>Vector Store</h3>
+                <div class="card-content">
+                    <p>Clear all documents and embeddings from the vector store.</p>
+                    <p><strong>Warning:</strong> This operation cannot be undone.</p>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-danger" id="clear-vector-store-btn">Clear Vector Store</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Cache</h3>
+                <div class="card-content">
+                    <p>Clear the vector search cache to ensure fresh results.</p>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-warning" id="clear-cache-btn">Clear Cache</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Models</h3>
+                <div class="card-content">
+                    <p>View and manage available models.</p>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" id="view-models-btn">View Models</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal" id="confirmation-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modal-title">Confirm Action</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body" id="modal-body">
+            Are you sure you want to proceed with this action?
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+            <button class="btn btn-danger" id="confirm-btn">Confirm</button>
+        </div>
+        <div class="operation-result" id="operation-result"></div>
+        <div class="log-container" id="log-container" style="display: none;"></div>
+    </div>
+</div>
+
+<!-- Models Modal -->
+<div class="modal" id="models-modal">
+    <div class="modal-content" style="width: 70%; max-width: 800px;">
+        <div class="modal-header">
+            <h3>Available Models</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="models-list"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" id="close-models-btn">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM Elements
+        const refreshHealthBtn = document.getElementById('refresh-health-btn');
+        const clearVectorStoreBtn = document.getElementById('clear-vector-store-btn');
+        const clearCacheBtn = document.getElementById('clear-cache-btn');
+        const viewModelsBtn = document.getElementById('view-models-btn');
+        
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const modelsModal = document.getElementById('models-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const closeModalBtns = document.querySelectorAll('.close-modal');
+        const closeModelsBtn = document.getElementById('close-models-btn');
+        const operationResult = document.getElementById('operation-result');
+        const logContainer = document.getElementById('log-container');
+        
+        // Load initial data
+        loadSystemStats();
+        checkHealth();
+        
+        // Event Listeners
+        refreshHealthBtn.addEventListener('click', checkHealth);
+        clearVectorStoreBtn.addEventListener('click', () => showConfirmationModal('Clear Vector Store', 'Are you sure you want to clear the vector store? This will remove all documents and embeddings. This action cannot be undone.', clearVectorStore));
+        clearCacheBtn.addEventListener('click', () => showConfirmationModal('Clear Cache', 'Are you sure you want to clear the vector search cache?', clearCache));
+        viewModelsBtn.addEventListener('click', showModelsModal);
+        
+        closeModalBtns.forEach(btn => {
+            btn.addEventListener('click', closeModals);
+        });
+        
+        cancelBtn.addEventListener('click', closeModals);
+        closeModelsBtn.addEventListener('click', closeModals);
+        
+        // Functions
+        function loadSystemStats() {
+            fetch('/api/devops/stats')
+                .then(response => response.json())
+                .then(stats => {
+                    document.getElementById('docs-count').textContent = stats.documents_count;
+                    document.getElementById('chunks-count').textContent = stats.total_chunks;
+                    document.getElementById('vectors-count').textContent = stats.vector_store_size || '0';
+                    document.getElementById('models-count').textContent = stats.available_models.length;
+                    
+                    // Cache stats
+                    if (stats.cache_enabled) {
+                        document.getElementById('cache-hit-ratio').textContent = `${(stats.cache_hit_ratio * 100).toFixed(1)}%`;
+                        document.getElementById('cache-size').textContent = stats.cache_size;
+                    } else {
+                        document.getElementById('cache-hit-ratio').textContent = 'Disabled';
+                        document.getElementById('cache-size').textContent = 'Disabled';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading system stats:', error);
+                });
+        }
+        
+        function checkHealth() {
+            // Reset indicators
+            const indicators = document.querySelectorAll('.health-indicator');
+            indicators.forEach(ind => {
+                ind.className = 'health-indicator unknown';
+            });
+            
+            document.getElementById('health-overall').textContent = 'Checking...';
+            document.getElementById('health-database').textContent = 'Checking...';
+            document.getElementById('health-vectordb').textContent = 'Checking...';
+            document.getElementById('health-ollama').textContent = 'Checking...';
+            document.getElementById('health-mem0').textContent = 'Checking...';
+            
+            // Fetch health
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(health => {
+                    // Update overall health
+                    const overallIndicator = document.querySelector('.health-item:nth-child(1) .health-indicator');
+                    overallIndicator.className = `health-indicator ${health.status}`;
+                    document.getElementById('health-overall').textContent = health.status.charAt(0).toUpperCase() + health.status.slice(1);
+                    
+                    // Update Database health
+                    const dbIndicator = document.querySelector('.health-item:nth-child(2) .health-indicator');
+                    const dbStatus = health.components.database.status;
+                    dbIndicator.className = `health-indicator ${dbStatus}`;
+                    document.getElementById('health-database').textContent = dbStatus.charAt(0).toUpperCase() + dbStatus.slice(1);
+                    if (health.components.database.error) {
+                        document.getElementById('health-database').textContent += ` (${health.components.database.error})`;
+                    }
+                    
+                    // Update Vector DB health
+                    const vectordbIndicator = document.querySelector('.health-item:nth-child(3) .health-indicator');
+                    const vectordbStatus = health.components.vector_store.status;
+                    vectordbIndicator.className = `health-indicator ${vectordbStatus}`;
+                    document.getElementById('health-vectordb').textContent = vectordbStatus.charAt(0).toUpperCase() + vectordbStatus.slice(1);
+                    if (health.components.vector_store.error) {
+                        document.getElementById('health-vectordb').textContent += ` (${health.components.vector_store.error})`;
+                    }
+                    
+                    // Update Ollama health
+                    const ollamaIndicator = document.querySelector('.health-item:nth-child(4) .health-indicator');
+                    const ollamaStatus = health.components.ollama.status;
+                    ollamaIndicator.className = `health-indicator ${ollamaStatus}`;
+                    document.getElementById('health-ollama').textContent = ollamaStatus.charAt(0).toUpperCase() + ollamaStatus.slice(1);
+                    if (health.components.ollama.error) {
+                        document.getElementById('health-ollama').textContent += ` (${health.components.ollama.error})`;
+                    }
+                    
+                    // Update Mem0 health
+                    const mem0Indicator = document.querySelector('.health-item:nth-child(5) .health-indicator');
+                    const mem0Status = health.components.mem0.status;
+                    mem0Indicator.className = `health-indicator ${mem0Status}`;
+                    document.getElementById('health-mem0').textContent = mem0Status.charAt(0).toUpperCase() + mem0Status.slice(1);
+                    if (health.components.mem0.error) {
+                        document.getElementById('health-mem0').textContent += ` (${health.components.mem0.error})`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking health:', error);
+                    document.getElementById('health-overall').textContent = 'Error checking health';
+                });
+        }
+        
+        function showConfirmationModal(title, message, confirmAction) {
+            modalTitle.textContent = title;
+            modalBody.textContent = message;
+            operationResult.style.display = 'none';
+            logContainer.style.display = 'none';
+            logContainer.innerHTML = '';
+            
+            // Set confirm button action
+            confirmBtn.onclick = confirmAction;
+            
+            // Show modal
+            confirmationModal.style.display = 'block';
+        }
+        
+        function showModelsModal() {
+            // Fetch models
+            fetch('/api/system/models')
+                .then(response => response.json())
+                .then(models => {
+                    const modelsList = document.getElementById('models-list');
+                    modelsList.innerHTML = '';
+                    
+                    if (models.length === 0) {
+                        modelsList.innerHTML = '<p>No models found</p>';
+                        return;
+                    }
+                    
+                    // Create table
+                    const table = document.createElement('table');
+                    table.style.width = '100%';
+                    table.style.borderCollapse = 'collapse';
+                    
+                    // Create header
+                    const thead = document.createElement('thead');
+                    const headerRow = document.createElement('tr');
+                    
+                    const headers = ['Name', 'Size', 'Modified', 'Description'];
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        th.style.padding = '8px';
+                        th.style.textAlign = 'left';
+                        th.style.borderBottom = '1px solid #ddd';
+                        headerRow.appendChild(th);
+                    });
+                    
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+                    
+                    // Create body
+                    const tbody = document.createElement('tbody');
+                    
+                    models.forEach(model => {
+                        const row = document.createElement('tr');
+                        
+                        // Name
+                        const nameCell = document.createElement('td');
+                        nameCell.textContent = model.name;
+                        nameCell.style.padding = '8px';
+                        nameCell.style.borderBottom = '1px solid #ddd';
+                        row.appendChild(nameCell);
+                        
+                        // Size
+                        const sizeCell = document.createElement('td');
+                        sizeCell.textContent = model.size ? formatBytes(parseInt(model.size)) : 'Unknown';
+                        sizeCell.style.padding = '8px';
+                        sizeCell.style.borderBottom = '1px solid #ddd';
+                        row.appendChild(sizeCell);
+                        
+                        // Modified
+                        const modifiedCell = document.createElement('td');
+                        modifiedCell.textContent = model.modified_at ? new Date(model.modified_at).toLocaleDateString() : 'Unknown';
+                        modifiedCell.style.padding = '8px';
+                        modifiedCell.style.borderBottom = '1px solid #ddd';
+                        row.appendChild(modifiedCell);
+                        
+                        // Description
+                        const descCell = document.createElement('td');
+                        descCell.textContent = model.description || '';
+                        descCell.style.padding = '8px';
+                        descCell.style.borderBottom = '1px solid #ddd';
+                        row.appendChild(descCell);
+                        
+                        tbody.appendChild(row);
+                    });
+                    
+                    table.appendChild(tbody);
+                    modelsList.appendChild(table);
+                })
+                .catch(error => {
+                    console.error('Error loading models:', error);
+                    document.getElementById('models-list').innerHTML = '<p>Error loading models</p>';
+                });
+            
+            // Show modal
+            modelsModal.style.display = 'block';
+        }
+        
+        function closeModals() {
+            confirmationModal.style.display = 'none';
+            modelsModal.style.display = 'none';
+        }
+        
+        function clearVectorStore() {
+            // Disable confirm button and show loading
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Processing...';
+            logContainer.style.display = 'block';
+            addLogEntry('Starting vector store clearing process...', 'info');
+            
+            // Call API
+            fetch('/api/devops/clear-vector-store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show success
+                operationResult.className = 'operation-result success';
+                operationResult.textContent = data.message;
+                operationResult.style.display = 'block';
+                
+                // Add log entries
+                addLogEntry('Vector store cleared successfully', 'success');
+                addLogEntry(`Deleted ${data.deleted_count} documents`, 'info');
+                
+                // Reset button
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Confirm';
+                
+                // Refresh stats
+                loadSystemStats();
+            })
+            .catch(error => {
+                // Show error
+                operationResult.className = 'operation-result error';
+                operationResult.textContent = `Error: ${error.message}`;
+                operationResult.style.display = 'block';
+                
+                // Add log entry
+                addLogEntry(`Error: ${error.message}`, 'error');
+                
+                // Reset button
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Confirm';
+            });
+        }
+        
+        function clearCache() {
+            // Disable confirm button and show loading
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Processing...';
+            
+            // Call API
+            fetch('/api/devops/clear-cache', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show success
+                operationResult.className = 'operation-result success';
+                operationResult.textContent = data.message;
+                operationResult.style.display = 'block';
+                
+                // Reset button
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Confirm';
+                
+                // Refresh stats
+                loadSystemStats();
+            })
+            .catch(error => {
+                // Show error
+                operationResult.className = 'operation-result error';
+                operationResult.textContent = `Error: ${error.message}`;
+                operationResult.style.display = 'block';
+                
+                // Reset button
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Confirm';
+            });
+        }
+        
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+    });
+
+    // Handle system settings toggles
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the toggle elements
+        const ragToggle = document.getElementById('rag-toggle');
+        const streamToggle = document.getElementById('stream-toggle');
+        const rawOutputToggle = document.getElementById('raw-output-toggle');
+        const rawLlmOutputToggle = document.getElementById('raw-llm-output-toggle');
+        
+        // Get agent toggle elements
+        const mem0Toggle = document.getElementById('mem0-toggle');
+        const chunkingJudgeToggle = document.getElementById('chunking-judge-toggle');
+        const retrievalJudgeToggle = document.getElementById('retrieval-judge-toggle');
+        const langgraphRagToggle = document.getElementById('langgraph-rag-toggle');
+        const enhancedLanggraphRagToggle = document.getElementById('enhanced-langgraph-rag-toggle');
+        
+        // Get sensitivity sliders
+        const mem0Sensitivity = document.getElementById('mem0-sensitivity');
+        const chunkingJudgeSensitivity = document.getElementById('chunking-judge-sensitivity');
+        const retrievalJudgeSensitivity = document.getElementById('retrieval-judge-sensitivity');
+        const langgraphRagSensitivity = document.getElementById('langgraph-rag-sensitivity');
+        
+        // Get sensitivity value displays
+        const mem0SensitivityValue = document.getElementById('mem0-sensitivity-value');
+        const chunkingJudgeSensitivityValue = document.getElementById('chunking-judge-sensitivity-value');
+        const retrievalJudgeSensitivityValue = document.getElementById('retrieval-judge-sensitivity-value');
+        const langgraphRagSensitivityValue = document.getElementById('langgraph-rag-sensitivity-value');
+        
+        // Get save button
+        const saveAgentSettingsBtn = document.getElementById('save-agent-settings');
+        
+        // Load saved settings from localStorage
+        loadSettings();
+        
+        // Load agent settings from server
+        loadAgentSettings();
+        
+        // Add event listeners to save settings when changed
+        if (ragToggle) ragToggle.addEventListener('change', saveSettings);
+        if (streamToggle) streamToggle.addEventListener('change', saveSettings);
+        if (rawOutputToggle) rawOutputToggle.addEventListener('change', saveSettings);
+        if (rawLlmOutputToggle) rawLlmOutputToggle.addEventListener('change', saveSettings);
+        
+        // Add event listeners for sensitivity sliders
+        if (mem0Sensitivity) {
+            mem0Sensitivity.addEventListener('input', function() {
+                mem0SensitivityValue.textContent = this.value;
+            });
+        }
+        
+        if (chunkingJudgeSensitivity) {
+            chunkingJudgeSensitivity.addEventListener('input', function() {
+                chunkingJudgeSensitivityValue.textContent = this.value;
+            });
+        }
+        
+        if (retrievalJudgeSensitivity) {
+            retrievalJudgeSensitivity.addEventListener('input', function() {
+                retrievalJudgeSensitivityValue.textContent = this.value;
+            });
+        }
+        
+        if (langgraphRagSensitivity) {
+            langgraphRagSensitivity.addEventListener('input', function() {
+                langgraphRagSensitivityValue.textContent = this.value;
+            });
+        }
+        
+        // Add event listener for save button
+        if (saveAgentSettingsBtn) {
+            saveAgentSettingsBtn.addEventListener('click', saveAgentSettings);
+        }
+        
+        // Function to load settings from localStorage
+        function loadSettings() {
+            // RAG toggle
+            if (ragToggle) {
+                const useRag = localStorage.getItem('metis_use_rag');
+                ragToggle.checked = useRag === null ? true : useRag !== 'false';
+            }
+            
+            // Streaming toggle
+            if (streamToggle) {
+                const useStream = localStorage.getItem('metis_use_streaming');
+                streamToggle.checked = useStream === null ? true : useStream !== 'false';
+            }
+            
+            // Raw output toggle
+            if (rawOutputToggle) {
+                const rawOutput = localStorage.getItem('metis_show_raw_output');
+                rawOutputToggle.checked = rawOutput === 'true';
+            }
+            
+            // Raw LLM output toggle
+            if (rawLlmOutputToggle) {
+                const rawLlmOutput = localStorage.getItem('metis_show_raw_llm_output');
+                rawLlmOutputToggle.checked = rawLlmOutput === 'true';
+            }
+        }
+        
+        // Function to load agent settings from server
+        function loadAgentSettings() {
+            fetch('/api/devops/agent-settings')
+                .then(response => response.json())
+                .then(settings => {
+                    // Update toggle states
+                    if (mem0Toggle) mem0Toggle.checked = settings.use_mem0;
+                    if (chunkingJudgeToggle) chunkingJudgeToggle.checked = settings.use_chunking_judge;
+                    if (retrievalJudgeToggle) retrievalJudgeToggle.checked = settings.use_retrieval_judge;
+                    if (langgraphRagToggle) langgraphRagToggle.checked = settings.use_langgraph_rag;
+                    if (enhancedLanggraphRagToggle) enhancedLanggraphRagToggle.checked = settings.use_enhanced_langgraph_rag;
+                    
+                    // Update sensitivity sliders
+                    if (mem0Sensitivity) {
+                        mem0Sensitivity.value = settings.mem0_sensitivity;
+                        mem0SensitivityValue.textContent = settings.mem0_sensitivity;
+                    }
+                    
+                    if (chunkingJudgeSensitivity) {
+                        chunkingJudgeSensitivity.value = settings.chunking_judge_sensitivity;
+                        chunkingJudgeSensitivityValue.textContent = settings.chunking_judge_sensitivity;
+                    }
+                    
+                    if (retrievalJudgeSensitivity) {
+                        retrievalJudgeSensitivity.value = settings.retrieval_judge_sensitivity;
+                        retrievalJudgeSensitivityValue.textContent = settings.retrieval_judge_sensitivity;
+                    }
+                    
+                    if (langgraphRagSensitivity) {
+                        langgraphRagSensitivity.value = settings.langgraph_rag_sensitivity;
+                        langgraphRagSensitivityValue.textContent = settings.langgraph_rag_sensitivity;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading agent settings:', error);
+                    showNotification('Error loading agent settings', 'error');
+                });
+        }
+        
+        // Function to save agent settings to server
+        function saveAgentSettings() {
+            // Disable save button
+            saveAgentSettingsBtn.disabled = true;
+            saveAgentSettingsBtn.textContent = 'Saving...';
+            
+            // Prepare settings object
+            const settings = {
+                use_mem0: mem0Toggle.checked,
+                use_chunking_judge: chunkingJudgeToggle.checked,
+                use_retrieval_judge: retrievalJudgeToggle.checked,
+                use_langgraph_rag: langgraphRagToggle.checked,
+                use_enhanced_langgraph_rag: enhancedLanggraphRagToggle.checked,
+                
+                mem0_sensitivity: parseInt(mem0Sensitivity.value),
+                chunking_judge_sensitivity: parseInt(chunkingJudgeSensitivity.value),
+                retrieval_judge_sensitivity: parseInt(retrievalJudgeSensitivity.value),
+                langgraph_rag_sensitivity: parseInt(langgraphRagSensitivity.value)
+            };
+            
+            // Send settings to server
+            fetch('/api/devops/agent-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show success notification
+                showNotification('Agent settings saved successfully', 'success');
+                
+                // Re-enable save button
+                saveAgentSettingsBtn.disabled = false;
+                saveAgentSettingsBtn.textContent = 'Save Agent Settings';
+            })
+            .catch(error => {
+                // Show error notification
+                showNotification(`Error saving agent settings: ${error.message}`, 'error');
+                
+                // Re-enable save button
+                saveAgentSettingsBtn.disabled = false;
+                saveAgentSettingsBtn.textContent = 'Save Agent Settings';
+            });
+        }
+        
+        // Function to save settings to localStorage
+        function saveSettings() {
+            // Save RAG toggle
+            if (ragToggle) {
+                localStorage.setItem('metis_use_rag', ragToggle.checked);
+                showNotification(`RAG ${ragToggle.checked ? 'enabled' : 'disabled'}`);
+            }
+            
+            // Save streaming toggle
+            if (streamToggle) {
+                localStorage.setItem('metis_use_streaming', streamToggle.checked);
+                showNotification(`Streaming ${streamToggle.checked ? 'enabled' : 'disabled'}`);
+            }
+            
+            // Save raw output toggle
+            if (rawOutputToggle) {
+                localStorage.setItem('metis_show_raw_output', rawOutputToggle.checked);
+                showNotification(`Raw output ${rawOutputToggle.checked ? 'enabled' : 'disabled'}`);
+            }
+            
+            // Save raw LLM output toggle
+            if (rawLlmOutputToggle) {
+                localStorage.setItem('metis_show_raw_llm_output', rawLlmOutputToggle.checked);
+                showNotification(`Raw LLM output ${rawLlmOutputToggle.checked ? 'enabled' : 'disabled'}`);
+            }
+        }
+        
+        // Function to show notification
+        function showNotification(message, type = 'info') {
+            // Check if notification container exists
+            let notificationContainer = document.getElementById('notification-container');
+            
+            // Create container if it doesn't exist
+            if (!notificationContainer) {
+                notificationContainer = document.createElement('div');
+                notificationContainer.id = 'notification-container';
+                notificationContainer.style.position = 'fixed';
+                notificationContainer.style.top = '20px';
+                notificationContainer.style.right = '20px';
+                notificationContainer.style.zIndex = '9999';
+                document.body.appendChild(notificationContainer);
+            }
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.backgroundColor = type === 'error' ? '#f8d7da' : type === 'success' ? '#d4edda' : '#cce5ff';
+            notification.style.color = type === 'error' ? '#721c24' : type === 'success' ? '#155724' : '#004085';
+            notification.style.padding = '10px 15px';
+            notification.style.marginBottom = '10px';
+            notification.style.borderRadius = '4px';
+            notification.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+            notification.style.maxWidth = '300px';
+            notification.textContent = message;
+            
+            // Add notification to container
+            notificationContainer.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s';
+                setTimeout(() => {
+                    notificationContainer.removeChild(notification);
+                }, 500);
+            }, 3000);
+        }
+    });
+</script>
+{% endblock %}

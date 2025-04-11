@@ -25,7 +25,7 @@ from app.rag.langgraph_states import (
     QueryAnalysisState, PlanningState, ExecutionState, RetrievalState, 
     GenerationState, RAGState, RAGStage
 )
-from app.core.config import CHUNKING_JUDGE_MODEL, RETRIEVAL_JUDGE_MODEL, DEFAULT_MODEL
+from app.core.config import SETTINGS
 
 logger = logging.getLogger("app.rag.agents.enhanced_langgraph_rag_agent")
 
@@ -75,7 +75,7 @@ class EnhancedLangGraphRAGAgent:
             tool_registry: Registry for available tools
             process_logger: Logger for process tracking
         """
-        self.vector_store = vector_store or VectorStore()
+        self.vector_store = vector_store or VectorStore.get_instance()
         self.ollama_client = ollama_client or OllamaClient()
         self.chunking_judge = chunking_judge or ChunkingJudge(ollama_client=self.ollama_client)
         self.retrieval_judge = retrieval_judge or RetrievalJudge(ollama_client=self.ollama_client)
@@ -165,13 +165,14 @@ class EnhancedLangGraphRAGAgent:
     async def query(
         self,
         query: str,
-        model: str = DEFAULT_MODEL,
+        model: str = None,
         system_prompt: Optional[str] = None,
         stream: bool = False,
         model_parameters: Optional[Dict[str, Any]] = None,
         conversation_context: Optional[str] = None,
         metadata_filters: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
+        model = model or SETTINGS.default_model
         """
         Query the RAG agent with the state machine
         

@@ -193,7 +193,7 @@ async def get_system_stats(
         from app.rag.vector_store import VectorStore
         
         # Get vector store stats
-        vector_store = VectorStore()
+        vector_store = VectorStore.get_instance()
         vector_stats = vector_store.get_stats()
         
         # Get query stats

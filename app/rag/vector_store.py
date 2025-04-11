@@ -14,6 +14,9 @@ from app.cache.vector_search_cache import VectorSearchCache
 
 logger = logging.getLogger("app.rag.vector_store")
 
+# Singleton instance
+_vector_store_instance = None
+
 class VectorStore:
     """
     Vector store for document embeddings using ChromaDB with caching for performance
@@ -64,6 +67,49 @@ class VectorStore:
         )
         
         logger.info(f"Vector store initialized with collection 'documents', caching {'enabled' if enable_cache else 'disabled'}")
+    
+    @staticmethod
+    def get_instance(
+        persist_directory: str = CHROMA_DB_DIR,
+        embedding_model: str = DEFAULT_EMBEDDING_MODEL,
+        enable_cache: bool = True,
+        cache_ttl: int = 3600,
+        cache_max_size: int = 1000,
+        cache_persist: bool = True,
+        cache_persist_dir: str = "data/cache",
+        user_id: Optional[UUID] = None
+    ) -> 'VectorStore':
+        """
+        Get the singleton instance of VectorStore
+        
+        This method ensures that only one instance of VectorStore is created,
+        which helps reduce the overhead of initializing the ChromaDB client
+        and loading the cache for each request.
+        
+        Returns:
+            VectorStore: The singleton instance
+        """
+        global _vector_store_instance
+        
+        if _vector_store_instance is None:
+            _vector_store_instance = VectorStore(
+                persist_directory=persist_directory,
+                embedding_model=embedding_model,
+                enable_cache=enable_cache,
+                cache_ttl=cache_ttl,
+                cache_max_size=cache_max_size,
+                cache_persist=cache_persist,
+                cache_persist_dir=cache_persist_dir,
+                user_id=user_id
+            )
+            logger.debug("Created new VectorStore singleton instance")
+        else:
+            # Update user_id if provided
+            if user_id is not None:
+                _vector_store_instance.user_id = user_id
+                logger.debug(f"Updated user_id in VectorStore singleton instance: {user_id}")
+        
+        return _vector_store_instance
     
     async def add_document(self, document: Document) -> None:
         """

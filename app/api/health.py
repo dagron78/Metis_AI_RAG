@@ -35,7 +35,8 @@ async def health_check(request: Request, db: AsyncSession = Depends(get_db)):
         try:
             # Execute a simple query to check database connection
             result = await db.execute(text("SELECT 1"))
-            await result.fetchall()
+            # Get the scalar result without using await on all()
+            rows = result.scalars().all()  # all() is not an async method
         except Exception as e:
             db_status = "unhealthy"
             db_error = str(e)
@@ -45,7 +46,7 @@ async def health_check(request: Request, db: AsyncSession = Depends(get_db)):
         vector_store_status = "healthy"
         vector_store_error = None
         try:
-            vector_store = VectorStore()
+            vector_store = VectorStore.get_instance()
             stats = vector_store.get_stats()
         except Exception as e:
             vector_store_status = "unhealthy"
