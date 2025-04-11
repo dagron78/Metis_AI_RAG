@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 
 from app.models.document import Document
 from app.rag.ollama_client import OllamaClient
-from app.core.config import CHUNKING_JUDGE_MODEL
+from app.core.config import SETTINGS
 
 logger = logging.getLogger("app.rag.agents.chunking_judge")
 
@@ -16,7 +16,8 @@ class ChunkingJudge:
     """
     LLM-based agent that analyzes documents and recommends optimal chunking strategies
     """
-    def __init__(self, ollama_client: Optional[OllamaClient] = None, model: str = CHUNKING_JUDGE_MODEL):
+    def __init__(self, ollama_client: Optional[OllamaClient] = None, model: str = None):
+        model = model or SETTINGS.chunking_judge_model
         self.ollama_client = ollama_client or OllamaClient()
         self.model = model
     

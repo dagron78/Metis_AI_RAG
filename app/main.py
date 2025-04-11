@@ -32,6 +32,7 @@ from app.api.organizations import router as organizations_router
 from app.api.schema import router as schema_router
 from app.api.text_formatting_dashboard import router as text_formatting_dashboard_router
 from app.api.health import router as health_router
+from app.api.devops import router as devops_router
 from app.db.session import init_db, get_session
 from app.rag.tool_initializer import initialize_tools
 
@@ -90,6 +91,7 @@ app.include_router(organizations_router, prefix=f"{API_V1_STR}/organizations", t
 app.include_router(schema_router, tags=["schema"])  # Schema router has its own prefix
 app.include_router(text_formatting_dashboard_router, prefix=f"{API_V1_STR}", tags=["text-formatting"])
 app.include_router(health_router, prefix=f"{API_V1_STR}/health", tags=["health"])
+app.include_router(devops_router, prefix=f"{API_V1_STR}/devops", tags=["devops"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -146,6 +148,19 @@ async def text_formatting_dashboard_page(request: Request):
     Text formatting dashboard page
     """
     return templates.TemplateResponse("text_formatting_dashboard.html", {"request": request})
+@app.get("/devops", response_class=HTMLResponse)
+async def devops_page(request: Request):
+    """
+    DevOps dashboard page
+    """
+    return templates.TemplateResponse("devops.html", {"request": request})
+
+@app.get("/devops-dashboard", response_class=HTMLResponse)
+async def devops_dashboard_page(request: Request):
+    """
+    Dedicated DevOps dashboard page with full scrolling capabilities
+    """
+    return templates.TemplateResponse("devops_dashboard.html", {"request": request})
 
 @app.get("/test-models", response_class=HTMLResponse)
 async def test_models_page(request: Request):

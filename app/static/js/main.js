@@ -487,7 +487,7 @@ function logout() {
     updateAuthUI();
     
     // Redirect to login page if on a protected page
-    const protectedPages = ['/documents', '/chat', '/analytics', '/system'];
+    const protectedPages = ['/documents', '/chat', '/analytics', '/system', '/devops'];
     const currentPath = window.location.pathname;
     if (protectedPages.includes(currentPath)) {
         window.location.href = '/login';

@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 
 from app.models.document import Chunk
 from app.rag.ollama_client import OllamaClient
-from app.core.config import RETRIEVAL_JUDGE_MODEL
+from app.core.config import SETTINGS
 
 logger = logging.getLogger("app.rag.agents.retrieval_judge")
 
@@ -16,7 +16,8 @@ class RetrievalJudge:
     """
     LLM-based agent that analyzes queries and retrieved chunks to improve retrieval quality
     """
-    def __init__(self, ollama_client: Optional[OllamaClient] = None, model: str = RETRIEVAL_JUDGE_MODEL):
+    def __init__(self, ollama_client: Optional[OllamaClient] = None, model: str = None):
+        model = model or SETTINGS.retrieval_judge_model
         self.ollama_client = ollama_client or OllamaClient()
         self.model = model
     

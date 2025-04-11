@@ -9,7 +9,7 @@ import re
 from typing import Optional, Dict, Any
 from uuid import UUID
 
-from app.core.config import USE_RETRIEVAL_JUDGE
+from app.core.config import SETTINGS
 from app.rag.vector_store import VectorStore
 from app.rag.ollama_client import OllamaClient
 from app.rag.agents.retrieval_judge import RetrievalJudge
@@ -47,7 +47,7 @@ class BaseEngine:
         self.vector_store = vector_store or VectorStore(user_id=user_id)
         self.ollama_client = ollama_client or OllamaClient()
         self.retrieval_judge = retrieval_judge if retrieval_judge is not None else (
-            RetrievalJudge(ollama_client=self.ollama_client) if USE_RETRIEVAL_JUDGE else None
+            RetrievalJudge(ollama_client=self.ollama_client) if SETTINGS.use_retrieval_judge else None
         )
         self.user_id = user_id  # Store the user ID for permission filtering
         

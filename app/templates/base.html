@@ -25,32 +25,78 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
         .user-controls {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-left: 10px;
+            flex-grow: 1;
+            justify-content: space-between;
         }
         #username-display {
-            font-size: 0.8em;
+            font-size: 0.9em;
             color: var(--text-color-secondary);
-            max-width: 100px;
+            max-width: 160px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .auth-button {
-            background: none;
-            border: none;
-            color: var(--text-color);
+            background-color: var(--ginkgo-green);
+            border: 1px solid var(--ginkgo-green);
+            color: var(--ginkgo-dark);
             cursor: pointer;
             font-size: 1em;
-            padding: 5px;
+            padding: 5px 10px;
             border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            transition: all 0.2s ease;
         }
         .auth-button:hover {
             background-color: var(--hover-color);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .nav-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
         }
         
     </style>
@@ -69,16 +115,31 @@
                     <div id="user-controls" class="user-controls">
                         <span id="username-display"></span>
                         <button id="login-button" class="auth-button" title="Login">
-                            <i class="fas fa-sign-in-alt"></i>
+                            <i class="fas fa-sign-in-alt"></i> Login
                         </button>
                         <button id="logout-button" class="auth-button" style="display: none;" title="Logout">
-                            <i class="fas fa-sign-out-alt"></i>
+                            <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
                     </div>
                 </div>
             </div>
-            
             <div class="sidebar-content">
+                <!-- Navigation Menu -->
+                <div class="nav-menu">
+                    <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">
+                        <i class="fas fa-comment"></i> Chat
+                    </a>
+                    <a href="/documents" class="nav-item {% if request.url.path == '/documents' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Documents
+                    </a>
+                    <a href="/system" class="nav-item {% if request.url.path == '/system' %}active{% endif %}">
+                        <i class="fas fa-cog"></i> System
+                    </a>
+                    <a href="/devops" class="nav-item {% if request.url.path == '/devops' %}active{% endif %}">
+                        <i class="fas fa-tools"></i> DevOps
+                    </a>
+                </div>
+                
                 {% block sidebar %}{% endblock %}
             </div>
         </div>

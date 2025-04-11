@@ -25,10 +25,13 @@ CHUNKING_JUDGE_MODEL = os.getenv("CHUNKING_JUDGE_MODEL", "gemma3:4b")
 RETRIEVAL_JUDGE_MODEL = os.getenv("RETRIEVAL_JUDGE_MODEL", "gemma3:4b")
 USE_CHUNKING_JUDGE = os.getenv("USE_CHUNKING_JUDGE", "True").lower() == "true"
 USE_RETRIEVAL_JUDGE = os.getenv("USE_RETRIEVAL_JUDGE", "True").lower() == "true"
+CHUNKING_JUDGE_SENSITIVITY = int(os.getenv("CHUNKING_JUDGE_SENSITIVITY", "50"))
+RETRIEVAL_JUDGE_SENSITIVITY = int(os.getenv("RETRIEVAL_JUDGE_SENSITIVITY", "50"))
 
 # LangGraph RAG Agent settings
 LANGGRAPH_RAG_MODEL = os.getenv("LANGGRAPH_RAG_MODEL", "gemma3:4b")
 USE_LANGGRAPH_RAG = os.getenv("USE_LANGGRAPH_RAG", "True").lower() == "true"
+LANGGRAPH_RAG_SENSITIVITY = int(os.getenv("LANGGRAPH_RAG_SENSITIVITY", "50"))
 USE_ENHANCED_LANGGRAPH_RAG = os.getenv("USE_ENHANCED_LANGGRAPH_RAG", "True").lower() == "true"
 
 # Document settings
@@ -103,6 +106,7 @@ BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 # Mem0 settings
 MEM0_ENDPOINT = os.getenv("MEM0_ENDPOINT", "http://localhost:8050")
+MEM0_SENSITIVITY = int(os.getenv("MEM0_SENSITIVITY", "50"))
 MEM0_API_KEY = os.getenv("MEM0_API_KEY", None)
 USE_MEM0 = os.getenv("USE_MEM0", "True").lower() == "true"
 
@@ -126,11 +130,14 @@ SETTINGS = SimpleNamespace(
     retrieval_judge_model=RETRIEVAL_JUDGE_MODEL,
     use_chunking_judge=USE_CHUNKING_JUDGE,
     use_retrieval_judge=USE_RETRIEVAL_JUDGE,
+    chunking_judge_sensitivity=CHUNKING_JUDGE_SENSITIVITY,
+    retrieval_judge_sensitivity=RETRIEVAL_JUDGE_SENSITIVITY,
     
     # LangGraph RAG Agent settings
     langgraph_rag_model=LANGGRAPH_RAG_MODEL,
     use_langgraph_rag=USE_LANGGRAPH_RAG,
     use_enhanced_langgraph_rag=USE_ENHANCED_LANGGRAPH_RAG,
+    langgraph_rag_sensitivity=LANGGRAPH_RAG_SENSITIVITY,
     
     # Document settings
     upload_dir=UPLOAD_DIR,
@@ -177,7 +184,8 @@ SETTINGS = SimpleNamespace(
     # Mem0 settings
     mem0_endpoint=MEM0_ENDPOINT,
     mem0_api_key=MEM0_API_KEY,
-    use_mem0=USE_MEM0
+    use_mem0=USE_MEM0,
+    mem0_sensitivity=MEM0_SENSITIVITY
 )
 
 print(f"Final DATABASE_URL in settings: {SETTINGS.database_url}")  # Debug print
