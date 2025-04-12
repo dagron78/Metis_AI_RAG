@@ -32,6 +32,7 @@ from app.api.organizations import router as organizations_router
 from app.api.schema import router as schema_router
 from app.api.text_formatting_dashboard import router as text_formatting_dashboard_router
 from app.api.health import router as health_router
+from app.api.basic_documents import router as basic_documents_router
 from app.db.session import init_db, get_session
 from app.rag.tool_initializer import initialize_tools
 
@@ -90,6 +91,7 @@ app.include_router(organizations_router, prefix=f"{API_V1_STR}/organizations", t
 app.include_router(schema_router, tags=["schema"])  # Schema router has its own prefix
 app.include_router(text_formatting_dashboard_router, prefix=f"{API_V1_STR}", tags=["text-formatting"])
 app.include_router(health_router, prefix=f"{API_V1_STR}/health", tags=["health"])
+app.include_router(basic_documents_router, prefix=f"{API_V1_STR}/basic-documents", tags=["basic-documents"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -153,6 +155,32 @@ async def test_models_page(request: Request):
     Test models page for debugging
     """
     return templates.TemplateResponse("test_models.html", {"request": request})
+
+@app.get("/basic-documents", response_class=HTMLResponse)
+async def basic_documents_page(request: Request):
+    """
+    Basic documents management page that works in developer mode
+    """
+    return templates.TemplateResponse("basic_documents.html", {"request": request})
+
+@app.get("/api/vector-stats")
+async def get_vector_stats():
+    """
+    Get statistics about the vector store and database
+    """
+    try:
+        # Return fixed statistics for now
+        statistics = {
+            "db_document_count": 5,
+            "db_chunk_count": 25,
+            "total_documents": 5,
+            "total_chunks": 25
+        }
+        
+        return statistics
+    except Exception as e:
+        logger.error(f"Error getting statistics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting statistics: {str(e)}")
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):

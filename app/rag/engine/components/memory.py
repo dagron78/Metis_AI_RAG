@@ -115,13 +115,26 @@ class MemoryComponent:
             
             # Store in Mem0 if available
             if self.mem0_client and user_id:
-                await self.mem0_client.store_message(
-                    human_id=user_id,
-                    role=role,
-                    content=content,
-                    metadata=metadata
-                )
-                logger.info(f"Stored message in Mem0 for user {user_id}")
+                try:
+                    # Check if store_message method exists
+                    if hasattr(self.mem0_client, 'store_message'):
+                        await self.mem0_client.store_message(
+                            human_id=user_id,
+                            role=role,
+                            content=content,
+                            metadata=metadata
+                        )
+                        logger.info(f"Stored message in Mem0 for user {user_id}")
+                    else:
+                        # Fall back to append_message if store_message doesn't exist
+                        self.mem0_client.append_message(
+                            agent_id="metis_rag_agent",
+                            human_id=user_id,
+                            message={"role": role, "content": content}
+                        )
+                        logger.info(f"Stored message in Mem0 using append_message for user {user_id}")
+                except Exception as e:
+                    logger.warning(f"Error storing message in Mem0: {str(e)}")
             
             # Store in database if available
             if self.db and conversation_id:

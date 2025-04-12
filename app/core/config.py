@@ -19,6 +19,8 @@ PROJECT_NAME = "Metis RAG"
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemma3:4b")
 DEFAULT_EMBEDDING_MODEL = os.getenv("DEFAULT_EMBEDDING_MODEL", "nomic-embed-text")
+OLLAMA_USE_GPU = os.getenv("OLLAMA_USE_GPU", "False").lower() == "true"
+CUDA_VISIBLE_DEVICES = os.getenv("CUDA_VISIBLE_DEVICES", "0")
 
 # LLM Judge settings
 CHUNKING_JUDGE_MODEL = os.getenv("CHUNKING_JUDGE_MODEL", "gemma3:4b")
@@ -120,6 +122,8 @@ SETTINGS = SimpleNamespace(
     ollama_base_url=OLLAMA_BASE_URL,
     default_model=DEFAULT_MODEL,
     default_embedding_model=DEFAULT_EMBEDDING_MODEL,
+    ollama_use_gpu=OLLAMA_USE_GPU,
+    cuda_visible_devices=CUDA_VISIBLE_DEVICES,
     
     # LLM Judge settings
     chunking_judge_model=CHUNKING_JUDGE_MODEL,

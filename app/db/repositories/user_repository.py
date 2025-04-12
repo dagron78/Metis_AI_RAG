@@ -29,12 +29,8 @@ class UserRepository(BaseRepository[DBUser]):
         Returns:
             User if found, None otherwise
         """
-        # Convert string ID to UUID if needed
-        if isinstance(id, str):
-            try:
-                id = UUID(id)
-            except ValueError:
-                return None
+        # For SQLite, we don't need to convert string ID to UUID
+        # Just use the ID as is, since we're storing it as a string
         
         # Use SQLAlchemy's native UUID handling
         stmt = select(DBUser).where(DBUser.id == id)

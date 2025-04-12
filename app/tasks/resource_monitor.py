@@ -13,10 +13,10 @@ class ResourceThreshold:
     """Resource threshold configuration"""
     def __init__(
         self,
-        cpu_percent: float = 80.0,
-        memory_percent: float = 80.0,
+        cpu_percent: float = 95.0,  # Increased from 80.0 to reduce warnings
+        memory_percent: float = 85.0,
         disk_percent: float = 90.0,
-        io_wait_percent: float = 30.0
+        io_wait_percent: float = 40.0
     ):
         self.cpu_percent = cpu_percent
         self.memory_percent = memory_percent

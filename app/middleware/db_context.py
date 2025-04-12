@@ -78,6 +78,11 @@ async def set_db_context(db: AsyncSession, user_id: str = None):
     Returns:
         Database session with context set
     """
+    # Skip setting context for SQLite
+    if SETTINGS.database_type.startswith("sqlite"):
+        logger.debug("Skipping database context setting for SQLite")
+        return db
+        
     try:
         if user_id:
             # Set the current_user_id for RLS policies
@@ -88,8 +93,6 @@ async def set_db_context(db: AsyncSession, user_id: str = None):
     except Exception as e:
         # Log the error but continue
         logger.error(f"Error setting database context: {e}")
-        # Set to empty string if error
-        await db.execute(text("SET app.current_user_id = ''"))
     
     return db
 
@@ -134,20 +137,22 @@ class DBContextMiddleware:
             db_gen = get_db()
             db = await anext(db_gen)
             
-            try:
-                if user_id:
-                    # Set the current_user_id for RLS policies
-                    await db.execute(text(f"SET app.current_user_id = '{user_id}'"))
-                    logger.debug(f"Set database context for user_id: {user_id}")
-                else:
-                    # Set to empty string instead of NULL
-                    await db.execute(text("SET app.current_user_id = ''"))
-                    logger.debug("Set database context to empty string (no user)")
-            except Exception as e:
-                # Log the error but continue
-                logger.error(f"Error setting database context: {e}")
-                # Set to empty string if error
-                await db.execute(text("SET app.current_user_id = ''"))
+            # Skip setting context for SQLite
+            if not SETTINGS.database_type.startswith("sqlite"):
+                try:
+                    if user_id:
+                        # Set the current_user_id for RLS policies
+                        await db.execute(text(f"SET app.current_user_id = '{user_id}'"))
+                        logger.debug(f"Set database context for user_id: {user_id}")
+                    else:
+                        # Set to empty string instead of NULL
+                        await db.execute(text("SET app.current_user_id = ''"))
+                        logger.debug("Set database context to empty string (no user)")
+                except Exception as e:
+                    # Log the error but continue
+                    logger.error(f"Error setting database context: {e}")
+            else:
+                logger.debug("Skipping database context setting for SQLite")
         except Exception as e:
             logger.error(f"Error in DB context middleware: {e}")
         

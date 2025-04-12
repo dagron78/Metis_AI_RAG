@@ -28,6 +28,9 @@ class DummyMem0Client:
     def append_message(self, *args, **kwargs):
         return None
     
+    def store_message(self, *args, **kwargs):
+        return None
+    
     def get_recall_memory(self, *args, **kwargs):
         return []
     

@@ -6,6 +6,55 @@
 <!-- Document manager styles -->
 <link rel="stylesheet" href="{{ url_for('static', path='css/document-manager.css') }}">
 <!-- Loading history styles -->
+<style>
+    .document-section-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .document-page-link {
+        color: var(--primary-color);
+        font-size: 1.1em;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+    
+    .document-page-link:hover {
+        color: var(--primary-hover-color, #0056b3);
+        background-color: rgba(0, 123, 255, 0.2);
+    }
+    
+    .devops-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 15px;
+        background-color: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+    }
+    
+    .devops-button:hover {
+        background-color: var(--primary-hover-color, #0056b3);
+    }
+    
+    .document-upload-button i {
+        margin-right: 8px;
+    }
+</style>
 <link rel="stylesheet" href="{{ url_for('static', path='css/loading-history.css') }}">
 {% endblock %}
 
@@ -96,7 +145,12 @@
             <i class="fas fa-file-alt"></i> Documents
             <span id="document-count" class="document-count">0</span>
         </div>
-        <i class="fas fa-chevron-down"></i>
+        <div class="document-section-actions">
+            <a href="/basic-documents" class="document-page-link" title="Go to Basic Documents Page">
+                <i class="fas fa-external-link-alt"></i>
+            </a>
+            <i class="fas fa-chevron-down"></i>
+        </div>
     </div>
     
     <!-- Filter Panel -->
@@ -237,6 +291,13 @@
         <div class="form-group checkbox-container">
             <input type="checkbox" id="raw-llm-output-toggle" name="raw_llm_output">
             <label for="raw-llm-output-toggle">Show Raw LLM Output</label>
+        </div>
+        
+        <!-- Document Upload Button -->
+        <div class="form-group" style="margin-top: 15px;">
+            <a href="/basic-documents" class="devops-button document-upload-button">
+                <i class="fas fa-file-upload"></i> Upload Documents
+            </a>
         </div>
     </div>
 </div>

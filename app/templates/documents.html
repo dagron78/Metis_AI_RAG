@@ -5,14 +5,30 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', path='css/document-manager.css') }}">
 <style>
-    .documents-container {
+    /* Fix for scrolling issue */
+    .main-content {
+        overflow-y: auto !important;
+    }
+    
+    .container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
     }
 
-    .document-section {
+    .section {
         margin-bottom: 30px;
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
     }
 
     .document-grid {
@@ -241,14 +257,20 @@
 <script>
     console.log("Documents page loaded at", new Date().toISOString());
 </script>
-<div style="position: fixed; top: 10px; right: 10px; z-index: 9999; padding: 20px; background-color: red; border: 5px solid black;">
-    <button id="emergency-clear-btn" style="font-size: 20px; padding: 15px; background-color: yellow; color: black; font-weight: bold; border: 3px solid black;">EMERGENCY CLEAR ALL</button>
+<div class="emergency-actions">
+    <button id="emergency-clear-btn" class="emergency-button">EMERGENCY CLEAR ALL</button>
 </div>
 
-<div class="documents-container">
-    <div class="document-section">
+<div class="container documents-container">
+    <div class="section document-section">
         <div class="section-header">
-            <h2>Document Management</h2>
+            <div class="header-left">
+                <h2 class="section-title">Document Management</h2>
+                <div class="header-links">
+                    <a href="/" class="nav-link home-link"><i class="fas fa-home"></i> Back to Main Page</a>
+                    <a href="/basic-documents" class="nav-link"><i class="fas fa-file-alt"></i> Basic Documents</a>
+                </div>
+            </div>
             <div class="auth-controls">
                 <span id="username-display-docs"></span>
                 <button id="logout-button-docs" class="btn btn-secondary" title="Logout">
@@ -262,6 +284,64 @@
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 20px;
+            }
+            
+            .header-links {
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            .header-left {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .nav-link {
+                display: inline-flex;
+                align-items: center;
+                padding: 8px 16px;
+                background-color: var(--primary-color);
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+                font-weight: 500;
+                transition: background-color 0.2s;
+                font-size: 0.9em;
+            }
+            
+            .home-link {
+                background-color: var(--secondary-color, #6c757d);
+                margin-right: 10px;
+            }
+            
+            .emergency-actions {
+                margin-bottom: 20px;
+                text-align: right;
+            }
+            
+            .emergency-button {
+                padding: 8px 16px;
+                background-color: var(--danger-color, #dc3545);
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            
+            .emergency-button:hover {
+                background-color: var(--danger-hover-color, #c82333);
+            }
+            
+            .home-link:hover {
+                background-color: var(--secondary-hover-color, #5a6268);
+            }
+            .nav-link:hover {
+                background-color: var(--primary-hover-color, #0056b3);
+            }
+            .nav-link i {
+                margin-right: 8px;
             }
             .auth-controls {
                 display: flex;
@@ -289,9 +369,10 @@
             }
         </style>
         
-        <div class="upload-form">
-            <h3>Upload Documents</h3>
-            <div id="drop-zone" class="drop-zone">
+        <div class="section">
+            <h3 class="section-title">Upload Documents</h3>
+            <div class="upload-form">
+                <div id="drop-zone" class="drop-zone">
                 <p>Drag and drop files here or click to select</p>
                 <p class="supported-formats">Supported formats: PDF, Word, Text, CSV, Markdown, HTML, JSON, XML</p>
                 <form id="upload-form">
@@ -333,11 +414,13 @@
                     <!-- Individual file progress bars will be added here -->
                 </div>
             </div>
+            </div>
         </div>
         
-        <div class="filter-section">
-            <div class="filter-title">
-                <h3>Filter Documents</h3>
+        <div class="section">
+            <h3 class="section-title">Filter Documents</h3>
+            <div class="filter-section">
+                <div class="filter-title">
                 <button id="filter-toggle" class="filter-toggle">
                     <i class="fas fa-chevron-down"></i>
                 </button>
@@ -364,8 +447,10 @@
                 </div>
             </div>
         </div>
+        </div>
         
-        <div class="document-section">
+        <div class="section">
+            <h3 class="section-title">Document Processing Options</h3>
             <h3>Document Processing Options</h3>
             <div class="processing-options">
                 <div class="form-row">
@@ -394,22 +479,49 @@
             </div>
         </div>
         
-        <div class="batch-actions" style="display: block; margin: 20px 0; padding: 20px; border: 3px solid red; background-color: #ffeeee;">
-            <h2 style="color: red; margin-bottom: 15px;">Document Management Actions</h2>
-            <button id="process-selected-btn" disabled style="display: inline-block; margin: 5px; padding: 10px;">Process Selected</button>
-            <button id="delete-selected-btn" disabled style="display: inline-block; margin: 5px; padding: 10px;">Delete Selected</button>
-            <button id="clear-all-btn" class="danger-btn" style="display: inline-block; margin: 5px; padding: 10px; background-color: #dc3545; color: white; font-weight: bold;">Clear All Documents</button>
-            <button id="clear-all-btn-direct" style="display: inline-block; margin: 5px; padding: 10px; background-color: #ff0000; color: white; font-weight: bold; font-size: 16px; border: 3px solid black;">CLEAR ALL DOCUMENTS (DIRECT)</button>
+        <div class="section">
+            <h3 class="section-title">Document Management Actions</h3>
+            <div class="batch-actions">
+                <button id="process-selected-btn" disabled class="btn btn-secondary">Process Selected</button>
+                <button id="delete-selected-btn" disabled class="btn btn-secondary">Delete Selected</button>
+                <button id="clear-all-btn" class="btn btn-danger">Clear All Documents</button>
+                <button id="clear-all-btn-direct" class="btn btn-danger">CLEAR ALL DOCUMENTS (DIRECT)</button>
+            </div>
         </div>
         
         <style>
-            .danger-btn {
-                background-color: var(--danger-color, #dc3545);
-                color: white;
+            .batch-actions {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-top: 15px;
+            }
+            
+            .btn {
+                padding: 8px 16px;
                 border: none;
-                padding: 8px 15px;
                 border-radius: 4px;
                 cursor: pointer;
+                font-weight: 500;
+                transition: background-color 0.2s;
+            }
+            
+            .btn-secondary {
+                background-color: var(--secondary-color, #6c757d);
+                color: white;
+            }
+            
+            .btn-secondary:hover {
+                background-color: var(--secondary-hover-color, #5a6268);
+            }
+            
+            .btn-danger {
+                background-color: var(--danger-color, #dc3545);
+                color: white;
+            }
+            
+            .btn-danger:hover {
+                background-color: var(--danger-hover-color, #c82333);
                 margin-left: 10px;
             }
             

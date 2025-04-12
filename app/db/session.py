@@ -20,6 +20,10 @@ if SETTINGS.database_type.startswith("sqlite"):
         SETTINGS.database_url,
         echo=False,  # Set to True for SQL query logging
         pool_pre_ping=True,  # Verify connections before using them
+        # Use a specific execution option for SQLite
+        execution_options={
+            "isolation_level": "AUTOCOMMIT"  # Valid for SQLite
+        }
     )
 else:
     engine = create_async_engine(

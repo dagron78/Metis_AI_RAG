@@ -33,9 +33,15 @@ async def health_check(request: Request, db: AsyncSession = Depends(get_db)):
         db_status = "healthy"
         db_error = None
         try:
-            # Execute a simple query to check database connection
-            result = await db.execute(text("SELECT 1"))
-            await result.fetchall()
+            # Use a much simpler approach to check database connection
+            # Just check if we can connect to the database
+            try:
+                await db.execute(text("SELECT 1"))
+                # If we get here, the database is healthy
+            except Exception as db_e:
+                db_status = "unhealthy"
+                db_error = str(db_e)
+                logger.error(f"Database health check failed: {str(db_e)}")
         except Exception as e:
             db_status = "unhealthy"
             db_error = str(e)

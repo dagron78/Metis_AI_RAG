@@ -113,6 +113,10 @@ async def check_ip_ban(request: Request) -> bool:
     client_ip = request.client.host if request.client else "unknown"
     ban_key = f"{IP_BAN_PREFIX}{client_ip}"
     
+    # Skip Redis operations entirely if rate limiting is disabled
+    if not SETTINGS.rate_limiting_enabled:
+        return False
+        
     try:
         banned_until = await FastAPILimiter.redis.get(ban_key)
         if banned_until:
@@ -120,7 +124,8 @@ async def check_ip_ban(request: Request) -> bool:
             logger.info(f"Blocked request from banned IP: {client_ip}")
             return True
     except Exception as e:
-        logger.error(f"Error checking IP ban status: {str(e)}")
+        # Just log at debug level when rate limiting is explicitly disabled
+        logger.debug(f"Error checking IP ban status: {str(e)}")
     
     return False
 

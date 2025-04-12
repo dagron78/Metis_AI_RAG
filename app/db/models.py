@@ -4,7 +4,8 @@ from sqlalchemy import (
     Column, Integer, String, Text, Float, Boolean, 
     DateTime, ForeignKey, JSON, Table, Index, UniqueConstraint
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import JSON
 from sqlalchemy.orm import relationship, backref
 
 from app.db.session import Base
@@ -29,7 +30,7 @@ class Document(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     filename = Column(String, nullable=False)
     content = Column(Text, nullable=True)  # Can be null if we only store metadata
-    doc_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'doc_metadata'
+    doc_metadata = Column(JSON, default={})  # Renamed from 'metadata' to 'doc_metadata'
     folder = Column(String, ForeignKey('folders.path'), default="/")
     uploaded = Column(DateTime, default=datetime.utcnow)
     processing_status = Column(String, default="pending")  # pending, processing, completed, failed
@@ -37,7 +38,7 @@ class Document(Base):
     file_size = Column(Integer, nullable=True)
     file_type = Column(String, nullable=True)
     last_accessed = Column(DateTime, default=datetime.utcnow)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    user_id = Column(String, ForeignKey('users.id'), nullable=True)
     is_public = Column(Boolean, default=False)  # Whether the document is publicly accessible
     organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'), nullable=True)
 
@@ -69,7 +70,7 @@ class DocumentPermission(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     document_id = Column(UUID(as_uuid=True), ForeignKey('documents.id', ondelete='CASCADE'), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     permission_level = Column(String, nullable=False)  # 'read', 'write', 'admin'
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -95,7 +96,7 @@ class Chunk(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     document_id = Column(UUID(as_uuid=True), ForeignKey('documents.id'), nullable=False)
     content = Column(Text, nullable=False)
-    chunk_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'chunk_metadata'
+    chunk_metadata = Column(JSON, default={})  # Renamed from 'metadata' to 'chunk_metadata'
     index = Column(Integer, nullable=False)  # Position in the document
     embedding_quality = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -167,9 +168,9 @@ class Conversation(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    conv_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'conv_metadata'
+    conv_metadata = Column(JSON, default={})  # Renamed from 'metadata' to 'conv_metadata'
     message_count = Column(Integer, default=0)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    user_id = Column(String, ForeignKey('users.id'), nullable=True)
 
     # Relationships
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
@@ -251,7 +252,7 @@ class ProcessingJob(Base):
     document_count = Column(Integer, default=0)
     processed_count = Column(Integer, default=0)
     strategy = Column(String, nullable=True)
-    job_metadata = Column(JSONB, default={})  # Renamed from 'metadata' to 'job_metadata'
+    job_metadata = Column(JSON, default={})  # Renamed from 'metadata' to 'job_metadata'
     progress_percentage = Column(Float, default=0.0)
     error_message = Column(Text, nullable=True)
 
@@ -276,7 +277,7 @@ class AnalyticsQuery(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
     response_time_ms = Column(Float, nullable=True)
     token_count = Column(Integer, nullable=True)
-    document_id_list = Column(JSONB, default=[])  # Renamed from 'document_ids' to 'document_id_list'
+    document_id_list = Column(JSON, default=[])  # Renamed from 'document_ids' to 'document_id_list'
     query_type = Column(String, nullable=True)  # simple, complex, agentic
     successful = Column(Boolean, default=True)
 
@@ -298,7 +299,7 @@ class Organization(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    settings = Column(JSONB, default={})
+    settings = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -319,7 +320,7 @@ class OrganizationMember(Base):
     __tablename__ = "organization_members"
 
     organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id', ondelete='CASCADE'), primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
     role = Column(String, nullable=False)  # 'owner', 'admin', 'member'
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -341,7 +342,8 @@ class User(Base):
     """User model for database"""
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Use String type for SQLite compatibility
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     password_hash = Column(String, nullable=False)
@@ -350,7 +352,7 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
-    user_metadata = Column('metadata', JSONB, default={})  # Map user_metadata attribute to 'metadata' column
+    user_metadata = Column('metadata', JSON, default={})  # Map user_metadata attribute to 'metadata' column
 
     # Relationships
     documents = relationship("Document", back_populates="user")
@@ -378,7 +380,7 @@ class Role(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False, unique=True)
     description = Column(String, nullable=True)
-    permissions = Column(JSONB, default={})
+    permissions = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -397,7 +399,7 @@ class UserRole(Base):
     """User-role association model for database"""
     __tablename__ = "user_roles"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
     role_id = Column(UUID(as_uuid=True), ForeignKey('roles.id', ondelete='CASCADE'), primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -420,7 +422,7 @@ class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
     token = Column(String, nullable=False, unique=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
@@ -445,11 +447,11 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     type = Column(String, nullable=False)  # e.g., 'document_shared', 'mention', 'system'
     title = Column(String, nullable=False)
     message = Column(Text, nullable=False)
-    data = Column(JSONB, default={})
+    data = Column(JSON, default={})
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     read_at = Column(DateTime, nullable=True)
@@ -475,13 +477,13 @@ class BackgroundTask(Base):
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     task_type = Column(String, nullable=False)
-    params = Column(JSONB, nullable=True)
+    params = Column(JSON, nullable=True)
     priority = Column(Integer, nullable=True, default=50)
     dependencies = Column(Text, nullable=True)
     schedule_time = Column(DateTime, nullable=True)
     timeout_seconds = Column(Integer, nullable=True)
     max_retries = Column(Integer, nullable=True, default=0)
-    task_metadata = Column(JSONB, nullable=True)  # Renamed from 'metadata' to 'task_metadata'
+    task_metadata = Column(JSON, nullable=True)  # Renamed from 'metadata' to 'task_metadata'
     status = Column(String, nullable=False, default="pending")
     created_at = Column(DateTime, nullable=True, default=datetime.utcnow)
     scheduled_at = Column(DateTime, nullable=True)
@@ -491,7 +493,7 @@ class BackgroundTask(Base):
     result = Column(Text, nullable=True)
     error = Column(Text, nullable=True)
     progress = Column(Float, nullable=True, default=0.0)
-    resource_usage = Column(JSONB, nullable=True)
+    resource_usage = Column(JSON, nullable=True)
     execution_time_ms = Column(Float, nullable=True)
 
     # Indexes

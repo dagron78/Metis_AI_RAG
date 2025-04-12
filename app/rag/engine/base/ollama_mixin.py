@@ -113,6 +113,11 @@ class OllamaMixin:
                             token = await self._get_system_token()
                             if attempt == max_retries - 1:
                                 logger.error(f"Failed to authenticate for analytics after {max_retries} attempts")
+                        elif response.status_code == 404:
+                            # Analytics endpoint not found, log at debug level and stop retrying
+                            logger.debug(f"Analytics API endpoint not found (404). This is normal if analytics is not configured.")
+                            # No need to retry for 404 errors
+                            break
                         else:
                             logger.warning(f"Analytics API returned status code {response.status_code}")
                             if attempt == max_retries - 1:

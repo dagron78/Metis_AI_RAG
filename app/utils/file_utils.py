@@ -45,15 +45,19 @@ async def validate_file(file: UploadFile) -> tuple[bool, str]:
     
     # Check file size
     try:
+        # The UploadFile object doesn't have async versions of tell() and seek()
+        # We need to access the underlying file object
+        file_obj = file.file
+        
         # Save current position
-        current_position = await file.tell()
+        current_position = file_obj.tell()
         
         # Move to end to get size
-        await file.seek(0, 2)  # Seek to end
-        file_size = await file.tell()
+        file_obj.seek(0, 2)  # Seek to end
+        file_size = file_obj.tell()
         
         # Reset position
-        await file.seek(current_position)
+        file_obj.seek(current_position)
         
         if file_size > max_file_size:
             error_msg = f"File exceeds maximum size of {max_file_size/(1024*1024):.1f}MB"
@@ -63,14 +67,14 @@ async def validate_file(file: UploadFile) -> tuple[bool, str]:
         # Basic content validation for specific file types
         if ext == ".pdf":
             # Save current position
-            current_position = await file.tell()
+            current_position = file_obj.tell()
             
             # Check PDF header
-            await file.seek(0)
-            header = await file.read(5)
+            file_obj.seek(0)
+            header = file_obj.read(5)
             
             # Reset position
-            await file.seek(current_position)
+            file_obj.seek(current_position)
             
             if header != b"%PDF-":
                 error_msg = "Invalid PDF file format"
@@ -109,21 +113,41 @@ async def save_upload_file(file: UploadFile, document_id: str) -> str:
         # Make sure to close the file
         await file.close()
 
-def delete_document_files(document_id: str) -> None:
+def delete_document_files(path: str) -> None:
     """
     Delete document files
+    
+    Args:
+        path: Either a document ID or a full file path
     """
     try:
-        # Get document directory
-        document_dir = os.path.join(UPLOAD_DIR, document_id)
-        
-        # Check if directory exists
-        if os.path.exists(document_dir):
-            # Delete directory and all its contents
-            shutil.rmtree(document_dir)
-            logger.info(f"Deleted document files for {document_id}")
+        # Check if path is a full file path or just a document ID
+        if os.path.isabs(path):
+            # It's a full file path
+            if os.path.exists(path):
+                # Delete the file
+                os.remove(path)
+                logger.info(f"Deleted document file at {path}")
+                
+                # Check if the parent directory is empty and is under UPLOAD_DIR
+                parent_dir = os.path.dirname(path)
+                if parent_dir.startswith(UPLOAD_DIR) and os.path.exists(parent_dir) and not os.listdir(parent_dir):
+                    # Remove empty directory
+                    os.rmdir(parent_dir)
+                    logger.info(f"Removed empty directory {parent_dir}")
+            else:
+                logger.warning(f"Document file at {path} does not exist")
         else:
-            logger.warning(f"Document directory for {document_id} does not exist")
+            # It's a document ID
+            document_dir = os.path.join(UPLOAD_DIR, path)
+            
+            # Check if directory exists
+            if os.path.exists(document_dir):
+                # Delete directory and all its contents
+                shutil.rmtree(document_dir)
+                logger.info(f"Deleted document files for {path}")
+            else:
+                logger.warning(f"Document directory for {path} does not exist")
     except Exception as e:
         logger.error(f"Error deleting document files: {str(e)}")
         raise

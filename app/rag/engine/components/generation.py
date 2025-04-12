@@ -159,18 +159,14 @@ class GenerationComponent:
                 # Create a simple user prompt for code queries
                 user_prompt = f"User Question: {query}"
                 
-                # Import the FormattedResponse model for the schema
-                from app.models.structured_output import FormattedResponse
+                # For code queries, we'll use a simpler approach without structured output
+                # to avoid 400 Bad Request errors with Ollama
                 
-                # Set the format parameter for structured output
+                # Set temperature to 0.2 for more deterministic but still creative output
                 if not model_parameters:
                     model_parameters = {}
                 
-                # Add the format schema to the model parameters
-                model_parameters["format"] = FormattedResponse.model_json_schema()
-                
-                # Set temperature to 0 for more deterministic output
-                model_parameters["temperature"] = 0.0
+                model_parameters["temperature"] = 0.2
                 
                 logger.info("Using structured output format for code-related query")
                 
@@ -250,6 +246,11 @@ class GenerationComponent:
                                  model: str,
                                  system_prompt: str,
                                  model_parameters: Dict[str, Any]) -> AsyncGenerator[Dict[str, Any], None]:
+        # Ensure we're using the correct model for generation
+        from app.core.config import DEFAULT_MODEL
+        if model == "nomic-embed-text:latest":
+            logger.warning(f"Attempted to use embedding model for generation. Switching to {DEFAULT_MODEL}")
+            model = DEFAULT_MODEL
         """
         Generate a streaming response
         
@@ -262,8 +263,9 @@ class GenerationComponent:
         Yields:
             Response chunks
         """
-        # Check if this is a structured output request
-        is_structured_output = "format" in model_parameters
+        # We're no longer using structured output format for code queries
+        # but keeping this code for future reference if needed
+        is_structured_output = False
         
         # For structured outputs, we can't stream the response directly
         # because we need to process the complete JSON
@@ -312,6 +314,11 @@ class GenerationComponent:
                                 model: str,
                                 system_prompt: str,
                                 model_parameters: Dict[str, Any]) -> Dict[str, Any]:
+        # Ensure we're using the correct model for generation
+        from app.core.config import DEFAULT_MODEL
+        if model == "nomic-embed-text:latest":
+            logger.warning(f"Attempted to use embedding model for generation. Switching to {DEFAULT_MODEL}")
+            model = DEFAULT_MODEL
         """
         Generate a complete response
         
