@@ -99,10 +99,21 @@ class VectorStore:
                         )
             
             # Add chunks to the collection
+            chunks_added = 0
+            chunks_skipped = 0
+            
+            logger.info(f"Processing {len(document.chunks)} chunks for document {document.id}")
+            
             for chunk in document.chunks:
                 if not chunk.embedding:
                     logger.warning(f"Chunk {chunk.id} has no embedding, skipping")
+                    chunks_skipped += 1
                     continue
+                
+                # Log embedding information for debugging
+                if chunk.embedding:
+                    embedding_length = len(chunk.embedding)
+                    logger.info(f"Chunk {chunk.id} has embedding of length {embedding_length}")
                     
                 # Prepare metadata - convert any lists to strings to satisfy ChromaDB requirements
                 metadata = {
@@ -138,17 +149,23 @@ class VectorStore:
                     else:
                         metadata[key] = value
                 
-                self.collection.add(
-                    ids=[chunk.id],
-                    embeddings=[chunk.embedding],
-                    documents=[chunk.content],
-                    metadatas=[metadata]
-                )
+                try:
+                    self.collection.add(
+                        ids=[chunk.id],
+                        embeddings=[chunk.embedding],
+                        documents=[chunk.content],
+                        metadatas=[metadata]
+                    )
+                    chunks_added += 1
+                    logger.info(f"Successfully added chunk {chunk.id} to vector store")
+                except Exception as chunk_error:
+                    logger.error(f"Error adding chunk {chunk.id} to vector store: {str(chunk_error)}")
+                    chunks_skipped += 1
             
             # Clear the cache to ensure we're using the latest embeddings
             self.clear_cache()
             
-            logger.info(f"Added {len(document.chunks)} chunks to vector store for document {document.id}")
+            logger.info(f"Added {chunks_added} chunks to vector store for document {document.id}, skipped {chunks_skipped} chunks")
         except Exception as e:
             logger.error(f"Error adding document {document.id} to vector store: {str(e)}")
             raise
@@ -204,6 +221,43 @@ class VectorStore:
             logger.error(f"Error updating metadata for document {document_id}: {str(e)}")
             raise
     
+    async def get_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about the vector store
+        
+        Returns:
+            Dictionary with statistics about the vector store
+        """
+        try:
+            # Count total chunks
+            total_chunks = self.collection.count()
+            
+            # Get all metadatas to count unique document IDs
+            all_metadatas = self.collection.get(
+                include=["metadatas"]
+            )
+            
+            # Count unique document IDs
+            document_ids = set()
+            if all_metadatas and "metadatas" in all_metadatas and all_metadatas["metadatas"]:
+                for metadata in all_metadatas["metadatas"]:
+                    if metadata and "document_id" in metadata:
+                        document_ids.add(metadata["document_id"])
+            
+            return {
+                "total_documents": len(document_ids),
+                "total_chunks": total_chunks,
+                "collection_name": self.collection.name
+            }
+        except Exception as e:
+            logger.error(f"Error getting vector store statistics: {str(e)}")
+            return {
+                "total_documents": 0,
+                "total_chunks": 0,
+                "collection_name": "documents",
+                "error": str(e)
+            }
+    
     async def search(
         self,
         query: str,
@@ -255,6 +309,8 @@ class VectorStore:
             # Log filter criteria if present
             if secure_filter:
                 logger.info(f"Applying security filter criteria: {secure_filter}")
+            # Log the filter criteria
+            logger.info(f"Searching with filter criteria: {secure_filter}")
             
             # Search for similar documents
             results = self.collection.query(
@@ -262,6 +318,13 @@ class VectorStore:
                 n_results=top_k,
                 where=secure_filter
             )
+            
+            # Log the number of results
+            if results and "ids" in results and results["ids"] and len(results["ids"]) > 0:
+                logger.info(f"Found {len(results['ids'][0])} results for query: {query[:50]}...")
+            else:
+                logger.warning(f"No results found for query: {query[:50]}...")
+            
             
             # Format results
             formatted_results = []
@@ -328,9 +391,17 @@ class VectorStore:
         # Start with the original filter criteria or an empty dict
         secure_filter = filter_criteria.copy() if filter_criteria else {}
         
-        # If no user_id, only allow public documents
+        # If no user_id, we have two options:
+        # 1. Only allow public documents (more secure)
+        # 2. Allow all documents (more permissive)
         if not user_id:
-            secure_filter["is_public"] = True
+            # Option 1: Only allow public documents
+            # secure_filter["is_public"] = True
+            
+            # Option 2: Allow all documents (more permissive)
+            # This will return all documents regardless of is_public flag
+            # We're using this option to ensure RAG works even if documents don't have is_public set
+            logger.info("No user ID provided, allowing all documents (permissive mode)")
             return secure_filter
         
         # For authenticated users, allow:

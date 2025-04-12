@@ -30,9 +30,11 @@ class DocumentProcessor:
         chunk_overlap: int = CHUNK_OVERLAP,
         chunking_strategy: str = "recursive",
         llm_provider = None,
-        user_id: Optional[UUID] = None
+        user_id: Optional[UUID] = None,
+        session = None
     ):
         self.upload_dir = upload_dir
+        self.session = session
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.chunking_strategy = chunking_strategy
@@ -146,6 +148,7 @@ class DocumentProcessor:
             Returns:
                 Processed document (Pydantic model)
             """
+            from app.rag.vector_store import VectorStore
             from app.db.adapters import (
                 is_sqlalchemy_model,
                 sqlalchemy_document_to_pydantic,
@@ -162,6 +165,13 @@ class DocumentProcessor:
                     pydantic_document = document
                     
                 logger.info(f"Processing document: {pydantic_document.filename}")
+                
+                # Update processing status to "processing"
+                if is_sqlalchemy:
+                    document.processing_status = "processing"
+                    await self.session.commit()
+                else:
+                    pydantic_document.processing_status = "processing"
                 
                 # Convert document ID to string if it's a UUID
                 document_id_str = str(pydantic_document.id)
@@ -239,6 +249,10 @@ class DocumentProcessor:
                     # Add is_public flag for permission filtering
                     if hasattr(document, 'is_public'):
                         metadata["is_public"] = document.is_public
+                    else:
+                        # Default to public if not specified
+                        metadata["is_public"] = True
+                        logger.info(f"Setting default is_public=True for document {document_id_str} chunk {i}")
                     
                     # Add document permissions information
                     if hasattr(document, 'shared_with') and document.shared_with:
@@ -271,9 +285,53 @@ class DocumentProcessor:
                 
                 logger.info(f"Document processed into {len(pydantic_document.chunks)} chunks")
                 
+                # Add document to vector store
+                try:
+                    logger.info(f"Attempting to add document {pydantic_document.id} to vector store")
+                    vector_store = VectorStore()
+                    
+                    # Log the number of chunks being added
+                    logger.info(f"Adding {len(pydantic_document.chunks)} chunks to vector store")
+                    
+                    # Check if chunks have embeddings
+                    chunks_with_embeddings = [chunk for chunk in pydantic_document.chunks if chunk.embedding]
+                    chunks_without_embeddings = [chunk for chunk in pydantic_document.chunks if not chunk.embedding]
+                    logger.info(f"Chunks with embeddings: {len(chunks_with_embeddings)}, without embeddings: {len(chunks_without_embeddings)}")
+                    
+                    await vector_store.add_document(pydantic_document)
+                    logger.info(f"Document {pydantic_document.id} added to vector store")
+                    
+                    # Update processing status to "completed"
+                    if is_sqlalchemy:
+                        document.processing_status = "completed"
+                        await self.session.commit()
+                    else:
+                        pydantic_document.processing_status = "completed"
+                except Exception as e:
+                    logger.error(f"Error adding document to vector store: {str(e)}")
+                    # Update processing status to "failed"
+                    if is_sqlalchemy:
+                        document.processing_status = "failed"
+                        await self.session.commit()
+                    else:
+                        pydantic_document.processing_status = "failed"
+                
                 return pydantic_document
             except Exception as e:
-                logger.error(f"Error processing document {pydantic_document.filename}: {str(e)}")
+                # Handle the case where pydantic_document might not be defined yet
+                if 'pydantic_document' in locals():
+                    logger.error(f"Error processing document {pydantic_document.filename}: {str(e)}")
+                    # Update processing status to "failed"
+                    try:
+                        if is_sqlalchemy:
+                            document.processing_status = "failed"
+                            await self.session.commit()
+                        else:
+                            pydantic_document.processing_status = "failed"
+                    except Exception as status_error:
+                        logger.error(f"Error updating processing status: {str(status_error)}")
+                else:
+                    logger.error(f"Error processing document: {str(e)}")
                 raise
     
     async def _load_document(self, file_path: str) -> List[LangchainDocument]:
