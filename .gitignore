@@ -1,11 +1,17 @@
 # Virtual environment
 venv_py310/
+venv/
 
 # Data directories that might be large
 data/chroma_db/
 data/uploads/
+chroma_db/
+uploads/
 test_e2e_chroma/
 test_query_chroma/
+
+# Database files
+data/*.db
 
 # Cache files
 data/cache/
@@ -19,6 +25,7 @@ __pycache__/
 
 # Log files
 logs/*.log
+logs/security/*.log
 
 # Test results
 test_results/
