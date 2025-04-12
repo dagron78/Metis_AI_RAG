@@ -6,7 +6,7 @@ import asyncio
 from typing import Dict, List, Any, Optional, Generator, Tuple, Union
 from sse_starlette.sse import EventSourceResponse
 
-from app.core.config import OLLAMA_BASE_URL, DEFAULT_MODEL
+from app.core.config import OLLAMA_BASE_URL, DEFAULT_MODEL, DEFAULT_EMBEDDING_MODEL
 
 logger = logging.getLogger("app.rag.ollama_client")
 
@@ -14,10 +14,16 @@ class OllamaClient:
     """
     Client for interacting with Ollama API
     """
-    def __init__(self, base_url: str = OLLAMA_BASE_URL, timeout: int = 30):
+    def __init__(self, base_url: str = OLLAMA_BASE_URL, timeout: int = 180):  # Increased default timeout to 3 minutes
         self.base_url = base_url
         self.timeout = timeout
-        self.client = httpx.AsyncClient(timeout=timeout)
+        # Increase timeout for better reliability with large models
+        self.client = httpx.AsyncClient(timeout=httpx.Timeout(
+            connect=10.0,  # Connection timeout
+            read=timeout,  # Read timeout
+            write=10.0,    # Write timeout
+            pool=10.0      # Pool timeout
+        ))
     
     async def __aenter__(self):
         return self
@@ -58,6 +64,14 @@ class OllamaClient:
         """
         if parameters is None:
             parameters = {}
+            
+        # Check if GPU usage is enabled in environment
+        from app.core.config import SETTINGS
+        use_gpu = getattr(SETTINGS, 'ollama_use_gpu', False)
+        
+        # Add GPU-specific parameters if enabled
+        if use_gpu and 'gpu' not in parameters:
+            parameters['gpu'] = True
         
         payload = {
             "model": model,
@@ -77,12 +91,18 @@ class OllamaClient:
                 if stream:
                     return await self._stream_response(payload)
                 else:
+                    # Log the exact payload being sent
+                    logger.info(f"Sending request to Ollama API with payload: {json.dumps(payload)}")
+                    
                     response = await self.client.post(
                         f"{self.base_url}/api/generate",
                         json=payload
                     )
                     response.raise_for_status()
                     response_data = response.json()
+                    
+                    # Log successful response
+                    logger.info(f"Received successful response from Ollama API")
                     
                     # Check if the response contains an error message from the model
                     if 'error' in response_data:
@@ -100,10 +120,28 @@ class OllamaClient:
                     await asyncio.sleep(retry_delay)
                     retry_delay *= 2
                 else:
-                    # Return a user-friendly error message
+                    # Check if this is a 400 Bad Request error, which might indicate model not found
+                    if "400 Bad Request" in str(e):
+                        return {
+                            "response": "I'm unable to answer that question right now. The requested model may not be available. Please check if Ollama is running and the model is installed.",
+                            "error": str(e)
+                        }
+                    else:
+                        # Return a user-friendly error message
+                        return {
+                            "response": "I'm unable to answer that question right now. There was an issue connecting to the language model.",
+                            "error": str(e)
+                        }
+            except httpx.TimeoutException as e:
+                logger.error(f"Timeout generating response (attempt {attempt+1}/{max_retries}): {str(e)}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2
+                else:
+                    # Return a user-friendly error message for timeouts
                     return {
-                        "response": "I'm unable to answer that question right now. There was an issue connecting to the language model.",
-                        "error": str(e)
+                        "response": "I'm unable to process your request right now. The language model is taking too long to respond. Please try again with a simpler query.",
+                        "error": f"Timeout error: {str(e)}"
                     }
             except Exception as e:
                 logger.error(f"Error generating response (attempt {attempt+1}/{max_retries}): {str(e)}")
@@ -178,13 +216,16 @@ class OllamaClient:
         return event_generator()  # Return the generator directly
     
     async def create_embedding(
-        self, 
-        text: str, 
-        model: str = DEFAULT_MODEL
+        self,
+        text: str,
+        model: str = DEFAULT_EMBEDDING_MODEL
     ) -> List[float]:
         """
         Create an embedding for the given text
         """
+        # Log the request
+        logger.info(f"Creating embedding for text of length {len(text)} with model {model}")
+        
         payload = {
             "model": model,
             "prompt": text
@@ -195,12 +236,23 @@ class OllamaClient:
         
         for attempt in range(max_retries):
             try:
+                logger.info(f"Sending embedding request to Ollama API (attempt {attempt+1}/{max_retries})")
+                
                 response = await self.client.post(
                     f"{self.base_url}/api/embeddings",
                     json=payload
                 )
                 response.raise_for_status()
-                return response.json().get("embedding", [])
+                
+                embedding = response.json().get("embedding", [])
+                
+                # Log the response
+                if embedding:
+                    logger.info(f"Successfully created embedding of length {len(embedding)}")
+                else:
+                    logger.warning("Received empty embedding from Ollama API")
+                
+                return embedding
             except Exception as e:
                 logger.error(f"Error creating embedding (attempt {attempt+1}/{max_retries}): {str(e)}")
                 if attempt < max_retries - 1:
